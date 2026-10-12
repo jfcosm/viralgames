@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="snes">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIRALGAMES ★ Arcade 16-Bit de Mini Juegos Virales</title>
+  <meta name="description" content="VIRALGAMES: La plataforma definitiva de mini juegos retro 16-bit inspirados en los virales más épicos de la cultura pop e internet. Desde el Tío Aceite de La Serena hasta las leyendas de YouTube.">
+  
+  <!-- Favicon Retro Pixel -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23110926'/><rect x='2' y='4' width='12' height='8' fill='%23ff0055'/><rect x='4' y='6' width='8' height='4' fill='%2300f0ff'/><rect x='6' y='7' width='4' height='2' fill='%23ffffff'/></svg>">
+
+  <!-- Google Fonts: 16-bit Pixel typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen:wght@400;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Scanlines & CRT Overlay (Activado solo desde Panel Admin) -->
+  <div class="crt-overlay" aria-hidden="true"></div>
+  <div class="crt-vignette" aria-hidden="true"></div>
+
+  <!-- Top Arcade HUD Bar (Público y limpio) -->
+  <header class="arcade-hud">
+    <div class="hud-container">
+      <div class="hud-left">
+        <span class="hud-badge pulse">● 1P READY</span>
+        <span class="hud-credits"><span class="blink">INSERT COIN</span> [CREDITS: <strong id="hudCredits">99</strong>]</span>
+      </div>
+
+      <div class="hud-center">
+        <span class="hud-center-tag">★ 16-BIT RETRO SYSTEM ★ HIGH SCORE: 99999</span>
+      </div>
+
+      <div class="hud-right">
+        <button type="button" id="btnToggleSound" class="hud-toggle-btn active" title="Activar/Desactivar sonido chiptune">
+          🔊 <span id="soundLabel">SFX ON</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LANDING PAGE CONTAINER -->
+  <main id="mainContent" class="main-layout">
+
+    <!-- HERO SECTION: TITLE & CONSOLE MARQUEE -->
+    <section class="hero-section">
+      <div class="marquee-board">
+        <div class="marquee-edge"></div>
+        <div class="marquee-content">
+          <div class="logo-wrapper">
+            <div class="logo-sub">MELODIALAB PRESENTA</div>
+            <h1 class="pixel-logo">
+              <span class="logo-word logo-viral">VIRAL</span><span class="logo-word logo-games">GAMES</span>
+            </h1>
+            <div class="logo-tagline">
+              <span class="tagline-star">★</span> 
+              ARCADE MULTIVERSO DE MINI JUEGOS VIRALES 
+              <span class="tagline-star">★</span>
+            </div>
+            <div class="system-badge-bar">
+              <span class="sys-badge sys-16bit">16-BIT STEREO SOUND</span>
+              <span class="sys-badge sys-blast">GIGA POWER ARCADE</span>
+              <span class="sys-badge sys-cartridge">CARTRIDGE SYSTEM</span>
+            </div>
+          </div>
+        </div>
+        <div class="marquee-edge"></div>
+      </div>
+    </section>
+
+    <!-- FEATURED GAME #01: TÍO ACEITE (LA SERENA) -->
+    <section class="featured-game-section" id="featuredSection">
+      <div class="section-title-wrapper">
+        <span class="section-pretitle">★ DEBUT MUNDIAL EXCLUSIVO ★</span>
+        <h2 class="section-title">MINI JUEGO #01: EL MÍTICO TÍO ACEITE</h2>
+        <p class="section-subtitle">Directo desde la bohemia nocturna de La Serena a tu consola 16-bit</p>
+      </div>
+
+      <div class="featured-card">
+        <div class="featured-media-container">
+          <div class="screen-frame">
+            <div class="screen-header">
+              <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+              <span class="screen-title-text">STAGE 01: LA SERENA NOCTURNA</span>
+              <span class="screen-fps">60 FPS</span>
+            </div>
+            <div class="screen-image-box">
+              <img src="/assets/tio_aceite.jpg" alt="Videojuego 16-bit de Tío Aceite en La Serena friendo pescado en su carrito" id="featuredGameImage" class="pixel-cover" loading="eager">
+              <div class="screen-scanline"></div>
+              <div class="screen-overlay-hud">
+                <span class="hud-ingame-score">SCORE: 14500</span>
+                <span class="hud-ingame-oil">ACEITE: 100% HI-TEMP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="featured-details">
+          <div class="featured-badge-row">
+            <span class="pixel-badge badge-primary">★ JUEGO DEBUT OFICIAL</span>
+            <span class="pixel-badge badge-highlight">LA SERENA, CHILE</span>
+            <span class="pixel-badge badge-warning">ALTO EN COLESTEROL</span>
+          </div>
+
+          <h3 class="featured-name">TÍO ACEITE: LA FRITANGA SUPREMA</h3>
+
+          <p class="featured-description">
+            En las misteriosas calles nocturnas de La Serena, una densa nube de humo dorado anuncia la presencia del maestro supremo de la fritanga. Toma el control de la espumadera legendaria, atiende a los parroquianos que salen del carrete a las 4 AM, calcula la temperatura perfecta del perol hirviendo y esquiva a los inspectores para coronarte como el Rey del Pescado Frito y las Empanadas de queso.
+          </p>
+
+          <div class="featured-stats-grid">
+            <div class="stat-box">
+              <span class="stat-label">SABOR NOCTURNO</span>
+              <div class="stat-bar"><div class="stat-fill" style="width: 100%;"></div></div>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">NIVEL DE ACEITE</span>
+              <div class="stat-bar"><div class="stat-fill fill-fire" style="width: 95%;"></div></div>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">VIRALIDAD HISTÓRICA</span>
+              <div class="stat-bar"><div class="stat-fill fill-neon" style="width: 100%;"></div></div>
+            </div>
+          </div>
+
+          <div class="featured-actions">
+            <button type="button" class="pixel-button btn-primary btn-large btn-sound" id="btnPlayTioAceite">
+              ▶ INSERTAR FICHA & JUGAR DEMO
+            </button>
+            <button type="button" class="pixel-button btn-secondary btn-sound" id="btnInfoTioAceite">
+              📜 DETALLES Y LORE
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GAMES CATALOG SECTION -->
+    <section class="games-catalog-section" id="catalogSection">
+      <div class="section-title-wrapper">
+        <span class="section-pretitle">CATÁLOGO EN EXPANSIÓN</span>
+        <h2 class="section-title">BIBLIOTECA DE MINI JUEGOS VIRALES</h2>
+        <p class="section-subtitle">Decenas de mini juegos basados en las leyendas más disparatadas de la web</p>
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="catalog-controls">
+        <div class="filter-tabs" role="tablist">
+          <button type="button" class="filter-btn active" data-filter="all">★ TODOS</button>
+          <button type="button" class="filter-btn" data-filter="viral">VIRALES CHILENOS</button>
+          <button type="button" class="filter-btn" data-filter="arcade">ARCADE 16-BIT</button>
+          <button type="button" class="filter-btn" data-filter="proximamente">PRÓXIMAMENTE</button>
+        </div>
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="gameSearchInput" class="pixel-input" placeholder="BUSCAR JUEGO..." autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Dynamic Games Grid -->
+      <div class="games-grid" id="gamesGrid" aria-live="polite">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- CREATOR & INSPIRATION CREDITS SECTION -->
+    <section class="credits-section" id="creditsSection">
+      <div class="section-title-wrapper">
+        <span class="section-pretitle">PLAYER SELECT / STAFF ROLL</span>
+        <h2 class="section-title">CREADORES & INSPIRACIÓN</h2>
+        <p class="section-subtitle">El equipo detrás de la máquina arcade de VIRALGAMES</p>
+      </div>
+
+      <div class="credits-grid">
+        <!-- PLAYER 1: Francisco Carle (Creador) -->
+        <article class="credit-card card-creator">
+          <div class="credit-header">
+            <span class="player-slot">PLAYER 1 [CREADOR]</span>
+            <span class="credit-rank">★ LVL 99 DEV</span>
+          </div>
+
+          <div class="credit-avatar-box">
+            <div class="pixel-avatar-frame">
+              <!-- Pixel Sprite Representation -->
+              <div class="avatar-sprite avatar-francisco">
+                <div class="sprite-pixel-head"></div>
+                <div class="sprite-pixel-glasses"></div>
+                <div class="sprite-pixel-smile"></div>
+              </div>
+            </div>
+            <div class="avatar-crown">👑</div>
+          </div>
+
+          <div class="credit-body">
+            <h3 class="credit-name">FRANCISCO CARLE</h3>
+            <span class="credit-role">CREADOR & GAME DESIGNER</span>
+            <p class="credit-bio">
+              Creador de <strong>VIRALGAMES</strong>. Programador y entusiasta de la nostalgia noventera, rescata los hitos más desquiciados, graciosos y memorables de la cultura chilena e hispanohablante para transformarlos en una colección interminable de mini juegos de 16 bit.
+            </p>
+
+            <a href="https://www.instagram.com/francisco.carle/" target="_blank" rel="noopener noreferrer" class="pixel-button btn-instagram btn-sound">
+              <span class="ig-icon">📸</span>
+              <span>@francisco.carle</span>
+              <span class="ig-arrow">↗</span>
+            </a>
+          </div>
+        </article>
+
+        <!-- PLAYER 2: Jano Mendoza (Inspiración) -->
+        <article class="credit-card card-inspiration">
+          <div class="credit-header">
+            <span class="player-slot">PLAYER 2 [INSPIRACIÓN]</span>
+            <span class="credit-rank">★ SPECIAL GUEST</span>
+          </div>
+
+          <div class="credit-avatar-box">
+            <div class="pixel-avatar-frame frame-cyan">
+              <div class="avatar-sprite avatar-jano">
+                <div class="sprite-pixel-head-jano"></div>
+                <div class="sprite-pixel-beard"></div>
+                <div class="sprite-pixel-smile"></div>
+              </div>
+            </div>
+            <div class="avatar-crown">⚡</div>
+          </div>
+
+          <div class="credit-body">
+            <h3 class="credit-name">JANO MENDOZA</h3>
+            <span class="credit-role">INSPIRACIÓN & MENTE CREATIVA</span>
+            <p class="credit-bio">
+              Inspiración directa y mentor de locuras creativas. Con su energía experimental y proyectos en <strong>Janolabs</strong>, enciende la chispa para convertir cada meme y viral en una pieza jugable de entretenimiento digital.
+            </p>
+
+            <a href="https://www.instagram.com/janolabs_/" target="_blank" rel="noopener noreferrer" class="pixel-button btn-instagram-cyan btn-sound">
+              <span class="ig-icon">📸</span>
+              <span>@janolabs_</span>
+              <span class="ig-arrow">↗</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- FOOTER RETRO ARCADE -->
+    <footer class="arcade-footer">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <h4 class="footer-logo">VIRALGAMES 16-BIT</h4>
+          <p>La máquina de mini juegos de internet. Hecho con ❤️, nostalgia de los 90s y mucho aceite hirviendo.</p>
+        </div>
+        <div class="footer-links">
+          <a href="#featuredSection" class="footer-link-btn">Tío Aceite</a>
+          <a href="#catalogSection" class="footer-link-btn">Todos los Juegos</a>
+          <a href="#creditsSection" class="footer-link-btn">Créditos</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 VIRALGAMES. Inspirado en consolas Super Nintendo, Sega Genesis y SNK NEO•GEO. Todos los derechos reservados.</p>
+        <span class="insert-coin-loop">GAME OVER? INSERT COIN TO CONTINUE [9]</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: DETALLES DEL VIDEOJUEGO (ESTILO RETRO PIXEL)       -->
+  <!-- ======================================================== -->
+  <dialog id="gameDetailsModal" class="pixel-modal">
+    <div class="modal-window window-details">
+      <div class="modal-header">
+        <span class="modal-title" id="detailsModalTitle">📜 FICHA TÉCNICA DEL VIDEOJUEGO</span>
+        <button type="button" class="modal-close-btn" id="btnCloseDetailsModal" aria-label="Cerrar modal">✖</button>
+      </div>
+      <div class="modal-body details-modal-body">
+        <div class="details-layout">
+          <div class="details-image-box">
+            <img src="/assets/tio_aceite.jpg" alt="Preview juego" id="detailsModalImg" class="details-pixel-img">
+            <div class="details-badges-row">
+              <span class="pixel-badge badge-primary" id="detailsModalBadge">VIRAL</span>
+              <span class="pixel-badge badge-highlight" id="detailsModalCat">CATEGORÍA</span>
+              <span class="pixel-badge badge-warning" id="detailsModalStatus">ESTADO</span>
+            </div>
+          </div>
+          <div class="details-info-box">
+            <h3 class="details-title" id="detailsModalGameTitle">TÍTULO DEL JUEGO</h3>
+            <div class="details-meta">
+              <span>AÑO DE LANZAMIENTO: <strong id="detailsModalYear">1994</strong></span>
+              <span>SISTEMA: <strong>16-BIT CARTRIDGE</strong></span>
+            </div>
+            <div class="details-lore-box">
+              <span class="lore-tag">SINOPSIS & LORE:</span>
+              <p class="details-description" id="detailsModalDesc">
+                Descripción detallada del videojuego...
+              </p>
+            </div>
+            <div class="details-modal-actions">
+              <button type="button" class="pixel-button btn-primary btn-large btn-sound" id="btnDetailsPlayNow">
+                ▶ JUGAR AHORA
+              </button>
+              <button type="button" class="pixel-button btn-secondary btn-sound" id="btnDetailsClose">
+                VOLVER AL CATÁLOGO
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: MINI JUEGO PLAYABLE TEASER (TÍO ACEITE)          -->
+  <!-- ======================================================== -->
+  <dialog id="gamePlayModal" class="pixel-modal">
+    <div class="modal-window window-game">
+      <div class="modal-header">
+        <span class="modal-title" id="gameModalTitle">🎮 ARCADE TEASER: TÍO ACEITE DE LA SERENA</span>
+        <button type="button" class="modal-close-btn" id="btnCloseGameModal">✖</button>
+      </div>
+      <div class="modal-body modal-game-body">
+        <div class="arcade-screen-container">
+          <!-- Canvas mini game -->
+          <canvas id="miniGameCanvas" width="640" height="360"></canvas>
+          <div id="gameStartOverlay" class="canvas-overlay">
+            <h3 class="canvas-title">¡FRÍE EL PESCADO CON EL TÍO ACEITE!</h3>
+            <p class="canvas-instructions">Mueve la paila hirviendo con las flechas ◀ ▶ o el ratón para atrapar los pescados y empanadas sin dejar que se quemen.</p>
+            <button type="button" class="pixel-button btn-primary btn-large btn-sound" id="btnStartCanvasGame">
+              ▶ COMENZAR A FREÍR (INSERT COIN)
+            </button>
+          </div>
+        </div>
+        <div class="game-hud-status">
+          <span>PUNTOS: <strong id="gameCanvasScore">0</strong></span>
+          <span>TEMPERATURA: <strong id="gameCanvasTemp">180°C</strong></span>
+          <span>TIEMPO: <strong id="gameCanvasTimer">30s</strong></span>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ======================================================== -->
+  <!-- PANEL DE ADMINISTRACIÓN (/panel-admin)                    -->
+  <!-- ======================================================== -->
+  <div id="adminPanelWrapper" class="admin-panel-overlay hidden">
+    
+    <!-- ADMIN LOGIN SCREEN -->
+    <div id="adminLoginScreen" class="admin-window admin-login-window">
+      <div class="modal-header">
+        <span class="modal-title">🔐 SERVICE MODE: ACCESO ADMINISTRADOR</span>
+        <button type="button" class="modal-close-btn" id="btnCloseAdminLogin">✖</button>
+      </div>
+      <div class="admin-login-body">
+        <div class="arcade-lock-icon">👾</div>
+        <h3 class="admin-title">VIRALGAMES SYSTEM ADMIN</h3>
+        <p class="admin-instruction">
+          Ingresa tus credenciales de operador para gestionar el catálogo de mini juegos.
+        </p>
+
+        <form id="adminLoginForm" class="admin-form">
+          <div class="form-group">
+            <label for="adminUserInput">USUARIO:</label>
+            <input type="text" id="adminUserInput" class="pixel-input" placeholder="franciscoadmin" required autocomplete="username">
+            <small class="field-hint">Usuario oficial: <code>franciscoadmin</code></small>
+          </div>
+          <div class="form-group">
+            <label for="adminPassInput">CONTRASEÑA:</label>
+            <input type="password" id="adminPassInput" class="pixel-input" placeholder="•••••••••" required autocomplete="current-password">
+            <small class="field-hint">Clave oficial: <code>Manzana9</code></small>
+          </div>
+
+          <div id="loginErrorMsg" class="error-msg hidden">
+            ⚠️ ACCESO DENEGADO: USUARIO O CONTRASEÑA INCORRECTOS
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="pixel-button btn-primary btn-sound">
+              🔓 INICIAR SESIÓN
+            </button>
+            <button type="button" class="pixel-button btn-secondary" id="btnCancelAdminLogin">
+              VOLVER A LA WEB
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD SCREEN -->
+    <div id="adminDashboardScreen" class="admin-window admin-dashboard-window hidden">
+      <div class="modal-header admin-dash-header">
+        <div class="dash-header-title">
+          <span class="modal-title">⚙️ PANEL DE ADMINISTRACIÓN - CATÁLOGO VIRALGAMES</span>
+          <span class="admin-status-badge">● CONECTADO COMO: FRANCISCO CARLE</span>
+        </div>
+        <div class="dash-header-actions">
+          <button type="button" class="pixel-mini-btn" id="btnResetDefaultGames" title="Restablecer juegos de fábrica">
+            ↺ RESTABLECER JUEGOS
+          </button>
+          <button type="button" class="pixel-button btn-secondary btn-small" id="btnLogoutAdmin">
+            SALIR (LOGOUT)
+          </button>
+          <button type="button" class="modal-close-btn" id="btnCloseAdminDash">✖</button>
+        </div>
+      </div>
+
+      <div class="admin-dashboard-body">
+
+        <!-- ADMIN CONTROLS: ESTILO VISUAL & EFECTO CRT -->
+        <div class="admin-settings-card">
+          <div class="admin-settings-header">
+            <h4>🎮 CONFIGURACIÓN VISUAL DEL SISTEMA (EXCLUSIVO ADMIN)</h4>
+            <span class="settings-hint">Estos cambios afectan la apariencia visual global de la web</span>
+          </div>
+
+          <div class="admin-settings-grid">
+            <!-- Theme selector -->
+            <div class="setting-item">
+              <span class="setting-title">ESTILO VISUAL 16-BIT ACTIVO:</span>
+              <div class="admin-theme-buttons">
+                <button type="button" class="theme-btn active" data-admin-theme="snes">
+                  <span class="btn-dot dot-red"></span>
+                  <span class="btn-dot dot-yellow"></span>
+                  <span class="btn-dot dot-blue"></span>
+                  <span class="btn-dot dot-green"></span>
+                  SUPER NINTENDO (SNES)
+                </button>
+                <button type="button" class="theme-btn" data-admin-theme="neogeo">
+                  🔥 SNK NEO•GEO ARCADE
+                </button>
+                <button type="button" class="theme-btn" data-admin-theme="genesis">
+                  ⚡ SEGA GENESIS (BLAST)
+                </button>
+              </div>
+              <p id="adminThemeDescription" class="theme-active-desc">
+                Estilo actual: <strong>SNES 16-BIT</strong> - Colores vibrantes, calidez y botones de 4 colores.
+              </p>
+            </div>
+
+            <!-- CRT scanlines toggle -->
+            <div class="setting-item">
+              <span class="setting-title">EFECTO MONITOR CRT (SCANLINES):</span>
+              <div class="crt-admin-toggle-wrapper">
+                <button type="button" id="btnAdminToggleCRT" class="pixel-button btn-secondary btn-sound">
+                  📺 EFECTO CRT: <span id="adminCrtStatusText">APAGADO</span>
+                </button>
+                <span class="crt-note">Mantiene el monitor antiguo con líneas de barrido y fósforo retro.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top summary bar -->
+        <div class="admin-stats-strip">
+          <div class="stat-chip">TOTAL JUEGOS: <strong id="adminTotalCount">0</strong></div>
+          <div class="stat-chip">JUEGO DESTACADO: <strong>Tío Aceite (La Serena)</strong></div>
+          <div class="stat-chip">ESTADO STORAGE: <strong class="text-green">LOCALSTORAGE ACTIVO</strong></div>
+          <button type="button" class="pixel-button btn-primary btn-small" id="btnOpenNewGameForm">
+            ➕ AGREGAR NUEVO MINI JUEGO
+          </button>
+        </div>
+
+        <!-- FORM TO ADD OR EDIT A GAME -->
+        <div id="gameEditorContainer" class="game-editor-card hidden">
+          <div class="editor-header">
+            <h4 id="editorFormTitle">EDITAR MINI JUEGO</h4>
+            <button type="button" class="pixel-mini-btn" id="btnCloseEditor">CANCELAR</button>
+          </div>
+
+          <form id="gameEditorForm" class="editor-form">
+            <input type="hidden" id="editGameId">
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="editTitle">TÍTULO DEL JUEGO *</label>
+                <input type="text" id="editTitle" class="pixel-input" placeholder="Ej: Tío Aceite: La Fritanga" required>
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="editBadge">BADGE / ETIQUETA</label>
+                <input type="text" id="editBadge" class="pixel-input" placeholder="Ej: DISPONIBLE, PRÓXIMAMENTE">
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="editCategory">CATEGORÍA</label>
+                <select id="editCategory" class="pixel-input">
+                  <option value="viral">Viral Chileno</option>
+                  <option value="arcade">Arcade 16-Bit</option>
+                  <option value="proximamente">Próximamente</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="editDescription">DESCRIPCIÓN CORTA *</label>
+              <textarea id="editDescription" class="pixel-input" rows="3" placeholder="Describe brevemente la premisa del juego..." required></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="editImage">URL DE LA IMAGEN (PIXEL ART) *</label>
+                <input type="text" id="editImage" class="pixel-input" placeholder="/assets/tio_aceite.jpg o URL externa" required>
+                <div class="preset-images-picker">
+                  <span>PRESETS RÁPIDOS:</span>
+                  <button type="button" class="preset-btn" data-url="/assets/tio_aceite.jpg">Tío Aceite</button>
+                  <button type="button" class="preset-btn" data-url="/assets/chimuelo.jpg">Chimuelo</button>
+                  <button type="button" class="preset-btn" data-url="/assets/tarro.jpg">El Tarro</button>
+                  <button type="button" class="preset-btn" data-url="/assets/proposal_snes.jpg">Arcade 90s</button>
+                </div>
+              </div>
+
+              <!-- Live preview of the image -->
+              <div class="form-group flex-1 editor-image-preview">
+                <label>VISTA PREVIA DE IMAGEN:</label>
+                <div class="preview-box">
+                  <img id="editImagePreview" src="/assets/tio_aceite.jpg" alt="Preview">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="pixel-button btn-primary btn-sound">
+                💾 GUARDAR CAMBIOS
+              </button>
+              <button type="button" class="pixel-button btn-secondary" id="btnCancelEditor">
+                CANCELAR
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- LIST OF CURRENT GAMES FOR EDITING -->
+        <div class="admin-games-table-wrapper">
+          <table class="pixel-table">
+            <thead>
+              <tr>
+                <th>PREVIEW</th>
+                <th>TÍTULO</th>
+                <th>DESCRIPCIÓN</th>
+                <th>CATEGORÍA</th>
+                <th>BADGE</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody id="adminGamesTableBody">
+              <!-- Rendered by app.js -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

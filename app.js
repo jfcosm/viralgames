@@ -1,0 +1,1026 @@
+/**
+ * VIRALGAMES - 16-Bit Arcade Engine & Admin Platform
+ * Developed for Francisco Carle (Inspiration: Jano Mendoza)
+ */
+
+// ==========================================================================
+// 1. DEFAULT GAMES CATALOG SEED DATA
+// ==========================================================================
+const DEFAULT_GAMES = [
+  {
+    id: "tio-aceite-01",
+    title: "TÍO ACEITE: LA FRITANGA SUPREMA",
+    category: "viral",
+    badge: "DESTACADO #01",
+    image: "/assets/tio_aceite.jpg",
+    description: "El mítico maestro nocturno de La Serena en un frenético beat 'em up culinario. Administra la paila de aceite hirviendo a las 4 AM, atiende a los parroquianos carreteros y esquiva a los inspectores.",
+    featured: true,
+    releaseYear: "1994",
+    status: "DISPONIBLE"
+  },
+  {
+    id: "chimuelo-02",
+    title: "CHIMUELO: EL SANTO SEPULCRO",
+    category: "viral",
+    badge: "VIRAL CHILENO",
+    image: "/assets/chimuelo.jpg",
+    description: "El funeral de periquito más accidentado de la historia de YouTube. Cava la fosa en el patio, entona el himno celestial y rescata a Chimuelo del hocico del perro Cleo a toda velocidad.",
+    featured: false,
+    releaseYear: "1995",
+    status: "DISPONIBLE"
+  },
+  {
+    id: "tarro-03",
+    title: "EL TARRO: SALTO BMX MORTAL",
+    category: "viral",
+    badge: "ACCIÓN EXTREMA",
+    image: "/assets/tarro.jpg",
+    description: "Pedalea a toda máquina por las calles de tierra de Talca. Salta la rampa de tablas improvisada mientras tus amigos gritan ¡DALE TARRO! y calcula el aterrizaje para evitar el legendario tortazo.",
+    featured: false,
+    releaseYear: "1993",
+    status: "DISPONIBLE"
+  },
+  {
+    id: "rosa-espinoza-04",
+    title: "ROSA ESPINOZA: FURIA 16-BIT",
+    category: "arcade",
+    badge: "ARCADE 16-BIT",
+    image: "/assets/proposal_neogeo.jpg",
+    description: "Juego de lucha callejera estilo SNK Fatal Fury. Enfrenta a tus rivales desatando combos vocales destructivos con las frases más floridas e indestructibles de la historia de internet.",
+    featured: false,
+    releaseYear: "1996",
+    status: "PRÓXIMAMENTE"
+  },
+  {
+    id: "zafrada-05",
+    title: "EL ZAFRADA: MISIÓN ILOCA 8.8",
+    category: "viral",
+    badge: "AVENTURA",
+    image: "/assets/proposal_snes.jpg",
+    description: "Un tierno runner plataformero en 16 bit. Acompaña al pequeño gigante de Iloca a repartir frazadas, leche y esperanza tras el gran movimiento telúrico costero.",
+    featured: false,
+    releaseYear: "1994",
+    status: "PRÓXIMAMENTE"
+  },
+  {
+    id: "speed-arcade-06",
+    title: "COMPLETO RUN: MASTERS OF PALTA",
+    category: "arcade",
+    badge: "ARCADE VELOZ",
+    image: "/assets/proposal_genesis.jpg",
+    description: "El reloj corre y la clientela tiene hambre. Recorre Santiago armando completos italianos a la velocidad de la luz: tomate picado, palta hass y la corona de mayonesa casera sin derramar nada.",
+    featured: false,
+    releaseYear: "1992",
+    status: "EN DESARROLLO"
+  }
+];
+
+// ==========================================================================
+// 2. THEMES METADATA
+// ==========================================================================
+const THEMES_INFO = {
+  snes: {
+    name: "SUPER NINTENDO (SNES)",
+    desc: "Colores vibrantes, calidez noventera y botones biselados de 4 colores estilo Super Famicom."
+  },
+  neogeo: {
+    name: "SNK NEO•GEO ARCADE",
+    desc: "Cabina arcade industrial, fuego oscuro, rojo/amarillo neón y marcos metálicos KOF / Metal Slug."
+  },
+  genesis: {
+    name: "SEGA GENESIS (BLAST)",
+    desc: "Synthwave cyberpunk, rejilla neón cian/fucsia y estética de alta velocidad 16-Bit Blast Processing."
+  }
+};
+
+// ==========================================================================
+// 3. SOUND SYNTHESIZER (NATIVE WEB AUDIO API)
+// ==========================================================================
+class RetroAudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.muted = localStorage.getItem('viralgames_sound_muted') === 'true';
+  }
+
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    localStorage.setItem('viralgames_sound_muted', this.muted);
+    return !this.muted;
+  }
+
+  play(type) {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+
+    try {
+      if (type === 'coin') {
+        // Dual-tone Mario style coin
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc1.type = 'square';
+        osc2.type = 'square';
+
+        osc1.frequency.setValueAtTime(987.77, t); // B5
+        osc1.frequency.setValueAtTime(1318.51, t + 0.08); // E6
+
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+        osc1.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc1.start(t);
+        osc1.stop(t + 0.35);
+
+      } else if (type === 'click') {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, t);
+        osc.frequency.exponentialRampToValueAtTime(120, t + 0.05);
+
+        gain.gain.setValueAtTime(0.1, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.05);
+
+      } else if (type === 'start') {
+        // Power-up / Start arpeggio
+        const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, t + idx * 0.06);
+
+          gain.gain.setValueAtTime(0.08, t + idx * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + (idx + 1) * 0.06 + 0.04);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t + idx * 0.06);
+          osc.stop(t + (idx + 1) * 0.06 + 0.05);
+        });
+
+      } else if (type === 'sizzle') {
+        const bufferSize = this.ctx.sampleRate * 0.15;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.15, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+        noise.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(t);
+
+      } else if (type === 'error') {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, t);
+        osc.frequency.setValueAtTime(90, t + 0.1);
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.25);
+      }
+    } catch (e) {
+      console.warn("Audio error:", e);
+    }
+  }
+}
+
+const sfx = new RetroAudioEngine();
+
+// ==========================================================================
+// 4. STORAGE & STATE MANAGEMENT
+// ==========================================================================
+class ViralGamesApp {
+  constructor() {
+    this.games = this.loadGames();
+    this.currentTheme = localStorage.getItem('viralgames_theme') || 'snes';
+    this.crtEnabled = localStorage.getItem('viralgames_crt') === 'true'; // Default is OFF
+    this.activeFilter = 'all';
+    this.searchQuery = '';
+    this.activeModalGame = null;
+    this.adminAuthenticated = sessionStorage.getItem('viralgames_admin_auth') === 'true';
+
+    this.initDOM();
+    this.applyTheme(this.currentTheme);
+    this.applyCRT(this.crtEnabled);
+    this.initEvents();
+    this.renderCatalog();
+    this.checkAdminRoute();
+  }
+
+  loadGames() {
+    try {
+      const stored = localStorage.getItem('viralgames_catalog');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error("Error reading localStorage:", e);
+    }
+    localStorage.setItem('viralgames_catalog', JSON.stringify(DEFAULT_GAMES));
+    return [...DEFAULT_GAMES];
+  }
+
+  saveGames() {
+    localStorage.setItem('viralgames_catalog', JSON.stringify(this.games));
+    this.renderCatalog();
+    this.renderAdminTable();
+  }
+
+  resetDefaultGames() {
+    if (confirm("¿Estás seguro de restablecer el catálogo de fábrica con los juegos originales?")) {
+      this.games = [...DEFAULT_GAMES];
+      this.saveGames();
+      sfx.play('start');
+      alert("¡Catálogo restablecido con éxito!");
+    }
+  }
+
+  initDOM() {
+    // Top bar & buttons
+    this.btnToggleSound = document.getElementById('btnToggleSound');
+    this.soundLabel = document.getElementById('soundLabel');
+
+    // Hero Tio Aceite buttons
+    this.btnPlayTioAceite = document.getElementById('btnPlayTioAceite');
+    this.btnInfoTioAceite = document.getElementById('btnInfoTioAceite');
+    this.gamePlayModal = document.getElementById('gamePlayModal');
+    this.btnCloseGameModal = document.getElementById('btnCloseGameModal');
+
+    // Details Modal elements
+    this.gameDetailsModal = document.getElementById('gameDetailsModal');
+    this.detailsModalTitle = document.getElementById('detailsModalTitle');
+    this.btnCloseDetailsModal = document.getElementById('btnCloseDetailsModal');
+    this.detailsModalImg = document.getElementById('detailsModalImg');
+    this.detailsModalBadge = document.getElementById('detailsModalBadge');
+    this.detailsModalCat = document.getElementById('detailsModalCat');
+    this.detailsModalStatus = document.getElementById('detailsModalStatus');
+    this.detailsModalGameTitle = document.getElementById('detailsModalGameTitle');
+    this.detailsModalYear = document.getElementById('detailsModalYear');
+    this.detailsModalDesc = document.getElementById('detailsModalDesc');
+    this.btnDetailsPlayNow = document.getElementById('btnDetailsPlayNow');
+    this.btnDetailsClose = document.getElementById('btnDetailsClose');
+
+    // Catalog controls
+    this.filterButtons = document.querySelectorAll('.filter-btn');
+    this.gameSearchInput = document.getElementById('gameSearchInput');
+    this.gamesGrid = document.getElementById('gamesGrid');
+
+    // Admin elements
+    this.adminPanelWrapper = document.getElementById('adminPanelWrapper');
+    this.adminLoginScreen = document.getElementById('adminLoginScreen');
+    this.adminDashboardScreen = document.getElementById('adminDashboardScreen');
+    this.btnCloseAdminLogin = document.getElementById('btnCloseAdminLogin');
+    this.btnCancelAdminLogin = document.getElementById('btnCancelAdminLogin');
+    this.btnCloseAdminDash = document.getElementById('btnCloseAdminDash');
+    this.btnLogoutAdmin = document.getElementById('btnLogoutAdmin');
+    this.adminLoginForm = document.getElementById('adminLoginForm');
+    this.adminUserInput = document.getElementById('adminUserInput');
+    this.adminPassInput = document.getElementById('adminPassInput');
+    this.loginErrorMsg = document.getElementById('loginErrorMsg');
+
+    // Admin exclusive theme & CRT controls
+    this.adminThemeButtons = document.querySelectorAll('[data-admin-theme]');
+    this.adminThemeDescription = document.getElementById('adminThemeDescription');
+    this.btnAdminToggleCRT = document.getElementById('btnAdminToggleCRT');
+    this.adminCrtStatusText = document.getElementById('adminCrtStatusText');
+
+    this.adminTotalCount = document.getElementById('adminTotalCount');
+    this.btnResetDefaultGames = document.getElementById('btnResetDefaultGames');
+    this.btnOpenNewGameForm = document.getElementById('btnOpenNewGameForm');
+    this.gameEditorContainer = document.getElementById('gameEditorContainer');
+    this.editorFormTitle = document.getElementById('editorFormTitle');
+    this.btnCloseEditor = document.getElementById('btnCloseEditor');
+    this.btnCancelEditor = document.getElementById('btnCancelEditor');
+    this.gameEditorForm = document.getElementById('gameEditorForm');
+    this.editGameId = document.getElementById('editGameId');
+    this.editTitle = document.getElementById('editTitle');
+    this.editBadge = document.getElementById('editBadge');
+    this.editCategory = document.getElementById('editCategory');
+    this.editDescription = document.getElementById('editDescription');
+    this.editImage = document.getElementById('editImage');
+    this.editImagePreview = document.getElementById('editImagePreview');
+    this.adminGamesTableBody = document.getElementById('adminGamesTableBody');
+
+    // Update sound button UI
+    if (sfx.muted) {
+      this.soundLabel.textContent = "SFX OFF";
+      this.btnToggleSound.classList.remove('active');
+    } else {
+      this.soundLabel.textContent = "SFX ON";
+      this.btnToggleSound.classList.add('active');
+    }
+  }
+
+  // ========================================================================
+  // THEME & CRT MANAGEMENT
+  // ========================================================================
+  applyTheme(themeKey) {
+    if (!THEMES_INFO[themeKey]) themeKey = 'snes';
+    this.currentTheme = themeKey;
+    document.documentElement.setAttribute('data-theme', themeKey);
+    localStorage.setItem('viralgames_theme', themeKey);
+
+    // Update admin buttons state
+    this.adminThemeButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-admin-theme') === themeKey);
+    });
+
+    if (this.adminThemeDescription) {
+      const info = THEMES_INFO[themeKey];
+      this.adminThemeDescription.innerHTML = `Estilo actual: <strong>${info.name}</strong> — ${info.desc}`;
+    }
+  }
+
+  applyCRT(enabled) {
+    this.crtEnabled = Boolean(enabled);
+    if (this.crtEnabled) {
+      document.body.classList.add('crt-enabled');
+    } else {
+      document.body.classList.remove('crt-enabled');
+    }
+    localStorage.setItem('viralgames_crt', this.crtEnabled);
+
+    if (this.adminCrtStatusText) {
+      this.adminCrtStatusText.textContent = this.crtEnabled ? "ENCENDIDO" : "APAGADO";
+    }
+    if (this.btnAdminToggleCRT) {
+      this.btnAdminToggleCRT.classList.toggle('btn-primary', this.crtEnabled);
+      this.btnAdminToggleCRT.classList.toggle('btn-secondary', !this.crtEnabled);
+    }
+  }
+
+  // ========================================================================
+  // EVENTS INITIALIZATION
+  // ========================================================================
+  initEvents() {
+    // Sound toggle
+    this.btnToggleSound.addEventListener('click', () => {
+      const isSoundOn = sfx.toggleMute();
+      this.soundLabel.textContent = isSoundOn ? "SFX ON" : "SFX OFF";
+      this.btnToggleSound.classList.toggle('active', isSoundOn);
+      if (isSoundOn) sfx.play('coin');
+    });
+
+    // Admin theme switcher
+    this.adminThemeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const theme = btn.getAttribute('data-admin-theme');
+        sfx.play('start');
+        this.applyTheme(theme);
+      });
+    });
+
+    // Admin CRT toggle
+    if (this.btnAdminToggleCRT) {
+      this.btnAdminToggleCRT.addEventListener('click', () => {
+        sfx.play('click');
+        this.applyCRT(!this.crtEnabled);
+      });
+    }
+
+    // Generic sound for all .btn-sound buttons
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-sound');
+      if (btn) {
+        sfx.play('click');
+      }
+    });
+
+    // Tío Aceite Play Demo Modal
+    if (this.btnPlayTioAceite) {
+      this.btnPlayTioAceite.addEventListener('click', () => {
+        sfx.play('coin');
+        this.openMiniGameModal(this.games[0]);
+      });
+    }
+
+    // Tío Aceite Details Modal
+    if (this.btnInfoTioAceite) {
+      this.btnInfoTioAceite.addEventListener('click', () => {
+        sfx.play('click');
+        this.openGameDetailsModal(this.games[0]);
+      });
+    }
+
+    // Details Modal Close buttons
+    if (this.btnCloseDetailsModal) {
+      this.btnCloseDetailsModal.addEventListener('click', () => {
+        sfx.play('click');
+        this.gameDetailsModal.close();
+      });
+    }
+    if (this.btnDetailsClose) {
+      this.btnDetailsClose.addEventListener('click', () => {
+        sfx.play('click');
+        this.gameDetailsModal.close();
+      });
+    }
+    if (this.btnDetailsPlayNow) {
+      this.btnDetailsPlayNow.addEventListener('click', () => {
+        sfx.play('coin');
+        this.gameDetailsModal.close();
+        if (this.activeModalGame) {
+          this.openMiniGameModal(this.activeModalGame);
+        }
+      });
+    }
+
+    // Canvas Game Close
+    if (this.btnCloseGameModal) {
+      this.btnCloseGameModal.addEventListener('click', () => {
+        this.gamePlayModal.close();
+        if (window.activeGameLoop) {
+          cancelAnimationFrame(window.activeGameLoop);
+          window.activeGameLoop = null;
+        }
+      });
+    }
+
+    // Filter tabs
+    this.filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sfx.play('click');
+        this.filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeFilter = btn.getAttribute('data-filter');
+        this.renderCatalog();
+      });
+    });
+
+    // Search input
+    if (this.gameSearchInput) {
+      this.gameSearchInput.addEventListener('input', (e) => {
+        this.searchQuery = e.target.value.toLowerCase().trim();
+        this.renderCatalog();
+      });
+    }
+
+    // URL Routing for Admin (/panel-admin and #panel-admin)
+    window.addEventListener('hashchange', () => {
+      this.checkAdminRoute();
+    });
+
+    window.addEventListener('popstate', () => {
+      this.checkAdminRoute();
+    });
+
+    // Admin Login / Close events
+    this.btnCloseAdminLogin.addEventListener('click', () => this.closeAdminPanel());
+    this.btnCancelAdminLogin.addEventListener('click', () => this.closeAdminPanel());
+    this.btnCloseAdminDash.addEventListener('click', () => this.closeAdminPanel());
+
+    this.adminLoginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleAdminLogin();
+    });
+
+    this.btnLogoutAdmin.addEventListener('click', () => {
+      sfx.play('click');
+      this.adminAuthenticated = false;
+      sessionStorage.removeItem('viralgames_admin_auth');
+      this.showAdminLogin();
+    });
+
+    this.btnResetDefaultGames.addEventListener('click', () => {
+      this.resetDefaultGames();
+    });
+
+    // Editor show/hide
+    this.btnOpenNewGameForm.addEventListener('click', () => {
+      sfx.play('click');
+      this.openGameEditor(null);
+    });
+    this.btnCloseEditor.addEventListener('click', () => {
+      this.gameEditorContainer.classList.add('hidden');
+    });
+    this.btnCancelEditor.addEventListener('click', () => {
+      this.gameEditorContainer.classList.add('hidden');
+    });
+
+    // Image preset buttons
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.getAttribute('data-url');
+        this.editImage.value = url;
+        this.editImagePreview.src = url;
+        sfx.play('click');
+      });
+    });
+
+    this.editImage.addEventListener('input', () => {
+      this.editImagePreview.src = this.editImage.value || '/assets/tio_aceite.jpg';
+    });
+
+    // Editor submit
+    this.gameEditorForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleSaveGame();
+    });
+  }
+
+  // ========================================================================
+  // DETAILS MODAL
+  // ========================================================================
+  openGameDetailsModal(game) {
+    if (!game) return;
+    this.activeModalGame = game;
+
+    this.detailsModalTitle.textContent = `📜 FICHA TÉCNICA: ${game.title}`;
+    this.detailsModalGameTitle.textContent = game.title;
+    this.detailsModalImg.src = game.image;
+    this.detailsModalImg.alt = game.title;
+    this.detailsModalBadge.textContent = game.badge || '16-BIT RETRO';
+    this.detailsModalCat.textContent = game.category.toUpperCase();
+    this.detailsModalStatus.textContent = game.status || 'DISPONIBLE';
+    this.detailsModalYear.textContent = game.releaseYear || '1994';
+    this.detailsModalDesc.textContent = game.description;
+
+    this.gameDetailsModal.showModal();
+  }
+
+  // ========================================================================
+  // CATALOG RENDERING
+  // ========================================================================
+  renderCatalog() {
+    if (!this.gamesGrid) return;
+
+    let filtered = this.games.filter(g => {
+      if (this.activeFilter === 'viral' && g.category !== 'viral') return false;
+      if (this.activeFilter === 'arcade' && g.category !== 'arcade') return false;
+      if (this.activeFilter === 'proximamente' && g.status !== 'PRÓXIMAMENTE') return false;
+
+      if (this.searchQuery) {
+        const text = (g.title + " " + g.description).toLowerCase();
+        return text.includes(this.searchQuery);
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      this.gamesGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: rgba(0,0,0,0.4); border: 2px dashed #4a3e75;">
+          <p style="font-family: var(--font-pixel); color: var(--accent-gold); font-size: 13px; margin-bottom: 8px;">
+            👾 NO SE ENCONTRARON MINI JUEGOS
+          </p>
+          <p style="color: var(--text-muted); font-size: 14px;">Intenta cambiar el filtro o el término de búsqueda.</p>
+        </div>
+      `;
+      return;
+    }
+
+    this.gamesGrid.innerHTML = filtered.map(game => `
+      <article class="game-card" data-game-id="${game.id}">
+        <div class="game-card-media">
+          <img src="${game.image}" alt="${game.title}" class="game-card-img" loading="lazy" onerror="this.src='/assets/tio_aceite.jpg'">
+          <span class="game-card-badge">${game.badge || '16-BIT'}</span>
+        </div>
+        <div class="game-card-content">
+          <h3 class="game-card-title">${game.title}</h3>
+          <p class="game-card-desc">${game.description}</p>
+          <div class="game-card-footer">
+            <button type="button" class="btn-card-play" data-action="play" data-id="${game.id}">
+              ▶ JUGAR
+            </button>
+            <button type="button" class="btn-card-details" data-action="details" data-id="${game.id}">
+              DETALLES
+            </button>
+          </div>
+        </div>
+      </article>
+    `).join('');
+
+    // Attach card clicks
+    this.gamesGrid.querySelectorAll('.btn-card-play').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const game = this.games.find(g => g.id === id);
+        sfx.play('coin');
+        this.openMiniGameModal(game);
+      });
+    });
+
+    this.gamesGrid.querySelectorAll('.btn-card-details').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const game = this.games.find(g => g.id === id);
+        sfx.play('click');
+        this.openGameDetailsModal(game);
+      });
+    });
+  }
+
+  // ========================================================================
+  // ROUTING & ADMIN PANEL (Exclusively accessed by URL)
+  // ========================================================================
+  checkAdminRoute() {
+    const isPathAdmin = window.location.pathname === '/panel-admin' || window.location.pathname.endsWith('/panel-admin');
+    const isHashAdmin = window.location.hash === '#panel-admin';
+
+    if (isPathAdmin || isHashAdmin) {
+      this.openAdminPanel();
+    }
+  }
+
+  openAdminPanel() {
+    sfx.play('click');
+    this.adminPanelWrapper.classList.remove('hidden');
+
+    if (this.adminAuthenticated) {
+      this.showAdminDashboard();
+    } else {
+      this.showAdminLogin();
+    }
+  }
+
+  closeAdminPanel() {
+    sfx.play('click');
+    this.adminPanelWrapper.classList.add('hidden');
+    if (window.location.hash === '#panel-admin') {
+      history.pushState(null, "", window.location.pathname);
+    }
+    if (window.location.pathname === '/panel-admin' || window.location.pathname.endsWith('/panel-admin')) {
+      history.pushState(null, "", "/");
+    }
+  }
+
+  showAdminLogin() {
+    this.adminLoginScreen.classList.remove('hidden');
+    this.adminDashboardScreen.classList.add('hidden');
+    this.loginErrorMsg.classList.add('hidden');
+    this.adminUserInput.value = "franciscoadmin";
+    this.adminPassInput.value = "";
+    setTimeout(() => this.adminPassInput.focus(), 100);
+  }
+
+  showAdminDashboard() {
+    this.adminLoginScreen.classList.add('hidden');
+    this.adminDashboardScreen.classList.remove('hidden');
+    this.applyTheme(this.currentTheme);
+    this.applyCRT(this.crtEnabled);
+    this.renderAdminTable();
+  }
+
+  handleAdminLogin() {
+    const user = this.adminUserInput.value.trim();
+    const pass = this.adminPassInput.value.trim();
+
+    // Required credentials: franciscoadmin / Manzana9
+    if (user === "franciscoadmin" && pass === "Manzana9") {
+      sfx.play('start');
+      this.adminAuthenticated = true;
+      sessionStorage.setItem('viralgames_admin_auth', 'true');
+      this.showAdminDashboard();
+    } else {
+      sfx.play('error');
+      this.loginErrorMsg.classList.remove('hidden');
+    }
+  }
+
+  renderAdminTable() {
+    if (!this.adminGamesTableBody) return;
+    this.adminTotalCount.textContent = this.games.length;
+
+    this.adminGamesTableBody.innerHTML = this.games.map(g => `
+      <tr>
+        <td>
+          <img src="${g.image}" alt="${g.title}" class="table-thumb" onerror="this.src='/assets/tio_aceite.jpg'">
+        </td>
+        <td><strong style="color:var(--accent-gold);">${g.title}</strong></td>
+        <td><span style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${g.description}</span></td>
+        <td><span class="pixel-badge">${g.category}</span></td>
+        <td><span class="pixel-badge badge-primary">${g.badge || '16-BIT'}</span></td>
+        <td>
+          <div class="table-actions">
+            <button type="button" class="table-btn-edit" data-edit-id="${g.id}">EDITAR</button>
+            <button type="button" class="table-btn-del" data-del-id="${g.id}">ELIMINAR</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    // Table actions
+    this.adminGamesTableBody.querySelectorAll('.table-btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-edit-id');
+        const game = this.games.find(g => g.id === id);
+        this.openGameEditor(game);
+      });
+    });
+
+    this.adminGamesTableBody.querySelectorAll('.table-btn-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-del-id');
+        this.deleteGame(id);
+      });
+    });
+  }
+
+  openGameEditor(game) {
+    this.gameEditorContainer.classList.remove('hidden');
+
+    if (game) {
+      this.editorFormTitle.textContent = `EDITAR: ${game.title}`;
+      this.editGameId.value = game.id;
+      this.editTitle.value = game.title;
+      this.editBadge.value = game.badge || '';
+      this.editCategory.value = game.category || 'viral';
+      this.editDescription.value = game.description;
+      this.editImage.value = game.image;
+      this.editImagePreview.src = game.image;
+    } else {
+      this.editorFormTitle.textContent = "AGREGAR NUEVO MINI JUEGO";
+      this.editGameId.value = "";
+      this.editTitle.value = "";
+      this.editBadge.value = "NUEVO 16-BIT";
+      this.editCategory.value = "viral";
+      this.editDescription.value = "";
+      this.editImage.value = "/assets/tio_aceite.jpg";
+      this.editImagePreview.src = "/assets/tio_aceite.jpg";
+    }
+
+    this.gameEditorContainer.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  handleSaveGame() {
+    const id = this.editGameId.value;
+    const title = this.editTitle.value.trim();
+    const badge = this.editBadge.value.trim() || '16-BIT';
+    const category = this.editCategory.value;
+    const description = this.editDescription.value.trim();
+    const image = this.editImage.value.trim() || '/assets/tio_aceite.jpg';
+
+    if (!title || !description) {
+      alert("Por favor completa los campos obligatorios.");
+      return;
+    }
+
+    if (id) {
+      const index = this.games.findIndex(g => g.id === id);
+      if (index !== -1) {
+        this.games[index] = {
+          ...this.games[index],
+          title,
+          badge,
+          category,
+          description,
+          image
+        };
+      }
+    } else {
+      const newGame = {
+        id: "game-" + Date.now(),
+        title,
+        badge,
+        category,
+        description,
+        image,
+        featured: false,
+        releaseYear: "1995",
+        status: "DISPONIBLE"
+      };
+      this.games.unshift(newGame);
+    }
+
+    this.saveGames();
+    sfx.play('start');
+    this.gameEditorContainer.classList.add('hidden');
+    alert("¡Juego guardado correctamente!");
+  }
+
+  deleteGame(id) {
+    const game = this.games.find(g => g.id === id);
+    if (!game) return;
+
+    if (confirm(`¿Eliminar el juego "${game.title}"?`)) {
+      this.games = this.games.filter(g => g.id !== id);
+      this.saveGames();
+      sfx.play('click');
+    }
+  }
+
+  // ========================================================================
+  // INTERACTIVE CANVAS MINI-GAME TEASER (TÍO ACEITE)
+  // ========================================================================
+  openMiniGameModal(game = null) {
+    const title = game ? game.title : "TÍO ACEITE: LA FRITANGA SUPREMA";
+    document.getElementById('gameModalTitle').textContent = `🎮 ARCADE TEASER: ${title}`;
+    this.gamePlayModal.showModal();
+
+    this.initCanvasGame();
+  }
+
+  initCanvasGame() {
+    const canvas = document.getElementById('miniGameCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const overlay = document.getElementById('gameStartOverlay');
+    const scoreEl = document.getElementById('gameCanvasScore');
+    const timerEl = document.getElementById('gameCanvasTimer');
+    const tempEl = document.getElementById('gameCanvasTemp');
+    const startBtn = document.getElementById('btnStartCanvasGame');
+
+    overlay.classList.remove('hidden');
+    scoreEl.textContent = "0";
+    timerEl.textContent = "30s";
+    tempEl.textContent = "180°C";
+
+    let gameState = {
+      running: false,
+      score: 0,
+      timeLeft: 30,
+      pan: { x: canvas.width / 2 - 40, y: canvas.height - 40, width: 80, height: 20, speed: 8 },
+      items: [],
+      particles: [],
+      keys: { left: false, right: false }
+    };
+
+    // Controls
+    const onKeyDown = (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') gameState.keys.left = true;
+      if (e.key === 'ArrowRight' || e.key === 'd') gameState.keys.right = true;
+    };
+    const onKeyUp = (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') gameState.keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd') gameState.keys.right = false;
+    };
+    const onMouseMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const mouseX = (e.clientX - rect.left) * scaleX;
+      gameState.pan.x = Math.max(0, Math.min(canvas.width - gameState.pan.width, mouseX - gameState.pan.width / 2));
+    };
+
+    window.removeEventListener('keydown', onKeyDown);
+    window.removeEventListener('keyup', onKeyUp);
+    canvas.removeEventListener('mousemove', onMouseMove);
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    canvas.addEventListener('mousemove', onMouseMove);
+
+    startBtn.onclick = () => {
+      sfx.play('start');
+      overlay.classList.add('hidden');
+      gameState.running = true;
+      gameState.score = 0;
+      gameState.timeLeft = 30;
+      gameState.items = [];
+      gameState.particles = [];
+
+      let timerInterval = setInterval(() => {
+        if (!gameState.running) {
+          clearInterval(timerInterval);
+          return;
+        }
+        gameState.timeLeft--;
+        timerEl.textContent = gameState.timeLeft + "s";
+        if (gameState.timeLeft <= 0) {
+          gameState.running = false;
+          clearInterval(timerInterval);
+          sfx.play('coin');
+          overlay.classList.remove('hidden');
+          overlay.querySelector('.canvas-title').textContent = "¡TIEMPO TERMINADO!";
+          overlay.querySelector('.canvas-instructions').textContent = `Puntuación final del Tío Aceite: ${gameState.score} puntos. ¡El pescado quedó crujiente!`;
+          startBtn.textContent = "▶ JUGAR OTRA VEZ (INSERT COIN)";
+        }
+      }, 1000);
+
+      let lastSpawn = 0;
+      const loop = (timestamp) => {
+        if (!gameState.running) return;
+
+        if (gameState.keys.left) gameState.pan.x = Math.max(0, gameState.pan.x - gameState.pan.speed);
+        if (gameState.keys.right) gameState.pan.x = Math.min(canvas.width - gameState.pan.width, gameState.pan.x + gameState.pan.speed);
+
+        if (timestamp - lastSpawn > 650) {
+          lastSpawn = timestamp;
+          const types = [
+            { name: 'fish', color: '#ffcc00', points: 100, label: '🐟' },
+            { name: 'empanada', color: '#f39c12', points: 150, label: '🥟' },
+            { name: 'limon', color: '#2ecc71', points: 50, label: '🍋' }
+          ];
+          const chosen = types[Math.floor(Math.random() * types.length)];
+          gameState.items.push({
+            x: Math.random() * (canvas.width - 30) + 10,
+            y: -20,
+            speed: Math.random() * 2 + 3,
+            ...chosen
+          });
+        }
+
+        for (let i = gameState.items.length - 1; i >= 0; i--) {
+          const item = gameState.items[i];
+          item.y += item.speed;
+
+          if (
+            item.y + 20 >= gameState.pan.y &&
+            item.y <= gameState.pan.y + gameState.pan.height &&
+            item.x + 20 >= gameState.pan.x &&
+            item.x <= gameState.pan.x + gameState.pan.width
+          ) {
+            gameState.score += item.points;
+            scoreEl.textContent = gameState.score;
+            sfx.play('sizzle');
+
+            for (let p = 0; p < 8; p++) {
+              gameState.particles.push({
+                x: item.x + 10,
+                y: gameState.pan.y,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -Math.random() * 5 - 2,
+                life: 25,
+                color: '#ffe600'
+              });
+            }
+
+            gameState.items.splice(i, 1);
+            continue;
+          }
+
+          if (item.y > canvas.height + 20) {
+            gameState.items.splice(i, 1);
+          }
+        }
+
+        for (let p = gameState.particles.length - 1; p >= 0; p--) {
+          const part = gameState.particles[p];
+          part.x += part.vx;
+          part.y += part.vy;
+          part.vy += 0.2;
+          part.life--;
+          if (part.life <= 0) gameState.particles.splice(p, 1);
+        }
+
+        ctx.fillStyle = '#110a26';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#1d123d';
+        for (let y = 0; y < canvas.height; y += 16) {
+          ctx.fillRect(0, y, canvas.width, 1);
+        }
+
+        ctx.fillStyle = '#4a4a5a';
+        ctx.fillRect(gameState.pan.x - 6, gameState.pan.y, gameState.pan.width + 12, gameState.pan.height);
+        ctx.fillStyle = '#ffd000';
+        ctx.fillRect(gameState.pan.x, gameState.pan.y + 3, gameState.pan.width, gameState.pan.height - 6);
+        ctx.fillStyle = '#ff7700';
+        ctx.fillRect(gameState.pan.x, gameState.pan.y + 8, gameState.pan.width, 4);
+
+        ctx.font = '22px sans-serif';
+        gameState.items.forEach(item => {
+          ctx.fillText(item.label, item.x, item.y);
+        });
+
+        gameState.particles.forEach(p => {
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, 4, 4);
+        });
+
+        window.activeGameLoop = requestAnimationFrame(loop);
+      };
+
+      window.activeGameLoop = requestAnimationFrame(loop);
+    };
+  }
+}
+
+// ==========================================================================
+// 5. APPLICATION INITIALIZATION
+// ==========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  window.viralGamesApp = new ViralGamesApp();
+});
