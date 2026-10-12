@@ -1,0 +1,86 @@
+{
+  "schema": [
+    {
+      "name": "playerSpeed",
+      "type": "number",
+      "label": "Player Speed (px/s)",
+      "default": 540,
+      "min": 300,
+      "max": 900,
+      "step": 20
+    },
+    {
+      "name": "dashMultiplier",
+      "type": "number",
+      "label": "Dash Multiplier",
+      "default": 1.8,
+      "min": 1.2,
+      "max": 2.5,
+      "step": 0.1
+    },
+    {
+      "name": "startingLives",
+      "type": "number",
+      "label": "Vidas de Aceite",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "name": "spawnInterval",
+      "type": "number",
+      "label": "Intervalo de Caída (s)",
+      "default": 1.1,
+      "min": 0.5,
+      "max": 2.0,
+      "step": 0.1
+    },
+    {
+      "name": "itemFallSpeed",
+      "type": "number",
+      "label": "Velocidad de Caída (px/s)",
+      "default": 320,
+      "min": 180,
+      "max": 600,
+      "step": 20
+    },
+    {
+      "name": "bravaComboRequirement",
+      "type": "number",
+      "label": "Combo para Fritanga Brava",
+      "default": 10,
+      "min": 5,
+      "max": 20,
+      "step": 1
+    },
+    {
+      "name": "bravaDuration",
+      "type": "number",
+      "label": "Duración Fritanga Brava (s)",
+      "default": 6.0,
+      "min": 3.0,
+      "max": 12.0,
+      "step": 0.5
+    },
+    {
+      "name": "victoryScore",
+      "type": "number",
+      "label": "Puntaje de Victoria",
+      "default": 10000,
+      "min": 3000,
+      "max": 25000,
+      "step": 500
+    }
+  ],
+  "values": {
+    "playerSpeed": 540,
+    "dashMultiplier": 1.8,
+    "startingLives": 3,
+    "spawnInterval": 1.1,
+    "itemFallSpeed": 320,
+    "bravaComboRequirement": 10,
+    "bravaDuration": 6.0,
+    "victoryScore": 10000
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "title": "SALVEMOS AL T\u00cdO ACEITE",
+  "hook": "\u00a1Salva el aceite del T\u00edo!",
+  "game_overview": "Juego arcade retro de 16 bits donde ayudas al T\u00edo Aceite a fre\u00edr pescados y proteger su aceite dorado.",
+  "artstyle": "pixelated",
+  "genre": "arcade",
+  "winning_condition": "Score over 10,000 points and complete all cooking shifts without letting the frying oil get ruined.",
+  "losing_condition": "Catching 3 cleaning items (soap, water, green dish soap) or letting the frying oil purity meter hit zero.",
+  "player_mode": "single_player",
+  "supported_orientations": [
+    "landscape",
+    "portrait",
+    "square",
+    "wide",
+    "any"
+  ],
+  "input_methods": [
+    "touch",
+    "mouse",
+    "keyboard",
+    "dpad"
+  ],
+  "score_options": {
+    "score_type": "points",
+    "score_order": "higher_is_better"
+  },
+  "low_end_device_support": true,
+  "mobile_playable": true,
+  "tv_playable": true,
+  "language": [
+    "es"
+  ],
+  "content_descriptors": [],
+  "controls": [
+    {
+      "input": "Left/Right Arrow Keys or A/D Keys",
+      "action": "Mover al T\u00edo Aceite lateralmente para posicionar la paila/wok."
+    },
+    {
+      "input": "Spacebar or Tap Boost Button",
+      "action": "Pique r\u00e1pido (Dash) para alcanzar ingredientes lejanos."
+    },
+    {
+      "input": "Mouse / Touch Drag or Tap Screen Sides",
+      "action": "Deslizar o tocar a los costados para mover r\u00e1pidamente al personaje."
+    },
+    {
+      "input": "Virtual D-Pad Buttons (Mobile)",
+      "action": "Botones t\u00e1ctiles izquierda/derecha y turbo en pantalla para m\u00f3viles."
+    }
+  ],
+  "sections": [
+    {
+      "title": "Design Pillars",
+      "content": "1. Fervor Callejero y Humor Chileno: Ambientaci\u00f3n festiva nocturna inspirada en los carritos de fritanga urbana chilena, con modismos aut\u00e9nticos ('\u00a1Wena compare!', '\u00a1Tremenda fritanga!', '\u00a1Pescaito crujiente!'). 2. Jugabilidad Fren\u00e9tica de Reflejos: Mec\u00e1nica de captura precisa con escalada progresiva de velocidad y densidad de objetos. 3. Riesgo y Recompensa del Aceite: Mantener la pureza del aceite hirviendo mediante rachas de ingredientes gourmet mientras se evitan enemigos mortales del aceite como el agua y el lavalozas verde.",
+      "summary": "Principios clave de dise\u00f1o y ambientaci\u00f3n folcl\u00f3rica urbana chilena."
+    },
+    {
+      "title": "Core Loop",
+      "content": "El jugador mueve a T\u00edo Aceite horizontalmente en la parte inferior de la pantalla. Desde arriba caen continuamente ingredientes deliciosos (pescados, botellas de aceite, aj\u00ed, marraquetas, mayonesa, woks dorados y monedas) y amenazas de limpieza (gotas y baldes de agua, jab\u00f3n en barra, lavalozas verde). Capturar ingredientes suma puntos, carga el 'Medidor de Fritanga Brava' y aumenta el multiplicador de racha. Capturar productos de limpieza resta 1 vida de aceite y reduce el combo. Si se pierden las 3 vidas de aceite, el juego termina. Alcanzar metas de puntaje desbloquea nuevos turnos nocturnos ('Turno Baj\u00f3n', 'La Hora Brava', 'Rey del Sart\u00e9n').",
+      "summary": "Ciclo minuto a minuto de captura, combos y preservaci\u00f3n de aceite."
+    },
+    {
+      "title": "Core Mechanics",
+      "content": "1. Captura con Paila de Fritura: El hitbox de captura est\u00e1 centrado en la paila/wok que sostiene T\u00edo Aceite. 2. Medidor de Fritanga Brava: Llenar la barra al atrapar 10 ingredientes consecutivos activa el modo 'Aceite Dorado' por 6 segundos, duplicando puntos y convirtiendo temporalmente los peligros de limpieza en monedas doradas. 3. Objetos Especiales: La botella de aceite restaura 1 vida perdida; el aj\u00ed otorga velocidad turbo; la marraqueta con pescado otorga mega-puntuaci\u00f3n. 4. Fricci\u00f3n y Dash: Capacidad de acelerar r\u00e1pidamente con 'pique' para salvar ingredientes al borde de caer.",
+      "summary": "Sistemas de juego y din\u00e1micas de puntaje."
+    },
+    {
+      "title": "Chilean Localization & Dialogues",
+      "content": "Toda la interfaz y los anuncios din\u00e1micos est\u00e1n localizados en espa\u00f1ol chileno festivo: '\u00a1Wena T\u00edo Aceite!', '\u00a1Pescaito al toque!', '\u00a1P\u00f3ngale harto aj\u00ed!', '\u00a1Cuidado con el lavalozas, hermano!', '\u00a1Se te cort\u00f3 el aceite!', '\u00a1Fritanga Brava Activada!', '\u00a1Puntaje M\u00e1ximo, Compare!', 'Puntos', 'Vidas de Aceite', 'Racha', 'Reiniciar Turno'.",
+      "summary": "Textos y expresiones aut\u00e9nticas en espa\u00f1ol chileno."
+    },
+    {
+      "title": "Movement & Scrolling Alignment",
+      "content": "Scrolling Axis: Vertical (los objetos caen de arriba a abajo sobre un escenario est\u00e1tico con carrilero nocturno). Asset Orientation Baseline: El personaje mira hacia el frente/costado con paila orientada hacia arriba; los objetos caen verticalmente con leves oscilaciones de f\u00edsica y rotaci\u00f3n suave. Movement Physics: Movimiento lateral r\u00e1pido con amortiguaci\u00f3n suave y aceleraci\u00f3n instant\u00e1nea en dash. Camera Behavior: C\u00e1mara est\u00e1tica fija 16:9 / responsiva mostrando la calle nocturna y el puesto de comida.",
+      "summary": "Alineaci\u00f3n de movimiento horizontal y ca\u00edda vertical de objetos."
+    },
+    {
+      "title": "Visual Hierarchy & Layering",
+      "content": "Layer Separation: Fondo oscuro desaturado de calle nocturna chilena con luces de ne\u00f3n tenues y carrito de frituras sin colisi\u00f3n. Capa intermedia de juego con T\u00edo Aceite, paila brillante y objetos cayendo con bordes contrastantes de pixel art. Obstacle & Hazard Affordance: Los peligros de limpieza (lavalozas verde radiactivo, burbujas de jab\u00f3n y salpicaduras de agua) poseen un resplandor verde y azul brillante de advertencia para distinguirse inmediatamente de los alimentos dorados y c\u00e1lidos. HUD Overlay: Medidor de aceite, vidas en forma de gotas de aceite dorado y contador de puntos en la parte superior con tipograf\u00eda pixel retro.",
+      "summary": "Contraste visual y paleta de 16 bits."
+    },
+    {
+      "title": "Characters & Hazards",
+      "content": "Protagonista: T\u00edo Aceite, simp\u00e1tico maestro cocinero callejero con delantal y gran sart\u00e9n/wok. Ingredientes buenos: Botella de aceite dorado, pescado fresco, botella de aj\u00ed rojo, pan marraqueta crujiente, pote de mayonesa, sart\u00e9n dorado y monedas de 500. Peligros de limpieza: Botella de lavalozas verde, barra de jab\u00f3n con espuma, salpicadura de agua destructora de aceite caliente.",
+      "summary": "El protagonista y los elementos que caen."
+    },
+    {
+      "title": "Fairness Tools",
+      "content": "L\u00edneas de sombra proyectadas en el suelo indicando d\u00f3nde aterrizar\u00e1 cada objeto que cae. Alerta visual con destello rojo sutil en la parte superior cuando cae un qu\u00edmico de limpieza.",
+      "summary": "Ayudas visuales para el jugador."
+    },
+    {
+      "title": "Juice & Game Feel",
+      "content": "Anticipation Juice: Animaci\u00f3n de balanceo de la paila al cambiar de direcci\u00f3n r\u00e1pidamente. State Change Juice: Efecto de chisporroteo de burbujas doradas ('sizzle') y part\u00edculas de vapor crujiente al atrapar cada comida. Impact Juice: Sonido crujiente '\u00a1Tssss!' al atrapar alimentos, tintineo met\u00e1lico al atrapar monedas, sonido de advertencia y sacudida de pantalla leve al tocar jab\u00f3n o agua.",
+      "summary": "Retroalimentaci\u00f3n t\u00e1ctil y audiovisual."
+    },
+    {
+      "title": "Social Mechanics & Audience",
+      "content": "Dise\u00f1ado para todo p\u00fablico amante de los juegos arcade retro de reflejos y del humor de la cultura pop y gastronom\u00eda popular chilena. Registro persistente de r\u00e9cord de puntuaci\u00f3n en almacenamiento local.",
+      "summary": "Audiencia objetivo y tabla de r\u00e9cords."
+    },
+    {
+      "title": "Accessibility",
+      "content": "Contraste visual mejorado con bordes definidos de 16 bits para todos los elementos; controles completamente configurables y soporte nativo tanto para teclado, mouse/pantalla t\u00e1ctil como gamepad.",
+      "summary": "Opciones de accesibilidad."
+    },
+    {
+      "title": "Structural Integrity",
+      "content": "Pantalla de Inicio con logo pixel art y bot\u00f3n '\u00a1A Cocinar!' -> Tutorial breve de un vistazo -> Pantalla de Juego activa -> Pantalla de Fin de Turno con puntaje obtenido, r\u00e9cord guardado y bot\u00f3n '\u00a1Otra Vuelta, Compare!'.",
+      "summary": "Estructura de men\u00fas y flujo de pantalla."
+    },
+    {
+      "title": "Virtual Touch Controls Implementation",
+      "content": "Renderizar botones virtuales en pantalla condicionalmente solo si se detecta m\u00f3vil (`useIsMobile()`). Botones t\u00e1ctiles de movimiento izquierda/derecha y bot\u00f3n de 'Pique/Turbo' ubicados en las esquinas inferiores con `touch-none` y `pointer-events-auto` aplicados exclusivamente a los botones. Conectar eventos onPointerDown, onPointerUp, onPointerLeave y onPointerCancel para evitar bloqueos t\u00e1ctiles.",
+      "summary": "Controles virtuales t\u00e1ctiles para dispositivos m\u00f3viles."
+    }
+  ]
+}
