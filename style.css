@@ -1103,6 +1103,19 @@ body.crt-enabled .crt-vignette {
   margin-bottom: 8px;
 }
 
+.melodia-link {
+  color: var(--accent-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.melodia-link:hover {
+  color: var(--accent-gold);
+  text-shadow: 0 0 10px rgba(255, 209, 102, 0.7);
+}
+
 .footer-links {
   display: flex;
   gap: 14px;
