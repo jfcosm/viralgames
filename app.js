@@ -45,7 +45,7 @@ const DEFAULT_GAMES = [
   {
     id: "tiempo-04",
     title: "EL TIEMPO ES ORO: GRAN CONCURSO",
-    category: "viral",
+    category: "nostalgia",
     badge: "TRIVIA TV 90s",
     image: "/assets/tiempo-title.jpeg",
     gameUrl: "/games/el-tiempo-es-oro/",
@@ -279,9 +279,11 @@ class ViralGamesApp {
     this.games = this.loadGames();
     this.credits = this.loadCredits();
     this.creditsMeta = this.loadCreditsMeta();
+    this.customTags = this.loadCustomTags();
 
     this.currentTheme = localStorage.getItem('viralgames_theme') || 'snes';
     this.crtEnabled = localStorage.getItem('viralgames_crt') === 'true';
+    this.showArcadeHud = localStorage.getItem('viralgames_hud_visible') !== 'false';
     this.activeFilter = 'all';
     this.searchQuery = '';
     this.activeModalGame = null;
@@ -291,10 +293,91 @@ class ViralGamesApp {
     this.initDOM();
     this.applyTheme(this.currentTheme);
     this.applyCRT(this.crtEnabled);
+    this.applyHudVisibility();
+    this.renderFilterTabs();
     this.initEvents();
     this.renderCatalog();
     this.renderCredits();
     this.checkAdminRoute();
+  }
+
+  // Tags & Categories Storage
+  loadCustomTags() {
+    try {
+      const stored = localStorage.getItem('viralgames_custom_tags');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn("Error reading custom tags from localStorage:", e);
+    }
+    return [];
+  }
+
+  saveCustomTag(id, label) {
+    if (!id || !label) return;
+    const exists = this.customTags.some(t => t.id === id);
+    if (!exists) {
+      this.customTags.push({ id, label });
+      localStorage.setItem('viralgames_custom_tags', JSON.stringify(this.customTags));
+    }
+  }
+
+  getAllTags() {
+    const baseTags = [
+      { id: 'all', label: '★ TODOS' },
+      { id: 'viral', label: 'VIRALES CHILENOS' },
+      { id: 'arcade', label: 'ARCADE 16-BIT' },
+      { id: 'nostalgia', label: 'NOSTALGIA' },
+      { id: 'proximamente', label: 'PRÓXIMAMENTE' }
+    ];
+
+    const knownIds = new Set(baseTags.map(t => t.id));
+    const extraTags = [];
+
+    // From customTags in storage
+    if (Array.isArray(this.customTags)) {
+      this.customTags.forEach(t => {
+        if (!knownIds.has(t.id)) {
+          knownIds.add(t.id);
+          extraTags.push({ id: t.id, label: t.label || t.id.toUpperCase() });
+        }
+      });
+    }
+
+    // From games in this.games
+    this.games.forEach(g => {
+      if (g.category && !knownIds.has(g.category.toLowerCase())) {
+        const id = g.category.toLowerCase();
+        knownIds.add(id);
+        extraTags.push({ id, label: g.category.toUpperCase().replace(/-/g, ' ') });
+      }
+      if (Array.isArray(g.tags)) {
+        g.tags.forEach(t => {
+          const id = t.toLowerCase();
+          if (!knownIds.has(id)) {
+            knownIds.add(id);
+            extraTags.push({ id, label: t.toUpperCase().replace(/-/g, ' ') });
+          }
+        });
+      }
+    });
+
+    return [...baseTags, ...extraTags];
+  }
+
+  applyHudVisibility() {
+    if (this.arcadeHud) {
+      if (this.showArcadeHud) {
+        this.arcadeHud.classList.remove('hidden');
+      } else {
+        this.arcadeHud.classList.add('hidden');
+      }
+    }
+    if (this.adminHudStatusText) {
+      this.adminHudStatusText.textContent = this.showArcadeHud ? 'VISIBLE' : 'OCULTO';
+    }
+    if (this.btnAdminToggleHud) {
+      this.btnAdminToggleHud.classList.toggle('active', this.showArcadeHud);
+    }
   }
 
   // Games Storage
@@ -347,6 +430,10 @@ class ViralGamesApp {
               tiempo.status = "DISPONIBLE";
               migrated = true;
             }
+            if (tiempo.category !== "nostalgia") {
+              tiempo.category = "nostalgia";
+              migrated = true;
+            }
           }
           if (migrated) {
             localStorage.setItem('viralgames_catalog', JSON.stringify(parsed));
@@ -363,6 +450,7 @@ class ViralGamesApp {
 
   saveGames() {
     localStorage.setItem('viralgames_catalog', JSON.stringify(this.games));
+    this.renderFilterTabs();
     this.renderCatalog();
     this.renderAdminGamesTable();
   }
@@ -491,6 +579,9 @@ class ViralGamesApp {
     this.adminThemeDescription = document.getElementById('adminThemeDescription');
     this.btnAdminToggleCRT = document.getElementById('btnAdminToggleCRT');
     this.adminCrtStatusText = document.getElementById('adminCrtStatusText');
+    this.arcadeHud = document.getElementById('arcadeHud');
+    this.btnAdminToggleHud = document.getElementById('btnAdminToggleHud');
+    this.adminHudStatusText = document.getElementById('adminHudStatusText');
 
     // Games admin editor
     this.adminTotalCount = document.getElementById('adminTotalCount');
@@ -505,6 +596,8 @@ class ViralGamesApp {
     this.editTitle = document.getElementById('editTitle');
     this.editBadge = document.getElementById('editBadge');
     this.editCategory = document.getElementById('editCategory');
+    this.editCustomCategory = document.getElementById('editCustomCategory');
+    this.customCategoryWrapper = document.getElementById('customCategoryWrapper');
     this.editDescription = document.getElementById('editDescription');
     this.editImage = document.getElementById('editImage');
     this.editImagePreview = document.getElementById('editImagePreview');
@@ -700,16 +793,27 @@ class ViralGamesApp {
       }
     });
 
-    // Filter tabs
-    this.filterButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
+    // Admin Toggle Top Arcade HUD Bar
+    if (this.btnAdminToggleHud) {
+      this.btnAdminToggleHud.addEventListener('click', () => {
         sfx.play('click');
-        this.filterButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.activeFilter = btn.getAttribute('data-filter');
-        this.renderCatalog();
+        this.showArcadeHud = !this.showArcadeHud;
+        localStorage.setItem('viralgames_hud_visible', this.showArcadeHud ? 'true' : 'false');
+        this.applyHudVisibility();
       });
-    });
+    }
+
+    // Category / Tag dropdown change in Game Editor
+    if (this.editCategory) {
+      this.editCategory.addEventListener('change', () => {
+        if (this.editCategory.value === '__custom__') {
+          if (this.customCategoryWrapper) this.customCategoryWrapper.classList.remove('hidden');
+          if (this.editCustomCategory) this.editCustomCategory.focus();
+        } else {
+          if (this.customCategoryWrapper) this.customCategoryWrapper.classList.add('hidden');
+        }
+      });
+    }
 
     // Search input
     if (this.gameSearchInput) {
@@ -885,6 +989,30 @@ class ViralGamesApp {
     this.gameDetailsModal.showModal();
   }
 
+  renderFilterTabs() {
+    const container = document.getElementById('filterTabs') || document.querySelector('.filter-tabs');
+    if (!container) return;
+
+    const allTags = this.getAllTags();
+
+    container.innerHTML = allTags.map(tag => `
+      <button type="button" class="filter-btn ${this.activeFilter === tag.id ? 'active' : ''}" data-filter="${tag.id}">
+        ${tag.label}
+      </button>
+    `).join('');
+
+    this.filterButtons = container.querySelectorAll('.filter-btn');
+    this.filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sfx.play('click');
+        this.filterButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.activeFilter = btn.getAttribute('data-filter');
+        this.renderCatalog();
+      });
+    });
+  }
+
   // ========================================================================
   // CATALOG RENDERING
   // ========================================================================
@@ -904,12 +1032,26 @@ class ViralGamesApp {
 
     let filtered = this.games.filter(g => {
       if (g.hidden) return false;
-      if (this.activeFilter === 'viral' && g.category !== 'viral') return false;
-      if (this.activeFilter === 'arcade' && g.category !== 'arcade') return false;
-      if (this.activeFilter === 'proximamente' && g.status !== 'PRÓXIMAMENTE') return false;
+      if (this.activeFilter === 'all') {
+        // all visible
+      } else if (this.activeFilter === 'viral') {
+        if (g.category !== 'viral' && (!Array.isArray(g.tags) || !g.tags.includes('viral'))) return false;
+      } else if (this.activeFilter === 'arcade') {
+        if (g.category !== 'arcade' && (!Array.isArray(g.tags) || !g.tags.includes('arcade'))) return false;
+      } else if (this.activeFilter === 'nostalgia') {
+        if (g.category !== 'nostalgia' && (!Array.isArray(g.tags) || !g.tags.includes('nostalgia'))) return false;
+      } else if (this.activeFilter === 'proximamente') {
+        if (g.status !== 'PRÓXIMAMENTE' && g.category !== 'proximamente') return false;
+      } else {
+        const filterKey = this.activeFilter.toLowerCase();
+        const matches = (g.category && g.category.toLowerCase() === filterKey) ||
+                        (Array.isArray(g.tags) && g.tags.some(t => t.toLowerCase() === filterKey)) ||
+                        (g.badge && g.badge.toLowerCase().includes(filterKey));
+        if (!matches) return false;
+      }
 
       if (this.searchQuery) {
-        const text = (g.title + " " + g.description).toLowerCase();
+        const text = (g.title + " " + g.description + " " + (g.badge || "")).toLowerCase();
         return text.includes(this.searchQuery);
       }
       return true;
@@ -1186,7 +1328,29 @@ class ViralGamesApp {
     sfx.play('click');
   }
 
+  updateCategoryDropdown() {
+    if (!this.editCategory) return;
+    const currentVal = this.editCategory.value;
+    const allTags = this.getAllTags().filter(t => t.id !== 'all');
+
+    this.editCategory.innerHTML = `
+      <option value="viral">Viral Chileno</option>
+      <option value="arcade">Arcade 16-Bit</option>
+      <option value="nostalgia">Nostalgia</option>
+      <option value="proximamente">Próximamente</option>
+      ${allTags
+        .filter(t => !['viral', 'arcade', 'nostalgia', 'proximamente'].includes(t.id))
+        .map(t => `<option value="${t.id}">${t.label}</option>`)
+        .join('')}
+      <option value="__custom__">➕ CREAR NUEVO TAG...</option>
+    `;
+    if (currentVal) {
+      this.editCategory.value = currentVal;
+    }
+  }
+
   openGameEditor(game) {
+    this.updateCategoryDropdown();
     this.gameEditorContainer.classList.remove('hidden');
 
     if (game) {
@@ -1194,7 +1358,19 @@ class ViralGamesApp {
       this.editGameId.value = game.id;
       this.editTitle.value = game.title;
       this.editBadge.value = game.badge || '';
-      this.editCategory.value = game.category || 'viral';
+
+      const categoryVal = (game.category || 'viral').toLowerCase();
+      const hasOption = Array.from(this.editCategory.options).some(opt => opt.value === categoryVal);
+      if (hasOption) {
+        this.editCategory.value = categoryVal;
+        if (this.customCategoryWrapper) this.customCategoryWrapper.classList.add('hidden');
+        if (this.editCustomCategory) this.editCustomCategory.value = '';
+      } else {
+        this.editCategory.value = '__custom__';
+        if (this.customCategoryWrapper) this.customCategoryWrapper.classList.remove('hidden');
+        if (this.editCustomCategory) this.editCustomCategory.value = game.category || '';
+      }
+
       this.editDescription.value = game.description;
       this.editImage.value = game.image;
       this.editImagePreview.src = game.image;
@@ -1206,6 +1382,8 @@ class ViralGamesApp {
       this.editTitle.value = "";
       this.editBadge.value = "NUEVO 16-BIT";
       this.editCategory.value = "viral";
+      if (this.customCategoryWrapper) this.customCategoryWrapper.classList.add('hidden');
+      if (this.editCustomCategory) this.editCustomCategory.value = "";
       this.editDescription.value = "";
       this.editImage.value = "/assets/tio_aceite.jpg";
       this.editImagePreview.src = "/assets/tio_aceite.jpg";
@@ -1220,7 +1398,16 @@ class ViralGamesApp {
     const id = this.editGameId.value;
     const title = this.editTitle.value.trim();
     const badge = this.editBadge.value.trim() || '16-BIT';
-    const category = this.editCategory.value;
+    let category = this.editCategory.value;
+    if (category === '__custom__') {
+      const customVal = (this.editCustomCategory ? this.editCustomCategory.value.trim() : '');
+      if (!customVal) {
+        alert("Por favor ingresa el nombre del nuevo tag.");
+        return;
+      }
+      category = customVal.toLowerCase().replace(/\s+/g, '-');
+      this.saveCustomTag(category, customVal.toUpperCase());
+    }
     const description = this.editDescription.value.trim();
     const image = this.editImage.value.trim() || '/assets/tio_aceite.jpg';
     const gameUrl = this.editGameUrl ? this.editGameUrl.value.trim() : '';

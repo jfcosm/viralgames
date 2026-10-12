@@ -2033,3 +2033,301 @@ body.crt-enabled .crt-vignette {
   0%, 49% { opacity: 1; }
   50%, 100% { opacity: 0.2; }
 }
+
+/* ==========================================================================
+   CUSTOM DEVELOPMENT SECTION (FRANCISCO CARLE - ON DEMAND GAMES)
+   ========================================================================== */
+.custom-dev-section {
+  padding: 60px 20px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.custom-dev-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Banner Card */
+.dev-banner-card {
+  background: linear-gradient(135deg, rgba(20, 10, 45, 0.95), rgba(35, 18, 75, 0.92));
+  border: 3px solid var(--accent-gold);
+  box-shadow: 0 0 30px rgba(255, 209, 102, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  padding: 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dev-banner-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.dev-banner-title {
+  font-family: var(--font-pixel);
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+}
+
+.dev-banner-title .highlight-text {
+  color: var(--accent-gold);
+  text-shadow: 0 0 10px rgba(255, 209, 102, 0.6);
+}
+
+.dev-banner-desc {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.dev-banner-desc strong {
+  color: var(--accent-blue);
+}
+
+.dev-features-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip-item {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--accent-blue);
+  color: var(--accent-blue);
+  font-family: var(--font-hud);
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 240, 255, 0.15);
+}
+
+/* Services Grid (4 Cards) */
+.dev-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.dev-service-card {
+  background: var(--bg-card);
+  border: 2px solid var(--card-border);
+  border-radius: 6px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+  position: relative;
+}
+
+.dev-service-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent-gold);
+  box-shadow: 0 8px 24px var(--glow-color);
+}
+
+.dev-card-icon {
+  font-size: 2rem;
+  margin-bottom: 14px;
+}
+
+.dev-card-title {
+  font-family: var(--font-pixel);
+  font-size: 0.82rem;
+  color: var(--accent-gold);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.dev-card-desc {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  flex-grow: 1;
+  margin-bottom: 18px;
+}
+
+.dev-card-tag {
+  align-self: flex-start;
+  font-family: var(--font-hud);
+  font-size: 10px;
+  color: var(--accent-pink);
+  background: rgba(247, 37, 133, 0.12);
+  border: 1px solid var(--accent-pink);
+  padding: 4px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+
+/* Genres Box */
+.dev-genres-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px dashed var(--border-light);
+  border-radius: 6px;
+  padding: 20px;
+  text-align: center;
+}
+
+.dev-genres-title {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 0.78rem;
+  color: var(--accent-gold);
+  margin-bottom: 14px;
+}
+
+.dev-genres-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.genre-pill {
+  background: var(--bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-main);
+  font-family: var(--font-hud);
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+/* WhatsApp CTA Card */
+.dev-cta-card {
+  background: radial-gradient(circle at top center, rgba(37, 211, 102, 0.15), rgba(10, 5, 25, 0.95)), var(--bg-dark);
+  border: 3px solid #25D366;
+  box-shadow: 0 0 35px rgba(37, 211, 102, 0.3), inset 0 0 25px rgba(37, 211, 102, 0.1);
+  border-radius: 8px;
+  padding: 36px 24px;
+  text-align: center;
+}
+
+.dev-cta-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cta-pulse-dot {
+  display: inline-block;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: #25D366;
+  background: rgba(37, 211, 102, 0.15);
+  border: 1px solid #25D366;
+  padding: 5px 12px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+
+.dev-cta-title {
+  font-family: var(--font-pixel);
+  font-size: 1.25rem;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(37, 211, 102, 0.5);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.dev-cta-desc {
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.btn-whatsapp-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: #ffffff;
+  text-decoration: none;
+  padding: 18px 32px;
+  border-radius: 8px;
+  border: 2px solid #a3ffc4;
+  box-shadow: 0 0 25px rgba(37, 211, 102, 0.6), 0 4px 15px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.btn-whatsapp-cta:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 0 40px rgba(37, 211, 102, 0.85), 0 6px 20px rgba(0, 0, 0, 0.6);
+  border-color: #ffffff;
+}
+
+.wa-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.wa-text-box {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.wa-label {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.wa-number {
+  font-family: var(--font-hud);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  letter-spacing: 1.5px;
+}
+
+.wa-arrow {
+  font-size: 1.4rem;
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.btn-whatsapp-cta:hover .wa-arrow {
+  transform: translateX(4px);
+}
+
+.wa-subtext {
+  display: block;
+  margin-top: 14px;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .btn-whatsapp-cta {
+    padding: 14px 20px;
+    gap: 12px;
+  }
+  .wa-label {
+    font-size: 10px;
+  }
+  .wa-number {
+    font-size: 13px;
+  }
+  .dev-banner-title {
+    font-size: 1rem;
+  }
+}
+
