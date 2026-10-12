@@ -1,0 +1,86 @@
+{
+  "schema": [
+    {
+      "name": "questionTimeSeconds",
+      "type": "number",
+      "label": "Tiempo por Pregunta (seg)",
+      "default": 20,
+      "min": 10,
+      "max": 45,
+      "step": 1
+    },
+    {
+      "name": "startingLives",
+      "type": "number",
+      "label": "Vidas Iniciales",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "name": "pointsPerCorrect",
+      "type": "number",
+      "label": "Puntos Base por Acierto",
+      "default": 100,
+      "min": 50,
+      "max": 300,
+      "step": 25
+    },
+    {
+      "name": "speedBonusMultiplier",
+      "type": "number",
+      "label": "Bonus por Segundo Restante",
+      "default": 10,
+      "min": 0,
+      "max": 25,
+      "step": 5
+    },
+    {
+      "name": "extraTimeLifelineSeconds",
+      "type": "number",
+      "label": "Segundos Comodín Tiempo Extra",
+      "default": 15,
+      "min": 5,
+      "max": 30,
+      "step": 5
+    },
+    {
+      "name": "questionsPerStage",
+      "type": "number",
+      "label": "Preguntas por Etapa",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "name": "defaultMusicVolume",
+      "type": "number",
+      "label": "Volumen Música",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.1
+    },
+    {
+      "name": "defaultSfxVolume",
+      "type": "number",
+      "label": "Volumen SFX",
+      "default": 0.7,
+      "min": 0,
+      "max": 1,
+      "step": 0.1
+    }
+  ],
+  "values": {
+    "questionTimeSeconds": 20,
+    "startingLives": 3,
+    "pointsPerCorrect": 100,
+    "speedBonusMultiplier": 10,
+    "extraTimeLifelineSeconds": 15,
+    "questionsPerStage": 3,
+    "defaultMusicVolume": 0.5,
+    "defaultSfxVolume": 0.7
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "title": "El Tiempo es Oro",
+  "hook": "Gran concurso cultural de Chile",
+  "game_overview": "Juego de trivia de televisi\u00f3n 'El Tiempo es Oro' conducido por Susana y Roberto en rondas alternadas contra el reloj con bonus y multiplicadores.",
+  "artstyle": "modern-vector",
+  "genre": "trivia",
+  "winning_condition": "Completar con \u00e9xito todas las etapas tem\u00e1ticas respondiendo correctamente la mayor\u00eda de las preguntas de cada categor\u00eda.",
+  "losing_condition": "Agotar las 3 vidas de la partida antes de superar las etapas requeridas.",
+  "player_mode": "single_player",
+  "supported_orientations": [
+    "landscape",
+    "portrait",
+    "any"
+  ],
+  "input_methods": [
+    "touch",
+    "mouse",
+    "keyboard"
+  ],
+  "score_options": {
+    "score_type": "points",
+    "score_order": "higher_is_better"
+  },
+  "low_end_device_support": true,
+  "mobile_playable": true,
+  "tv_playable": false,
+  "language": [
+    "es"
+  ],
+  "content_descriptors": [],
+  "controls": [
+    {
+      "input": "Click Izquierdo / Tap T\u00e1ctil",
+      "action": "Seleccionar una de las 4 opciones de respuesta y navegar la interfaz."
+    },
+    {
+      "input": "Teclas 1, 2, 3, 4 o A, B, C, D",
+      "action": "Elegir directamente la opci\u00f3n correspondiente desde el teclado."
+    },
+    {
+      "input": "Espacio / Enter",
+      "action": "Avanzar a la siguiente pregunta o reintentar nivel."
+    }
+  ],
+  "sections": [
+    {
+      "title": "Core Mechanics",
+      "content": "1. 4 Opciones de Respuesta por pregunta. 2. Conducci\u00f3n Alternada: La animadora y el animador se turnan la presentaci\u00f3n de cada pregunta con animaciones y di\u00e1logos contextuales. 3. Reloj de Oro (Temporizador con bonus de puntaje por rapidez). 4. Comodines de Concurso: '50/50 Al Toke', 'Pista del Conductor' y 'Tiempo Extra'.",
+      "summary": "Din\u00e1mica de concurso televisivo y conducci\u00f3n alternada."
+    },
+    {
+      "title": "Characters & Enemies",
+      "content": "La conducci\u00f3n del juego est\u00e1 a cargo de una dupla de animadores de concurso en dise\u00f1o plano que se van alternando en cada pregunta: la conductora y el conductor presentan las tarjetas de trivia con reacciones din\u00e1micas, frases t\u00edpicas chilenas de aliento y celebraci\u00f3n al responder correctamente.",
+      "summary": "Pareja de animadores de concurso televisivo que alternan turnos."
+    }
+  ]
+}

@@ -43,6 +43,18 @@ const DEFAULT_GAMES = [
     status: "DISPONIBLE"
   },
   {
+    id: "tiempo-04",
+    title: "EL TIEMPO ES ORO: GRAN CONCURSO",
+    category: "viral",
+    badge: "TRIVIA TV 90s",
+    image: "/assets/tiempo-title.jpeg",
+    gameUrl: "/games/el-tiempo-es-oro/",
+    description: "El mítico concurso cultural de Canal 13 con Susana y Roberto. Pon a prueba tus conocimientos sobre Chile contrarreloj en tres etapas y llévate el codiciado Reloj de Oro.",
+    featured: false,
+    releaseYear: "1995",
+    status: "DISPONIBLE"
+  },
+  {
     id: "rosa-espinoza-04",
     title: "ROSA ESPINOZA: FURIA 16-BIT",
     category: "arcade",
@@ -307,6 +319,32 @@ class ViralGamesApp {
             }
             if (!tarro.image || tarro.image === "/assets/tarro.jpg") {
               tarro.image = "/assets/tarro-title.jpeg";
+              migrated = true;
+            }
+          }
+          let tiempo = parsed.find(g => g.id === "tiempo-04");
+          if (!tiempo) {
+            const defaultTiempo = DEFAULT_GAMES.find(g => g.id === "tiempo-04");
+            if (defaultTiempo) {
+              const tarroIdx = parsed.findIndex(g => g.id === "tarro-03");
+              if (tarroIdx !== -1) {
+                parsed.splice(tarroIdx + 1, 0, { ...defaultTiempo });
+              } else {
+                parsed.push({ ...defaultTiempo });
+              }
+              migrated = true;
+            }
+          } else {
+            if (!tiempo.gameUrl || tiempo.gameUrl !== "/games/el-tiempo-es-oro/") {
+              tiempo.gameUrl = "/games/el-tiempo-es-oro/";
+              migrated = true;
+            }
+            if (!tiempo.image || tiempo.image !== "/assets/tiempo-title.jpeg") {
+              tiempo.image = "/assets/tiempo-title.jpeg";
+              migrated = true;
+            }
+            if (tiempo.status !== "DISPONIBLE") {
+              tiempo.status = "DISPONIBLE";
               migrated = true;
             }
           }
