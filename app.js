@@ -1023,9 +1023,9 @@ class ViralGamesApp {
     this.adminLoginScreen.classList.remove('hidden');
     this.adminDashboardScreen.classList.add('hidden');
     this.loginErrorMsg.classList.add('hidden');
-    this.adminUserInput.value = "franciscoadmin";
+    this.adminUserInput.value = "";
     this.adminPassInput.value = "";
-    setTimeout(() => this.adminPassInput.focus(), 100);
+    setTimeout(() => this.adminUserInput.focus(), 100);
   }
 
   showAdminDashboard() {

@@ -294,16 +294,14 @@
           Ingresa tus credenciales de operador para gestionar el catálogo y la sección de créditos.
         </p>
 
-        <form id="adminLoginForm" class="admin-form">
+        <form id="adminLoginForm" class="admin-form" autocomplete="off">
           <div class="form-group">
             <label for="adminUserInput">USUARIO:</label>
-            <input type="text" id="adminUserInput" class="pixel-input" placeholder="franciscoadmin" required autocomplete="username">
-            <small class="field-hint">Usuario oficial: <code>franciscoadmin</code></small>
+            <input type="text" id="adminUserInput" class="pixel-input" placeholder="Usuario administrador" required autocomplete="off">
           </div>
           <div class="form-group">
             <label for="adminPassInput">CONTRASEÑA:</label>
-            <input type="password" id="adminPassInput" class="pixel-input" placeholder="•••••••••" required autocomplete="current-password">
-            <small class="field-hint">Clave oficial: <code>Manzana9</code></small>
+            <input type="password" id="adminPassInput" class="pixel-input" placeholder="•••••••••" required autocomplete="new-password">
           </div>
 
           <div id="loginErrorMsg" class="error-msg hidden">
