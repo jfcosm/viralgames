@@ -61,7 +61,7 @@ import {
   useRpc,
 } from './utils/usePlayground';
 
-const BACKGROUND_MUSIC_URL = 'assets/audio/bgm_trivia_loop.mp3';
+const BACKGROUND_MUSIC_URL = 'assets/audio/bgm_trivia_loop_2.mp3';
 
 interface LifelinesState {
   fiftyFifty: boolean;
