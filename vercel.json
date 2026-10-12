@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/panel-admin",
+      "destination": "/index.html"
+    }
+  ]
+}
