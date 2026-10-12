@@ -166,81 +166,16 @@
       </div>
     </section>
 
-    <!-- CREATOR & INSPIRATION CREDITS SECTION -->
+    <!-- CREATOR & INSPIRATION CREDITS SECTION (Dinámica y configurable) -->
     <section class="credits-section" id="creditsSection">
       <div class="section-title-wrapper">
-        <span class="section-pretitle">PLAYER SELECT / STAFF ROLL</span>
-        <h2 class="section-title">CREADORES & INSPIRACIÓN</h2>
-        <p class="section-subtitle">El equipo detrás de la máquina arcade de VIRALGAMES</p>
+        <span class="section-pretitle" id="creditsSectionPretitle">PLAYER SELECT / STAFF ROLL</span>
+        <h2 class="section-title" id="creditsSectionTitle">CREADORES & INSPIRACIÓN</h2>
+        <p class="section-subtitle" id="creditsSectionSubtitle">El equipo detrás de la máquina arcade de VIRALGAMES</p>
       </div>
 
-      <div class="credits-grid">
-        <!-- PLAYER 1: Francisco Carle (Creador) -->
-        <article class="credit-card card-creator">
-          <div class="credit-header">
-            <span class="player-slot">PLAYER 1 [CREADOR]</span>
-            <span class="credit-rank">★ LVL 99 DEV</span>
-          </div>
-
-          <div class="credit-avatar-box">
-            <div class="pixel-avatar-frame">
-              <!-- Pixel Sprite Representation -->
-              <div class="avatar-sprite avatar-francisco">
-                <div class="sprite-pixel-head"></div>
-                <div class="sprite-pixel-glasses"></div>
-                <div class="sprite-pixel-smile"></div>
-              </div>
-            </div>
-            <div class="avatar-crown">👑</div>
-          </div>
-
-          <div class="credit-body">
-            <h3 class="credit-name">FRANCISCO CARLE</h3>
-            <span class="credit-role">CREADOR & GAME DESIGNER</span>
-            <p class="credit-bio">
-              Creador de <strong>VIRALGAMES</strong>. Programador y entusiasta de la nostalgia noventera, rescata los hitos más desquiciados, graciosos y memorables de la cultura chilena e hispanohablante para transformarlos en una colección interminable de mini juegos de 16 bit.
-            </p>
-
-            <a href="https://www.instagram.com/francisco.carle/" target="_blank" rel="noopener noreferrer" class="pixel-button btn-instagram btn-sound">
-              <span class="ig-icon">📸</span>
-              <span>@francisco.carle</span>
-              <span class="ig-arrow">↗</span>
-            </a>
-          </div>
-        </article>
-
-        <!-- PLAYER 2: Jano Mendoza (Inspiración) -->
-        <article class="credit-card card-inspiration">
-          <div class="credit-header">
-            <span class="player-slot">PLAYER 2 [INSPIRACIÓN]</span>
-            <span class="credit-rank">★ SPECIAL GUEST</span>
-          </div>
-
-          <div class="credit-avatar-box">
-            <div class="pixel-avatar-frame frame-cyan">
-              <div class="avatar-sprite avatar-jano">
-                <div class="sprite-pixel-head-jano"></div>
-                <div class="sprite-pixel-beard"></div>
-                <div class="sprite-pixel-smile"></div>
-              </div>
-            </div>
-            <div class="avatar-crown">⚡</div>
-          </div>
-
-          <div class="credit-body">
-            <h3 class="credit-name">JANO MENDOZA</h3>
-            <span class="credit-role">INSPIRACIÓN & MENTE CREATIVA</span>
-            <p class="credit-bio">
-              Inspiración directa y mentor de locuras creativas. Con su energía experimental y proyectos en <strong>Janolabs</strong>, enciende la chispa para convertir cada meme y viral en una pieza jugable de entretenimiento digital.
-            </p>
-
-            <a href="https://www.instagram.com/janolabs_/" target="_blank" rel="noopener noreferrer" class="pixel-button btn-instagram-cyan btn-sound">
-              <span class="ig-icon">📸</span>
-              <span>@janolabs_</span>
-              <span class="ig-arrow">↗</span>
-            </a>
-          </div>
-        </article>
+      <div class="credits-grid" id="creditsGrid">
+        <!-- Rendered dynamically by app.js from this.credits -->
       </div>
     </section>
 
@@ -355,7 +290,7 @@
         <div class="arcade-lock-icon">👾</div>
         <h3 class="admin-title">VIRALGAMES SYSTEM ADMIN</h3>
         <p class="admin-instruction">
-          Ingresa tus credenciales de operador para gestionar el catálogo de mini juegos.
+          Ingresa tus credenciales de operador para gestionar el catálogo y la sección de créditos.
         </p>
 
         <form id="adminLoginForm" class="admin-form">
@@ -390,13 +325,10 @@
     <div id="adminDashboardScreen" class="admin-window admin-dashboard-window hidden">
       <div class="modal-header admin-dash-header">
         <div class="dash-header-title">
-          <span class="modal-title">⚙️ PANEL DE ADMINISTRACIÓN - CATÁLOGO VIRALGAMES</span>
+          <span class="modal-title">⚙️ PANEL DE ADMINISTRACIÓN - VIRALGAMES</span>
           <span class="admin-status-badge">● CONECTADO COMO: FRANCISCO CARLE</span>
         </div>
         <div class="dash-header-actions">
-          <button type="button" class="pixel-mini-btn" id="btnResetDefaultGames" title="Restablecer juegos de fábrica">
-            ↺ RESTABLECER JUEGOS
-          </button>
           <button type="button" class="pixel-button btn-secondary btn-small" id="btnLogoutAdmin">
             SALIR (LOGOUT)
           </button>
@@ -404,148 +336,365 @@
         </div>
       </div>
 
+      <!-- ADMIN NAVIGATION TABS -->
+      <nav class="admin-tabs-bar" role="tablist">
+        <button type="button" class="admin-tab-btn active" id="tabBtnGames" data-tab="games">
+          🎮 MINI JUEGOS (<span id="tabCountGames">6</span>)
+        </button>
+        <button type="button" class="admin-tab-btn" id="tabBtnCredits" data-tab="credits">
+          👥 SECCIÓN CRÉDITOS (<span id="tabCountCredits">2</span>)
+        </button>
+        <button type="button" class="admin-tab-btn" id="tabBtnSettings" data-tab="settings">
+          ⚙️ AJUSTES DE SISTEMA
+        </button>
+      </nav>
+
       <div class="admin-dashboard-body">
 
-        <!-- ADMIN CONTROLS: ESTILO VISUAL & EFECTO CRT -->
-        <div class="admin-settings-card">
-          <div class="admin-settings-header">
-            <h4>🎮 CONFIGURACIÓN VISUAL DEL SISTEMA (EXCLUSIVO ADMIN)</h4>
-            <span class="settings-hint">Estos cambios afectan la apariencia visual global de la web</span>
-          </div>
-
-          <div class="admin-settings-grid">
-            <!-- Theme selector -->
-            <div class="setting-item">
-              <span class="setting-title">ESTILO VISUAL 16-BIT ACTIVO:</span>
-              <div class="admin-theme-buttons">
-                <button type="button" class="theme-btn active" data-admin-theme="snes">
-                  <span class="btn-dot dot-red"></span>
-                  <span class="btn-dot dot-yellow"></span>
-                  <span class="btn-dot dot-blue"></span>
-                  <span class="btn-dot dot-green"></span>
-                  SUPER NINTENDO (SNES)
-                </button>
-                <button type="button" class="theme-btn" data-admin-theme="neogeo">
-                  🔥 SNK NEO•GEO ARCADE
-                </button>
-                <button type="button" class="theme-btn" data-admin-theme="genesis">
-                  ⚡ SEGA GENESIS (BLAST)
-                </button>
-              </div>
-              <p id="adminThemeDescription" class="theme-active-desc">
-                Estilo actual: <strong>SNES 16-BIT</strong> - Colores vibrantes, calidez y botones de 4 colores.
-              </p>
-            </div>
-
-            <!-- CRT scanlines toggle -->
-            <div class="setting-item">
-              <span class="setting-title">EFECTO MONITOR CRT (SCANLINES):</span>
-              <div class="crt-admin-toggle-wrapper">
-                <button type="button" id="btnAdminToggleCRT" class="pixel-button btn-secondary btn-sound">
-                  📺 EFECTO CRT: <span id="adminCrtStatusText">APAGADO</span>
-                </button>
-                <span class="crt-note">Mantiene el monitor antiguo con líneas de barrido y fósforo retro.</span>
-              </div>
+        <!-- ============================================================== -->
+        <!-- TAB 1: GESTIÓN DE MINI JUEGOS                                   -->
+        <!-- ============================================================== -->
+        <div id="adminViewGames" class="admin-tab-view active">
+          
+          <!-- Top summary bar -->
+          <div class="admin-stats-strip">
+            <div class="stat-chip">TOTAL JUEGOS: <strong id="adminTotalCount">0</strong></div>
+            <div class="stat-chip">JUEGO DESTACADO: <strong>Tío Aceite (La Serena)</strong></div>
+            <div class="stat-chip">ESTADO STORAGE: <strong class="text-green">LOCALSTORAGE ACTIVO</strong></div>
+            <div class="admin-action-group">
+              <button type="button" class="pixel-mini-btn" id="btnResetDefaultGames" title="Restablecer juegos de fábrica">
+                ↺ RESTABLECER JUEGOS
+              </button>
+              <button type="button" class="pixel-button btn-primary btn-small" id="btnOpenNewGameForm">
+                ➕ AGREGAR MINI JUEGO
+              </button>
             </div>
           </div>
-        </div>
 
-        <!-- Top summary bar -->
-        <div class="admin-stats-strip">
-          <div class="stat-chip">TOTAL JUEGOS: <strong id="adminTotalCount">0</strong></div>
-          <div class="stat-chip">JUEGO DESTACADO: <strong>Tío Aceite (La Serena)</strong></div>
-          <div class="stat-chip">ESTADO STORAGE: <strong class="text-green">LOCALSTORAGE ACTIVO</strong></div>
-          <button type="button" class="pixel-button btn-primary btn-small" id="btnOpenNewGameForm">
-            ➕ AGREGAR NUEVO MINI JUEGO
-          </button>
-        </div>
-
-        <!-- FORM TO ADD OR EDIT A GAME -->
-        <div id="gameEditorContainer" class="game-editor-card hidden">
-          <div class="editor-header">
-            <h4 id="editorFormTitle">EDITAR MINI JUEGO</h4>
-            <button type="button" class="pixel-mini-btn" id="btnCloseEditor">CANCELAR</button>
-          </div>
-
-          <form id="gameEditorForm" class="editor-form">
-            <input type="hidden" id="editGameId">
-
-            <div class="form-row">
-              <div class="form-group flex-2">
-                <label for="editTitle">TÍTULO DEL JUEGO *</label>
-                <input type="text" id="editTitle" class="pixel-input" placeholder="Ej: Tío Aceite: La Fritanga" required>
-              </div>
-
-              <div class="form-group flex-1">
-                <label for="editBadge">BADGE / ETIQUETA</label>
-                <input type="text" id="editBadge" class="pixel-input" placeholder="Ej: DISPONIBLE, PRÓXIMAMENTE">
-              </div>
-
-              <div class="form-group flex-1">
-                <label for="editCategory">CATEGORÍA</label>
-                <select id="editCategory" class="pixel-input">
-                  <option value="viral">Viral Chileno</option>
-                  <option value="arcade">Arcade 16-Bit</option>
-                  <option value="proximamente">Próximamente</option>
-                </select>
-              </div>
+          <!-- FORM TO ADD OR EDIT A GAME -->
+          <div id="gameEditorContainer" class="game-editor-card hidden">
+            <div class="editor-header">
+              <h4 id="editorFormTitle">EDITAR MINI JUEGO</h4>
+              <button type="button" class="pixel-mini-btn" id="btnCloseEditor">CANCELAR</button>
             </div>
 
-            <div class="form-group">
-              <label for="editDescription">DESCRIPCIÓN CORTA *</label>
-              <textarea id="editDescription" class="pixel-input" rows="3" placeholder="Describe brevemente la premisa del juego..." required></textarea>
-            </div>
+            <form id="gameEditorForm" class="editor-form">
+              <input type="hidden" id="editGameId">
 
-            <div class="form-row">
-              <div class="form-group flex-2">
-                <label for="editImage">URL DE LA IMAGEN (PIXEL ART) *</label>
-                <input type="text" id="editImage" class="pixel-input" placeholder="/assets/tio_aceite.jpg o URL externa" required>
-                <div class="preset-images-picker">
-                  <span>PRESETS RÁPIDOS:</span>
-                  <button type="button" class="preset-btn" data-url="/assets/tio_aceite.jpg">Tío Aceite</button>
-                  <button type="button" class="preset-btn" data-url="/assets/chimuelo.jpg">Chimuelo</button>
-                  <button type="button" class="preset-btn" data-url="/assets/tarro.jpg">El Tarro</button>
-                  <button type="button" class="preset-btn" data-url="/assets/proposal_snes.jpg">Arcade 90s</button>
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label for="editTitle">TÍTULO DEL JUEGO *</label>
+                  <input type="text" id="editTitle" class="pixel-input" placeholder="Ej: Tío Aceite: La Fritanga" required>
+                </div>
+
+                <div class="form-group flex-1">
+                  <label for="editBadge">BADGE / ETIQUETA</label>
+                  <input type="text" id="editBadge" class="pixel-input" placeholder="Ej: DISPONIBLE, PRÓXIMAMENTE">
+                </div>
+
+                <div class="form-group flex-1">
+                  <label for="editCategory">CATEGORÍA</label>
+                  <select id="editCategory" class="pixel-input">
+                    <option value="viral">Viral Chileno</option>
+                    <option value="arcade">Arcade 16-Bit</option>
+                    <option value="proximamente">Próximamente</option>
+                  </select>
                 </div>
               </div>
 
-              <!-- Live preview of the image -->
-              <div class="form-group flex-1 editor-image-preview">
-                <label>VISTA PREVIA DE IMAGEN:</label>
-                <div class="preview-box">
-                  <img id="editImagePreview" src="/assets/tio_aceite.jpg" alt="Preview">
+              <div class="form-group">
+                <label for="editDescription">DESCRIPCIÓN CORTA *</label>
+                <textarea id="editDescription" class="pixel-input" rows="3" placeholder="Describe brevemente la premisa del juego..." required></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label for="editImage">URL DE LA IMAGEN (PIXEL ART) *</label>
+                  <input type="text" id="editImage" class="pixel-input" placeholder="/assets/tio_aceite.jpg o URL externa" required>
+                  <div class="preset-images-picker">
+                    <span>PRESETS RÁPIDOS:</span>
+                    <button type="button" class="preset-btn" data-url="/assets/tio_aceite.jpg">Tío Aceite</button>
+                    <button type="button" class="preset-btn" data-url="/assets/chimuelo.jpg">Chimuelo</button>
+                    <button type="button" class="preset-btn" data-url="/assets/tarro.jpg">El Tarro</button>
+                    <button type="button" class="preset-btn" data-url="/assets/proposal_snes.jpg">Arcade 90s</button>
+                  </div>
+                </div>
+
+                <!-- Live preview of the image -->
+                <div class="form-group flex-1 editor-image-preview">
+                  <label>VISTA PREVIA DE IMAGEN:</label>
+                  <div class="preview-box">
+                    <img id="editImagePreview" src="/assets/tio_aceite.jpg" alt="Preview">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="pixel-button btn-primary btn-sound">
+                  💾 GUARDAR CAMBIOS
+                </button>
+                <button type="button" class="pixel-button btn-secondary" id="btnCancelEditor">
+                  CANCELAR
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- LIST OF CURRENT GAMES FOR EDITING -->
+          <div class="admin-games-table-wrapper">
+            <table class="pixel-table">
+              <thead>
+                <tr>
+                  <th>PREVIEW</th>
+                  <th>TÍTULO</th>
+                  <th>DESCRIPCIÓN</th>
+                  <th>CATEGORÍA</th>
+                  <th>BADGE</th>
+                  <th>ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody id="adminGamesTableBody">
+                <!-- Rendered by app.js -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- TAB 2: GESTIÓN DE CRÉDITOS Y EQUIPO (NUEVA SECCIÓN)             -->
+        <!-- ============================================================== -->
+        <div id="adminViewCredits" class="admin-tab-view hidden">
+
+          <!-- Top credits summary bar -->
+          <div class="admin-stats-strip">
+            <div class="stat-chip">INTEGRANTES EN CRÉDITOS: <strong id="adminCreditsCount">2</strong></div>
+            <div class="stat-chip">ESTADO: <strong class="text-green">SINCRONIZADO EN VIVO</strong></div>
+            <div class="admin-action-group">
+              <button type="button" class="pixel-mini-btn" id="btnToggleMetaEditor">
+                ✏️ EDITAR TÍTULOS SECCIÓN
+              </button>
+              <button type="button" class="pixel-mini-btn" id="btnResetDefaultCredits" title="Restablecer integrantes de fábrica">
+                ↺ RESTABLECER CRÉDITOS
+              </button>
+              <button type="button" class="pixel-button btn-primary btn-small" id="btnOpenNewCreditForm">
+                ➕ AGREGAR INTEGRANTE
+              </button>
+            </div>
+          </div>
+
+          <!-- FORM PARA EDITAR TÍTULOS GENERALES DE LA SECCIÓN CRÉDITOS -->
+          <div id="creditsMetaEditorContainer" class="game-editor-card hidden">
+            <div class="editor-header">
+              <h4>EDITAR TÍTULOS DE LA SECCIÓN "CRÉDITOS"</h4>
+              <button type="button" class="pixel-mini-btn" id="btnCloseMetaEditor">CERRAR</button>
+            </div>
+            <form id="creditsMetaForm" class="editor-form">
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="editMetaPretitle">PRE-TÍTULO RETRO</label>
+                  <input type="text" id="editMetaPretitle" class="pixel-input" placeholder="PLAYER SELECT / STAFF ROLL" required>
+                </div>
+                <div class="form-group flex-2">
+                  <label for="editMetaTitle">TÍTULO PRINCIPAL</label>
+                  <input type="text" id="editMetaTitle" class="pixel-input" placeholder="CREADORES & INSPIRACIÓN" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="editMetaSubtitle">SUBTÍTULO / DESCRIPCIÓN DE SECCIÓN</label>
+                <input type="text" id="editMetaSubtitle" class="pixel-input" placeholder="El equipo detrás de la máquina arcade de VIRALGAMES" required>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="pixel-button btn-primary btn-sound">
+                  💾 ACTUALIZAR TÍTULOS
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- FORM TO ADD OR EDIT A CREDIT MEMBER -->
+          <div id="creditEditorContainer" class="game-editor-card hidden">
+            <div class="editor-header">
+              <h4 id="creditEditorFormTitle">EDITAR INTEGRANTE DE CRÉDITOS</h4>
+              <button type="button" class="pixel-mini-btn" id="btnCloseCreditEditor">CANCELAR</button>
+            </div>
+
+            <form id="creditEditorForm" class="editor-form">
+              <input type="hidden" id="editCreditId">
+
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label for="editCreditName">NOMBRE COMPLETO / ALIAS *</label>
+                  <input type="text" id="editCreditName" class="pixel-input" placeholder="Ej: FRANCISCO CARLE" required>
+                </div>
+
+                <div class="form-group flex-2">
+                  <label for="editCreditRole">ROL / CARGO *</label>
+                  <input type="text" id="editCreditRole" class="pixel-input" placeholder="Ej: CREADOR & GAME DESIGNER" required>
+                </div>
+
+                <div class="form-group flex-1">
+                  <label for="editCreditTheme">ESTILO / COLOR</label>
+                  <select id="editCreditTheme" class="pixel-input">
+                    <option value="purple">Púrpura (Creador)</option>
+                    <option value="cyan">Cian (Inspiración)</option>
+                    <option value="gold">Oro Arcade</option>
+                    <option value="red">Rojo Fuego</option>
+                    <option value="green">Verde Neón</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="editCreditSlot">ETIQUETA DE SLOT (SLOT BADGE)</label>
+                  <input type="text" id="editCreditSlot" class="pixel-input" placeholder="Ej: PLAYER 1 [CREADOR]">
+                </div>
+
+                <div class="form-group flex-1">
+                  <label for="editCreditRank">RANGO / NIVEL (RANK)</label>
+                  <input type="text" id="editCreditRank" class="pixel-input" placeholder="Ej: ★ LVL 99 DEV">
+                </div>
+
+                <div class="form-group flex-1">
+                  <label for="editCreditIcon">EMOJI / CORONA FLOTANTE</label>
+                  <input type="text" id="editCreditIcon" class="pixel-input" placeholder="👑 o ⚡ o 🎮" maxlength="4">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="editCreditBio">BIOGRAFÍA / DESCRIPCIÓN *</label>
+                <textarea id="editCreditBio" class="pixel-input" rows="3" placeholder="Descripción del rol e impacto en ViralGames..." required></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label for="editCreditLinkText">TEXTO DEL ENLACE</label>
+                  <input type="text" id="editCreditLinkText" class="pixel-input" placeholder="Ej: @francisco.carle">
+                </div>
+
+                <div class="form-group flex-2">
+                  <label for="editCreditLinkUrl">URL DEL ENLACE (INSTAGRAM / WEB)</label>
+                  <input type="url" id="editCreditLinkUrl" class="pixel-input" placeholder="https://www.instagram.com/usuario/">
+                </div>
+              </div>
+
+              <!-- GESTIÓN AVANZADA DE FOTO / AVATAR DE PERFIL -->
+              <div class="avatar-management-box">
+                <label class="avatar-manage-label">FOTO DE PERFIL DEL INTEGRANTE:</label>
+                <div class="avatar-inputs-row">
+                  
+                  <div class="avatar-controls-col">
+                    <div class="form-group">
+                      <label for="editCreditImageUrl">1. Vía URL de imagen:</label>
+                      <input type="text" id="editCreditImageUrl" class="pixel-input" placeholder="https://... o ruta de archivo">
+                    </div>
+
+                    <div class="form-group">
+                      <label for="editCreditImageFile">2. O sube una imagen desde tu equipo:</label>
+                      <input type="file" id="editCreditImageFile" class="pixel-file-input" accept="image/*">
+                    </div>
+
+                    <div class="avatar-buttons-row">
+                      <button type="button" id="btnDeleteCreditImage" class="pixel-mini-btn btn-danger" title="Eliminar foto y volver al sprite 16-bit">
+                        🗑️ BORRAR FOTO (USAR SPRITE RETRO)
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Vista previa instantánea del avatar -->
+                  <div class="avatar-preview-col">
+                    <span class="preview-mini-title">VISTA PREVIA DEL AVATAR:</span>
+                    <div class="avatar-preview-frame" id="creditAvatarPreviewFrame">
+                      <img id="creditAvatarPreviewImg" src="" alt="Vista previa de perfil" class="hidden">
+                      <div id="creditAvatarFallbackSprite" class="preview-default-sprite">
+                        <span id="creditPreviewEmoji">👑</span>
+                      </div>
+                      <span class="avatar-preview-crown" id="creditPreviewCrown">👑</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="pixel-button btn-primary btn-sound">
+                  💾 GUARDAR INTEGRANTE
+                </button>
+                <button type="button" class="pixel-button btn-secondary" id="btnCancelCreditEditor">
+                  CANCELAR
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- LIST OF CURRENT CREDITS MEMBERS FOR EDITING -->
+          <div class="admin-games-table-wrapper">
+            <table class="pixel-table">
+              <thead>
+                <tr>
+                  <th>AVATAR</th>
+                  <th>NOMBRE</th>
+                  <th>ROL / CARGO</th>
+                  <th>SLOT & RANGO</th>
+                  <th>ENLACE</th>
+                  <th>ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody id="adminCreditsTableBody">
+                <!-- Rendered by app.js -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- TAB 3: AJUSTES DE SISTEMA (ESTILO 16-BIT & MONITOR CRT)         -->
+        <!-- ============================================================== -->
+        <div id="adminViewSettings" class="admin-tab-view hidden">
+          <div class="admin-settings-card">
+            <div class="admin-settings-header">
+              <h4>🎮 CONFIGURACIÓN VISUAL DEL SISTEMA (EXCLUSIVO ADMIN)</h4>
+              <span class="settings-hint">Estos cambios afectan la apariencia visual global de la web</span>
+            </div>
+
+            <div class="admin-settings-grid">
+              <!-- Theme selector -->
+              <div class="setting-item">
+                <span class="setting-title">ESTILO VISUAL 16-BIT ACTIVO:</span>
+                <div class="admin-theme-buttons">
+                  <button type="button" class="theme-btn active" data-admin-theme="snes">
+                    <span class="btn-dot dot-red"></span>
+                    <span class="btn-dot dot-yellow"></span>
+                    <span class="btn-dot dot-blue"></span>
+                    <span class="btn-dot dot-green"></span>
+                    SUPER NINTENDO (SNES)
+                  </button>
+                  <button type="button" class="theme-btn" data-admin-theme="neogeo">
+                    🔥 SNK NEO•GEO ARCADE
+                  </button>
+                  <button type="button" class="theme-btn" data-admin-theme="genesis">
+                    ⚡ SEGA GENESIS (BLAST)
+                  </button>
+                </div>
+                <p id="adminThemeDescription" class="theme-active-desc">
+                  Estilo actual: <strong>SNES 16-BIT</strong> - Colores vibrantes, calidez y botones de 4 colores.
+                </p>
+              </div>
+
+              <!-- CRT scanlines toggle -->
+              <div class="setting-item">
+                <span class="setting-title">EFECTO MONITOR CRT (SCANLINES):</span>
+                <div class="crt-admin-toggle-wrapper">
+                  <button type="button" id="btnAdminToggleCRT" class="pixel-button btn-secondary btn-sound">
+                    📺 EFECTO CRT: <span id="adminCrtStatusText">APAGADO</span>
+                  </button>
+                  <span class="crt-note">Mantiene el monitor antiguo con líneas de barrido y fósforo retro.</span>
                 </div>
               </div>
             </div>
-
-            <div class="form-actions">
-              <button type="submit" class="pixel-button btn-primary btn-sound">
-                💾 GUARDAR CAMBIOS
-              </button>
-              <button type="button" class="pixel-button btn-secondary" id="btnCancelEditor">
-                CANCELAR
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <!-- LIST OF CURRENT GAMES FOR EDITING -->
-        <div class="admin-games-table-wrapper">
-          <table class="pixel-table">
-            <thead>
-              <tr>
-                <th>PREVIEW</th>
-                <th>TÍTULO</th>
-                <th>DESCRIPCIÓN</th>
-                <th>CATEGORÍA</th>
-                <th>BADGE</th>
-                <th>ACCIONES</th>
-              </tr>
-            </thead>
-            <tbody id="adminGamesTableBody">
-              <!-- Rendered by app.js -->
-            </tbody>
-          </table>
+          </div>
         </div>
 
       </div>

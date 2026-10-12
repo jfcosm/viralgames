@@ -312,6 +312,12 @@ body.crt-enabled .crt-vignette {
   text-shadow: 1px 1px 0 #000;
 }
 
+.btn-danger {
+  background-color: #d90429 !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
 .btn-large {
   font-size: 13px;
   padding: 16px 26px;
@@ -748,6 +754,17 @@ body.crt-enabled .crt-vignette {
   box-shadow: 0 0 10px var(--glow-color);
 }
 
+.pixel-file-input {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  background: #0d0822;
+  border: 2px dashed #6d5b9c;
+  color: var(--text-muted);
+  padding: 8px;
+  width: 100%;
+  cursor: pointer;
+}
+
 .games-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -869,7 +886,7 @@ body.crt-enabled .crt-vignette {
 }
 
 /* --------------------------------------------------------------------------
-   CREATOR & INSPIRATION CREDITS SECTION
+   CREATOR & INSPIRATION CREDITS SECTION (Dynamic)
    -------------------------------------------------------------------------- */
 .credits-section {
   margin-bottom: 60px;
@@ -890,15 +907,20 @@ body.crt-enabled .crt-vignette {
   flex-direction: column;
   gap: 18px;
   position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.card-creator {
-  border-color: #9b5de5;
+.credit-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 0 #000, 0 0 25px var(--glow-color);
 }
 
-.card-inspiration {
-  border-color: #00f0ff;
-}
+/* Theme borders for credit cards */
+.card-purple { border-color: #9b5de5; }
+.card-cyan { border-color: #00f0ff; }
+.card-gold { border-color: #ffd166; }
+.card-red { border-color: #ff3300; }
+.card-green { border-color: #06d6a0; }
 
 .credit-header {
   display: flex;
@@ -939,10 +961,15 @@ body.crt-enabled .crt-vignette {
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
 }
 
-.frame-cyan {
-  border-color: #00f0ff;
+.credit-custom-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  display: block;
 }
 
 .avatar-crown {
@@ -997,6 +1024,16 @@ body.crt-enabled .crt-vignette {
   font-size: 30px;
   top: 8px;
   left: 11px;
+}
+
+.avatar-default-sprite {
+  background: radial-gradient(circle, #5b32a8 40%, #1e1540 80%);
+  border-radius: 4px;
+  border: 3px solid #ffd166;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
 }
 
 .credit-name {
@@ -1472,6 +1509,41 @@ body.crt-enabled .crt-vignette {
   gap: 10px;
 }
 
+/* ADMIN NAVIGATION TABS BAR */
+.admin-tabs-bar {
+  display: flex;
+  background: #120926;
+  border-bottom: 3px solid #ff0055;
+  padding: 0 16px;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.admin-tab-btn {
+  font-family: var(--font-hud);
+  font-size: 12px;
+  padding: 12px 18px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 4px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.admin-tab-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-tab-btn.active {
+  color: var(--accent-gold);
+  border-bottom-color: var(--accent-gold);
+  background: #1c113e;
+  font-weight: bold;
+}
+
 .admin-dashboard-body {
   padding: 20px;
   overflow-y: auto;
@@ -1479,6 +1551,16 @@ body.crt-enabled .crt-vignette {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.admin-tab-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.admin-tab-view.hidden {
+  display: none !important;
 }
 
 /* ADMIN SETTINGS CARD (Theme Selector & CRT Switch) */
@@ -1607,6 +1689,13 @@ body.crt-enabled .crt-vignette {
 .stat-chip strong { color: #fff; }
 .text-green { color: #06d6a0 !important; }
 
+.admin-action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* Editor Form */
 .game-editor-card {
   background: #201540;
@@ -1686,7 +1775,98 @@ body.crt-enabled .crt-vignette {
   image-rendering: pixelated;
 }
 
-/* Games Table */
+/* GESTIÓN AVANZADA DE AVATAR / FOTO EN EL EDITOR DE CRÉDITOS */
+.avatar-management-box {
+  background: #110926;
+  border: 2px solid #473673;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.avatar-manage-label {
+  font-family: var(--font-hud);
+  font-size: 11px;
+  color: var(--accent-gold);
+  letter-spacing: 0.5px;
+}
+
+.avatar-inputs-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.avatar-controls-col {
+  flex: 2;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.avatar-buttons-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.avatar-preview-col {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-mini-title {
+  font-family: var(--font-hud);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.avatar-preview-frame {
+  width: 84px;
+  height: 84px;
+  background: #0d0822;
+  border: 3px solid var(--primary);
+  box-shadow: inset 0 0 10px #000, 3px 3px 0 #000;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-preview-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.preview-default-sprite {
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, #38246e 30%, #150d30 80%);
+}
+
+.avatar-preview-crown {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 16px;
+  filter: drop-shadow(1px 1px 0 #000);
+}
+
+/* Games & Credits Tables */
 .admin-games-table-wrapper {
   overflow-x: auto;
   border: 3px solid #3c2f66;
@@ -1726,6 +1906,25 @@ body.crt-enabled .crt-vignette {
   border: 1px solid #fff;
   image-rendering: pixelated;
   display: block;
+}
+
+.table-avatar-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border: 2px solid var(--accent-gold);
+  image-rendering: pixelated;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1c103a;
+  font-size: 20px;
+}
+
+.table-avatar-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .table-actions {

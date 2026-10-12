@@ -76,7 +76,47 @@ const DEFAULT_GAMES = [
 ];
 
 // ==========================================================================
-// 2. THEMES METADATA
+// 2. DEFAULT CREDITS SEED DATA & SECTION METADATA
+// ==========================================================================
+const DEFAULT_CREDITS_META = {
+  pretitle: "PLAYER SELECT / STAFF ROLL",
+  title: "CREADORES & INSPIRACIÓN",
+  subtitle: "El equipo detrás de la máquina arcade de VIRALGAMES"
+};
+
+const DEFAULT_CREDITS = [
+  {
+    id: "credit-creator-01",
+    name: "FRANCISCO CARLE",
+    role: "CREADOR & GAME DESIGNER",
+    slotBadge: "PLAYER 1 [CREADOR]",
+    rank: "★ LVL 99 DEV",
+    theme: "purple",
+    icon: "👑",
+    bio: "Creador de VIRALGAMES. Programador y entusiasta de la nostalgia noventera, rescata los hitos más desquiciados, graciosos y memorables de la cultura chilena e hispanohablante para transformarlos en una colección interminable de mini juegos de 16 bit.",
+    linkText: "@francisco.carle",
+    linkUrl: "https://www.instagram.com/francisco.carle/",
+    avatarImage: "", // Empty defaults to retro sprite
+    spriteClass: "avatar-francisco"
+  },
+  {
+    id: "credit-inspiration-02",
+    name: "JANO MENDOZA",
+    role: "INSPIRACIÓN & MENTE CREATIVA",
+    slotBadge: "PLAYER 2 [INSPIRACIÓN]",
+    rank: "★ SPECIAL GUEST",
+    theme: "cyan",
+    icon: "⚡",
+    bio: "Inspiración directa y mentor de locuras creativas. Con su energía experimental y proyectos en Janolabs, enciende la chispa para convertir cada meme y viral en una pieza jugable de entretenimiento digital.",
+    linkText: "@janolabs_",
+    linkUrl: "https://www.instagram.com/janolabs_/",
+    avatarImage: "",
+    spriteClass: "avatar-jano"
+  }
+];
+
+// ==========================================================================
+// 3. THEMES METADATA
 // ==========================================================================
 const THEMES_INFO = {
   snes: {
@@ -94,7 +134,7 @@ const THEMES_INFO = {
 };
 
 // ==========================================================================
-// 3. SOUND SYNTHESIZER (NATIVE WEB AUDIO API)
+// 4. RETRO AUDIO SYNTHESIZER (NATIVE WEB AUDIO API)
 // ==========================================================================
 class RetroAudioEngine {
   constructor() {
@@ -129,7 +169,6 @@ class RetroAudioEngine {
 
     try {
       if (type === 'coin') {
-        // Dual-tone Mario style coin
         const osc1 = this.ctx.createOscillator();
         const osc2 = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -165,8 +204,7 @@ class RetroAudioEngine {
         osc.stop(t + 0.05);
 
       } else if (type === 'start') {
-        // Power-up / Start arpeggio
-        const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
+        const notes = [261.63, 329.63, 392.00, 523.25];
         notes.forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
@@ -220,16 +258,20 @@ class RetroAudioEngine {
 const sfx = new RetroAudioEngine();
 
 // ==========================================================================
-// 4. STORAGE & STATE MANAGEMENT
+// 5. APPLICATION CLASS & STATE MANAGEMENT
 // ==========================================================================
 class ViralGamesApp {
   constructor() {
     this.games = this.loadGames();
+    this.credits = this.loadCredits();
+    this.creditsMeta = this.loadCreditsMeta();
+
     this.currentTheme = localStorage.getItem('viralgames_theme') || 'snes';
-    this.crtEnabled = localStorage.getItem('viralgames_crt') === 'true'; // Default is OFF
+    this.crtEnabled = localStorage.getItem('viralgames_crt') === 'true';
     this.activeFilter = 'all';
     this.searchQuery = '';
     this.activeModalGame = null;
+    this.activeTab = 'games';
     this.adminAuthenticated = sessionStorage.getItem('viralgames_admin_auth') === 'true';
 
     this.initDOM();
@@ -237,17 +279,17 @@ class ViralGamesApp {
     this.applyCRT(this.crtEnabled);
     this.initEvents();
     this.renderCatalog();
+    this.renderCredits();
     this.checkAdminRoute();
   }
 
+  // Games Storage
   loadGames() {
     try {
       const stored = localStorage.getItem('viralgames_catalog');
-      if (stored) {
-        return JSON.parse(stored);
-      }
+      if (stored) return JSON.parse(stored);
     } catch (e) {
-      console.error("Error reading localStorage:", e);
+      console.error("Error reading games from localStorage:", e);
     }
     localStorage.setItem('viralgames_catalog', JSON.stringify(DEFAULT_GAMES));
     return [...DEFAULT_GAMES];
@@ -256,7 +298,7 @@ class ViralGamesApp {
   saveGames() {
     localStorage.setItem('viralgames_catalog', JSON.stringify(this.games));
     this.renderCatalog();
-    this.renderAdminTable();
+    this.renderAdminGamesTable();
   }
 
   resetDefaultGames() {
@@ -264,12 +306,57 @@ class ViralGamesApp {
       this.games = [...DEFAULT_GAMES];
       this.saveGames();
       sfx.play('start');
-      alert("¡Catálogo restablecido con éxito!");
+      alert("¡Catálogo de juegos restablecido con éxito!");
+    }
+  }
+
+  // Credits Storage
+  loadCredits() {
+    try {
+      const stored = localStorage.getItem('viralgames_credits');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.error("Error reading credits from localStorage:", e);
+    }
+    localStorage.setItem('viralgames_credits', JSON.stringify(DEFAULT_CREDITS));
+    return [...DEFAULT_CREDITS];
+  }
+
+  saveCredits() {
+    localStorage.setItem('viralgames_credits', JSON.stringify(this.credits));
+    this.renderCredits();
+    this.renderAdminCreditsTable();
+  }
+
+  loadCreditsMeta() {
+    try {
+      const stored = localStorage.getItem('viralgames_credits_meta');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.error("Error reading credits meta from localStorage:", e);
+    }
+    localStorage.setItem('viralgames_credits_meta', JSON.stringify(DEFAULT_CREDITS_META));
+    return { ...DEFAULT_CREDITS_META };
+  }
+
+  saveCreditsMeta() {
+    localStorage.setItem('viralgames_credits_meta', JSON.stringify(this.creditsMeta));
+    this.renderCredits();
+  }
+
+  resetDefaultCredits() {
+    if (confirm("¿Estás seguro de restablecer la sección Créditos con los integrantes originales?")) {
+      this.credits = [...DEFAULT_CREDITS];
+      this.creditsMeta = { ...DEFAULT_CREDITS_META };
+      this.saveCredits();
+      this.saveCreditsMeta();
+      sfx.play('start');
+      alert("¡Sección créditos restablecida con éxito!");
     }
   }
 
   initDOM() {
-    // Top bar & buttons
+    // Sound & HUD
     this.btnToggleSound = document.getElementById('btnToggleSound');
     this.soundLabel = document.getElementById('soundLabel');
 
@@ -298,6 +385,12 @@ class ViralGamesApp {
     this.gameSearchInput = document.getElementById('gameSearchInput');
     this.gamesGrid = document.getElementById('gamesGrid');
 
+    // Credits elements on landing page
+    this.creditsSectionPretitle = document.getElementById('creditsSectionPretitle');
+    this.creditsSectionTitle = document.getElementById('creditsSectionTitle');
+    this.creditsSectionSubtitle = document.getElementById('creditsSectionSubtitle');
+    this.creditsGrid = document.getElementById('creditsGrid');
+
     // Admin elements
     this.adminPanelWrapper = document.getElementById('adminPanelWrapper');
     this.adminLoginScreen = document.getElementById('adminLoginScreen');
@@ -311,12 +404,24 @@ class ViralGamesApp {
     this.adminPassInput = document.getElementById('adminPassInput');
     this.loginErrorMsg = document.getElementById('loginErrorMsg');
 
+    // Admin Tabs
+    this.tabBtnGames = document.getElementById('tabBtnGames');
+    this.tabBtnCredits = document.getElementById('tabBtnCredits');
+    this.tabBtnSettings = document.getElementById('tabBtnSettings');
+    this.adminViewGames = document.getElementById('adminViewGames');
+    this.adminViewCredits = document.getElementById('adminViewCredits');
+    this.adminViewSettings = document.getElementById('adminViewSettings');
+    this.tabCountGames = document.getElementById('tabCountGames');
+    this.tabCountCredits = document.getElementById('tabCountCredits');
+    this.adminCreditsCount = document.getElementById('adminCreditsCount');
+
     // Admin exclusive theme & CRT controls
     this.adminThemeButtons = document.querySelectorAll('[data-admin-theme]');
     this.adminThemeDescription = document.getElementById('adminThemeDescription');
     this.btnAdminToggleCRT = document.getElementById('btnAdminToggleCRT');
     this.adminCrtStatusText = document.getElementById('adminCrtStatusText');
 
+    // Games admin editor
     this.adminTotalCount = document.getElementById('adminTotalCount');
     this.btnResetDefaultGames = document.getElementById('btnResetDefaultGames');
     this.btnOpenNewGameForm = document.getElementById('btnOpenNewGameForm');
@@ -334,7 +439,42 @@ class ViralGamesApp {
     this.editImagePreview = document.getElementById('editImagePreview');
     this.adminGamesTableBody = document.getElementById('adminGamesTableBody');
 
-    // Update sound button UI
+    // Credits admin editor
+    this.btnResetDefaultCredits = document.getElementById('btnResetDefaultCredits');
+    this.btnOpenNewCreditForm = document.getElementById('btnOpenNewCreditForm');
+    this.btnToggleMetaEditor = document.getElementById('btnToggleMetaEditor');
+    this.creditsMetaEditorContainer = document.getElementById('creditsMetaEditorContainer');
+    this.btnCloseMetaEditor = document.getElementById('btnCloseMetaEditor');
+    this.creditsMetaForm = document.getElementById('creditsMetaForm');
+    this.editMetaPretitle = document.getElementById('editMetaPretitle');
+    this.editMetaTitle = document.getElementById('editMetaTitle');
+    this.editMetaSubtitle = document.getElementById('editMetaSubtitle');
+
+    this.creditEditorContainer = document.getElementById('creditEditorContainer');
+    this.creditEditorFormTitle = document.getElementById('creditEditorFormTitle');
+    this.btnCloseCreditEditor = document.getElementById('btnCloseCreditEditor');
+    this.btnCancelCreditEditor = document.getElementById('btnCancelCreditEditor');
+    this.creditEditorForm = document.getElementById('creditEditorForm');
+    this.editCreditId = document.getElementById('editCreditId');
+    this.editCreditName = document.getElementById('editCreditName');
+    this.editCreditRole = document.getElementById('editCreditRole');
+    this.editCreditTheme = document.getElementById('editCreditTheme');
+    this.editCreditSlot = document.getElementById('editCreditSlot');
+    this.editCreditRank = document.getElementById('editCreditRank');
+    this.editCreditIcon = document.getElementById('editCreditIcon');
+    this.editCreditBio = document.getElementById('editCreditBio');
+    this.editCreditLinkText = document.getElementById('editCreditLinkText');
+    this.editCreditLinkUrl = document.getElementById('editCreditLinkUrl');
+    this.editCreditImageUrl = document.getElementById('editCreditImageUrl');
+    this.editCreditImageFile = document.getElementById('editCreditImageFile');
+    this.btnDeleteCreditImage = document.getElementById('btnDeleteCreditImage');
+    this.creditAvatarPreviewFrame = document.getElementById('creditAvatarPreviewFrame');
+    this.creditAvatarPreviewImg = document.getElementById('creditAvatarPreviewImg');
+    this.creditAvatarFallbackSprite = document.getElementById('creditAvatarFallbackSprite');
+    this.creditPreviewEmoji = document.getElementById('creditPreviewEmoji');
+    this.creditPreviewCrown = document.getElementById('creditPreviewCrown');
+    this.adminCreditsTableBody = document.getElementById('adminCreditsTableBody');
+
     if (sfx.muted) {
       this.soundLabel.textContent = "SFX OFF";
       this.btnToggleSound.classList.remove('active');
@@ -353,7 +493,6 @@ class ViralGamesApp {
     document.documentElement.setAttribute('data-theme', themeKey);
     localStorage.setItem('viralgames_theme', themeKey);
 
-    // Update admin buttons state
     this.adminThemeButtons.forEach(btn => {
       btn.classList.toggle('active', btn.getAttribute('data-admin-theme') === themeKey);
     });
@@ -411,12 +550,10 @@ class ViralGamesApp {
       });
     }
 
-    // Generic sound for all .btn-sound buttons
+    // Generic sound for .btn-sound buttons
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('.btn-sound');
-      if (btn) {
-        sfx.play('click');
-      }
+      if (btn) sfx.play('click');
     });
 
     // Tío Aceite Play Demo Modal
@@ -489,15 +626,10 @@ class ViralGamesApp {
     }
 
     // URL Routing for Admin (/panel-admin and #panel-admin)
-    window.addEventListener('hashchange', () => {
-      this.checkAdminRoute();
-    });
+    window.addEventListener('hashchange', () => this.checkAdminRoute());
+    window.addEventListener('popstate', () => this.checkAdminRoute());
 
-    window.addEventListener('popstate', () => {
-      this.checkAdminRoute();
-    });
-
-    // Admin Login / Close events
+    // Admin Login / Close
     this.btnCloseAdminLogin.addEventListener('click', () => this.closeAdminPanel());
     this.btnCancelAdminLogin.addEventListener('click', () => this.closeAdminPanel());
     this.btnCloseAdminDash.addEventListener('click', () => this.closeAdminPanel());
@@ -514,23 +646,37 @@ class ViralGamesApp {
       this.showAdminLogin();
     });
 
-    this.btnResetDefaultGames.addEventListener('click', () => {
-      this.resetDefaultGames();
+    // Admin Navigation Tabs
+    const adminTabs = [
+      { btn: this.tabBtnGames, view: this.adminViewGames, name: 'games' },
+      { btn: this.tabBtnCredits, view: this.adminViewCredits, name: 'credits' },
+      { btn: this.tabBtnSettings, view: this.adminViewSettings, name: 'settings' }
+    ];
+
+    adminTabs.forEach(tab => {
+      if (tab.btn) {
+        tab.btn.addEventListener('click', () => {
+          sfx.play('click');
+          adminTabs.forEach(t => {
+            t.btn.classList.remove('active');
+            t.view.classList.add('hidden');
+          });
+          tab.btn.classList.add('active');
+          tab.view.classList.remove('hidden');
+          this.activeTab = tab.name;
+        });
+      }
     });
 
-    // Editor show/hide
+    // Games Admin Actions
+    this.btnResetDefaultGames.addEventListener('click', () => this.resetDefaultGames());
     this.btnOpenNewGameForm.addEventListener('click', () => {
       sfx.play('click');
       this.openGameEditor(null);
     });
-    this.btnCloseEditor.addEventListener('click', () => {
-      this.gameEditorContainer.classList.add('hidden');
-    });
-    this.btnCancelEditor.addEventListener('click', () => {
-      this.gameEditorContainer.classList.add('hidden');
-    });
+    this.btnCloseEditor.addEventListener('click', () => this.gameEditorContainer.classList.add('hidden'));
+    this.btnCancelEditor.addEventListener('click', () => this.gameEditorContainer.classList.add('hidden'));
 
-    // Image preset buttons
     document.querySelectorAll('.preset-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const url = btn.getAttribute('data-url');
@@ -544,10 +690,81 @@ class ViralGamesApp {
       this.editImagePreview.src = this.editImage.value || '/assets/tio_aceite.jpg';
     });
 
-    // Editor submit
     this.gameEditorForm.addEventListener('submit', (e) => {
       e.preventDefault();
       this.handleSaveGame();
+    });
+
+    // Credits Admin Actions
+    this.btnResetDefaultCredits.addEventListener('click', () => this.resetDefaultCredits());
+    this.btnOpenNewCreditForm.addEventListener('click', () => {
+      sfx.play('click');
+      this.openCreditEditor(null);
+    });
+    this.btnCloseCreditEditor.addEventListener('click', () => this.creditEditorContainer.classList.add('hidden'));
+    this.btnCancelCreditEditor.addEventListener('click', () => this.creditEditorContainer.classList.add('hidden'));
+
+    // Section Meta Editor toggle & submit
+    this.btnToggleMetaEditor.addEventListener('click', () => {
+      sfx.play('click');
+      this.creditsMetaEditorContainer.classList.toggle('hidden');
+      if (!this.creditsMetaEditorContainer.classList.contains('hidden')) {
+        this.editMetaPretitle.value = this.creditsMeta.pretitle;
+        this.editMetaTitle.value = this.creditsMeta.title;
+        this.editMetaSubtitle.value = this.creditsMeta.subtitle;
+      }
+    });
+    this.btnCloseMetaEditor.addEventListener('click', () => {
+      this.creditsMetaEditorContainer.classList.add('hidden');
+    });
+    this.creditsMetaForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.creditsMeta = {
+        pretitle: this.editMetaPretitle.value.trim() || DEFAULT_CREDITS_META.pretitle,
+        title: this.editMetaTitle.value.trim() || DEFAULT_CREDITS_META.title,
+        subtitle: this.editMetaSubtitle.value.trim() || DEFAULT_CREDITS_META.subtitle
+      };
+      this.saveCreditsMeta();
+      sfx.play('start');
+      this.creditsMetaEditorContainer.classList.add('hidden');
+      alert("¡Títulos de la sección Créditos actualizados!");
+    });
+
+    // Credit Avatar Upload via File
+    this.editCreditImageFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          this.editCreditImageUrl.value = evt.target.result;
+          this.updateCreditAvatarPreview(evt.target.result);
+          sfx.play('click');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Credit Avatar Delete / Clear Button
+    this.btnDeleteCreditImage.addEventListener('click', () => {
+      sfx.play('click');
+      this.editCreditImageUrl.value = "";
+      this.editCreditImageFile.value = "";
+      this.updateCreditAvatarPreview("");
+    });
+
+    this.editCreditImageUrl.addEventListener('input', () => {
+      this.updateCreditAvatarPreview(this.editCreditImageUrl.value.trim());
+    });
+
+    this.editCreditIcon.addEventListener('input', () => {
+      const icon = this.editCreditIcon.value.trim() || "👑";
+      this.creditPreviewEmoji.textContent = icon;
+      this.creditPreviewCrown.textContent = icon;
+    });
+
+    this.creditEditorForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleSaveCredit();
     });
   }
 
@@ -622,7 +839,6 @@ class ViralGamesApp {
       </article>
     `).join('');
 
-    // Attach card clicks
     this.gamesGrid.querySelectorAll('.btn-card-play').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
@@ -643,7 +859,85 @@ class ViralGamesApp {
   }
 
   // ========================================================================
-  // ROUTING & ADMIN PANEL (Exclusively accessed by URL)
+  // CREDITS RENDERING (Landing Page)
+  // ========================================================================
+  renderCredits() {
+    if (!this.creditsGrid) return;
+
+    // Update section titles
+    if (this.creditsSectionPretitle) this.creditsSectionPretitle.textContent = this.creditsMeta.pretitle;
+    if (this.creditsSectionTitle) this.creditsSectionTitle.textContent = this.creditsMeta.title;
+    if (this.creditsSectionSubtitle) this.creditsSectionSubtitle.textContent = this.creditsMeta.subtitle;
+
+    this.creditsGrid.innerHTML = this.credits.map(member => {
+      const themeClass = `card-${member.theme || 'purple'}`;
+      const icon = member.icon || '👑';
+
+      // Avatar rendering: Custom image vs Retro CSS Sprite vs Default Emoji
+      let avatarHtml = '';
+      if (member.avatarImage) {
+        avatarHtml = `<img src="${member.avatarImage}" alt="${member.name}" class="credit-custom-avatar-img">`;
+      } else if (member.spriteClass === 'avatar-francisco') {
+        avatarHtml = `
+          <div class="avatar-sprite avatar-francisco">
+            <div class="sprite-pixel-head"></div>
+            <div class="sprite-pixel-glasses"></div>
+            <div class="sprite-pixel-smile"></div>
+          </div>
+        `;
+      } else if (member.spriteClass === 'avatar-jano') {
+        avatarHtml = `
+          <div class="avatar-sprite avatar-jano">
+            <div class="sprite-pixel-head-jano"></div>
+            <div class="sprite-pixel-beard"></div>
+            <div class="sprite-pixel-smile"></div>
+          </div>
+        `;
+      } else {
+        avatarHtml = `
+          <div class="avatar-sprite avatar-default-sprite">
+            <span>${icon}</span>
+          </div>
+        `;
+      }
+
+      // Link button styling
+      const btnClass = member.theme === 'cyan' ? 'btn-instagram-cyan' : 'btn-instagram';
+
+      return `
+        <article class="credit-card ${themeClass}">
+          <div class="credit-header">
+            <span class="player-slot">${member.slotBadge || 'PLAYER'}</span>
+            <span class="credit-rank">${member.rank || '★ LVL 99'}</span>
+          </div>
+
+          <div class="credit-avatar-box">
+            <div class="pixel-avatar-frame ${member.theme === 'cyan' ? 'frame-cyan' : ''}">
+              ${avatarHtml}
+            </div>
+            <div class="avatar-crown">${icon}</div>
+          </div>
+
+          <div class="credit-body">
+            <h3 class="credit-name">${member.name}</h3>
+            <span class="credit-role">${member.role}</span>
+            <p class="credit-bio">${member.bio}</p>
+
+            ${member.linkUrl ? `
+              <a href="${member.linkUrl}" target="_blank" rel="noopener noreferrer" class="pixel-button ${btnClass} btn-sound">
+                <span class="ig-icon">📸</span>
+                <span>${member.linkText || '@usuario'}</span>
+                <span class="ig-arrow">↗</span>
+              </a>
+            ` : ''}
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  // ========================================================================
+  // ROUTING & ADMIN PANEL
   // ========================================================================
   checkAdminRoute() {
     const isPathAdmin = window.location.pathname === '/panel-admin' || window.location.pathname.endsWith('/panel-admin');
@@ -690,14 +984,14 @@ class ViralGamesApp {
     this.adminDashboardScreen.classList.remove('hidden');
     this.applyTheme(this.currentTheme);
     this.applyCRT(this.crtEnabled);
-    this.renderAdminTable();
+    this.renderAdminGamesTable();
+    this.renderAdminCreditsTable();
   }
 
   handleAdminLogin() {
     const user = this.adminUserInput.value.trim();
     const pass = this.adminPassInput.value.trim();
 
-    // Required credentials: franciscoadmin / Manzana9
     if (user === "franciscoadmin" && pass === "Manzana9") {
       sfx.play('start');
       this.adminAuthenticated = true;
@@ -709,9 +1003,13 @@ class ViralGamesApp {
     }
   }
 
-  renderAdminTable() {
+  // ========================================================================
+  // GAMES ADMIN TABLE & EDITOR
+  // ========================================================================
+  renderAdminGamesTable() {
     if (!this.adminGamesTableBody) return;
     this.adminTotalCount.textContent = this.games.length;
+    if (this.tabCountGames) this.tabCountGames.textContent = this.games.length;
 
     this.adminGamesTableBody.innerHTML = this.games.map(g => `
       <tr>
@@ -731,7 +1029,6 @@ class ViralGamesApp {
       </tr>
     `).join('');
 
-    // Table actions
     this.adminGamesTableBody.querySelectorAll('.table-btn-edit').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-edit-id');
@@ -832,6 +1129,187 @@ class ViralGamesApp {
   }
 
   // ========================================================================
+  // CREDITS ADMIN TABLE & EDITOR
+  // ========================================================================
+  renderAdminCreditsTable() {
+    if (!this.adminCreditsTableBody) return;
+    if (this.adminCreditsCount) this.adminCreditsCount.textContent = this.credits.length;
+    if (this.tabCountCredits) this.tabCountCredits.textContent = this.credits.length;
+
+    this.adminCreditsTableBody.innerHTML = this.credits.map(m => {
+      let avatarThumb = '';
+      if (m.avatarImage) {
+        avatarThumb = `<img src="${m.avatarImage}" alt="${m.name}">`;
+      } else {
+        avatarThumb = `<span>${m.icon || '👑'}</span>`;
+      }
+
+      return `
+        <tr>
+          <td>
+            <div class="table-avatar-thumb">
+              ${avatarThumb}
+            </div>
+          </td>
+          <td><strong style="color:var(--accent-gold);">${m.name}</strong></td>
+          <td><span>${m.role}</span></td>
+          <td>
+            <span class="pixel-badge badge-primary">${m.slotBadge}</span>
+            <small style="display:block;color:var(--text-muted);font-size:10px;margin-top:2px;">${m.rank}</small>
+          </td>
+          <td>
+            <a href="${m.linkUrl}" target="_blank" style="color:var(--accent-blue);font-size:11px;text-decoration:none;">${m.linkText || 'Enlace'}</a>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button type="button" class="table-btn-edit" data-edit-credit-id="${m.id}">EDITAR</button>
+              <button type="button" class="table-btn-del" data-del-credit-id="${m.id}">ELIMINAR</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    this.adminCreditsTableBody.querySelectorAll('.table-btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-edit-credit-id');
+        const member = this.credits.find(c => c.id === id);
+        this.openCreditEditor(member);
+      });
+    });
+
+    this.adminCreditsTableBody.querySelectorAll('.table-btn-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-del-credit-id');
+        this.deleteCredit(id);
+      });
+    });
+  }
+
+  openCreditEditor(member) {
+    this.creditEditorContainer.classList.remove('hidden');
+
+    if (member) {
+      this.creditEditorFormTitle.textContent = `EDITAR: ${member.name}`;
+      this.editCreditId.value = member.id;
+      this.editCreditName.value = member.name;
+      this.editCreditRole.value = member.role;
+      this.editCreditTheme.value = member.theme || 'purple';
+      this.editCreditSlot.value = member.slotBadge || '';
+      this.editCreditRank.value = member.rank || '';
+      this.editCreditIcon.value = member.icon || '👑';
+      this.editCreditBio.value = member.bio;
+      this.editCreditLinkText.value = member.linkText || '';
+      this.editCreditLinkUrl.value = member.linkUrl || '';
+      this.editCreditImageUrl.value = member.avatarImage || '';
+      this.editCreditImageFile.value = '';
+      this.updateCreditAvatarPreview(member.avatarImage, member.icon);
+    } else {
+      this.creditEditorFormTitle.textContent = "AGREGAR NUEVO INTEGRANTE A CRÉDITOS";
+      this.editCreditId.value = "";
+      this.editCreditName.value = "";
+      this.editCreditRole.value = "";
+      this.editCreditTheme.value = "gold";
+      this.editCreditSlot.value = `PLAYER ${this.credits.length + 1} [COLABORADOR]`;
+      this.editCreditRank.value = "★ NEW PLAYER";
+      this.editCreditIcon.value = "🎮";
+      this.editCreditBio.value = "";
+      this.editCreditLinkText.value = "@nuevo";
+      this.editCreditLinkUrl.value = "https://www.instagram.com/";
+      this.editCreditImageUrl.value = "";
+      this.editCreditImageFile.value = '';
+      this.updateCreditAvatarPreview("", "🎮");
+    }
+
+    this.creditEditorContainer.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  updateCreditAvatarPreview(imageSrc, icon = null) {
+    const currentIcon = icon || this.editCreditIcon.value.trim() || '👑';
+    this.creditPreviewCrown.textContent = currentIcon;
+    this.creditPreviewEmoji.textContent = currentIcon;
+
+    if (imageSrc) {
+      this.creditAvatarPreviewImg.src = imageSrc;
+      this.creditAvatarPreviewImg.classList.remove('hidden');
+      this.creditAvatarFallbackSprite.classList.add('hidden');
+    } else {
+      this.creditAvatarPreviewImg.src = "";
+      this.creditAvatarPreviewImg.classList.add('hidden');
+      this.creditAvatarFallbackSprite.classList.remove('hidden');
+    }
+  }
+
+  handleSaveCredit() {
+    const id = this.editCreditId.value;
+    const name = this.editCreditName.value.trim();
+    const role = this.editCreditRole.value.trim();
+    const theme = this.editCreditTheme.value;
+    const slotBadge = this.editCreditSlot.value.trim() || 'PLAYER';
+    const rank = this.editCreditRank.value.trim() || '★ LVL 99';
+    const icon = this.editCreditIcon.value.trim() || '👑';
+    const bio = this.editCreditBio.value.trim();
+    const linkText = this.editCreditLinkText.value.trim();
+    const linkUrl = this.editCreditLinkUrl.value.trim();
+    const avatarImage = this.editCreditImageUrl.value.trim();
+
+    if (!name || !role || !bio) {
+      alert("Por favor completa nombre, rol y biografía.");
+      return;
+    }
+
+    if (id) {
+      const idx = this.credits.findIndex(c => c.id === id);
+      if (idx !== -1) {
+        this.credits[idx] = {
+          ...this.credits[idx],
+          name,
+          role,
+          theme,
+          slotBadge,
+          rank,
+          icon,
+          bio,
+          linkText,
+          linkUrl,
+          avatarImage
+        };
+      }
+    } else {
+      const newMember = {
+        id: "credit-" + Date.now(),
+        name,
+        role,
+        theme,
+        slotBadge,
+        rank,
+        icon,
+        bio,
+        linkText,
+        linkUrl,
+        avatarImage
+      };
+      this.credits.push(newMember);
+    }
+
+    this.saveCredits();
+    sfx.play('start');
+    this.creditEditorContainer.classList.add('hidden');
+    alert("¡Integrante de créditos guardado con éxito!");
+  }
+
+  deleteCredit(id) {
+    const member = this.credits.find(c => c.id === id);
+    if (!member) return;
+
+    if (confirm(`¿Eliminar a "${member.name}" de la sección de créditos?`)) {
+      this.credits = this.credits.filter(c => c.id !== id);
+      this.saveCredits();
+      sfx.play('click');
+    }
+  }
+
+  // ========================================================================
   // INTERACTIVE CANVAS MINI-GAME TEASER (TÍO ACEITE)
   // ========================================================================
   openMiniGameModal(game = null) {
@@ -868,7 +1346,6 @@ class ViralGamesApp {
       keys: { left: false, right: false }
     };
 
-    // Controls
     const onKeyDown = (e) => {
       if (e.key === 'ArrowLeft' || e.key === 'a') gameState.keys.left = true;
       if (e.key === 'ArrowRight' || e.key === 'd') gameState.keys.right = true;
@@ -1019,7 +1496,7 @@ class ViralGamesApp {
 }
 
 // ==========================================================================
-// 5. APPLICATION INITIALIZATION
+// 6. APPLICATION INITIALIZATION
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   window.viralGamesApp = new ViralGamesApp();
