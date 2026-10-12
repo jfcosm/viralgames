@@ -1936,6 +1936,46 @@ body.crt-enabled .crt-vignette {
 .table-actions {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
+}
+
+.table-btn-hide {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #475569;
+  font-family: var(--font-hud);
+  font-size: 10px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.table-btn-hide:hover {
+  background: #f59e0b;
+  color: #0f172a;
+  border-color: #f59e0b;
+}
+
+.table-btn-show {
+  background: #10b981;
+  color: #020617;
+  font-weight: 700;
+  border: 1px solid #10b981;
+  font-family: var(--font-hud);
+  font-size: 10px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.table-btn-show:hover {
+  background: #34d399;
+  border-color: #34d399;
+}
+
+.table-row-hidden {
+  opacity: 0.65;
+  background: rgba(245, 158, 11, 0.05);
 }
 
 .table-btn-edit {

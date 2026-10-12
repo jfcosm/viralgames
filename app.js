@@ -465,6 +465,7 @@ class ViralGamesApp {
     this.editImage = document.getElementById('editImage');
     this.editImagePreview = document.getElementById('editImagePreview');
     this.editGameUrl = document.getElementById('editGameUrl');
+    this.editHidden = document.getElementById('editHidden');
     this.adminGamesTableBody = document.getElementById('adminGamesTableBody');
 
     // Credits admin editor
@@ -843,7 +844,19 @@ class ViralGamesApp {
   renderCatalog() {
     if (!this.gamesGrid) return;
 
+    // Check if featured game (Tío Aceite) is marked as hidden
+    const featuredSection = document.getElementById('featuredSection');
+    if (featuredSection) {
+      const tio = this.games.find(g => g.id === "tio-aceite-01");
+      if (tio && tio.hidden) {
+        featuredSection.classList.add('hidden');
+      } else {
+        featuredSection.classList.remove('hidden');
+      }
+    }
+
     let filtered = this.games.filter(g => {
+      if (g.hidden) return false;
       if (this.activeFilter === 'viral' && g.category !== 'viral') return false;
       if (this.activeFilter === 'arcade' && g.category !== 'arcade') return false;
       if (this.activeFilter === 'proximamente' && g.status !== 'PRÓXIMAMENTE') return false;
@@ -1057,26 +1070,49 @@ class ViralGamesApp {
   // ========================================================================
   renderAdminGamesTable() {
     if (!this.adminGamesTableBody) return;
-    this.adminTotalCount.textContent = this.games.length;
+    const visibleCount = this.games.filter(g => !g.hidden).length;
+    const hiddenCount = this.games.filter(g => g.hidden).length;
+    this.adminTotalCount.innerHTML = `${this.games.length} <span style="color:var(--text-muted); font-size:10px; font-weight:normal;">(${visibleCount} VISIBLES · ${hiddenCount} OCULTOS)</span>`;
     if (this.tabCountGames) this.tabCountGames.textContent = this.games.length;
 
-    this.adminGamesTableBody.innerHTML = this.games.map(g => `
-      <tr>
+    this.adminGamesTableBody.innerHTML = this.games.map(g => {
+      const isHidden = !!g.hidden;
+      return `
+      <tr class="${isHidden ? 'table-row-hidden' : ''}">
         <td>
           <img src="${g.image}" alt="${g.title}" class="table-thumb" onerror="this.src='/assets/tio_aceite.jpg'">
         </td>
-        <td><strong style="color:var(--accent-gold);">${g.title}</strong></td>
+        <td>
+          <strong style="color:var(--accent-gold);">${g.title}</strong>
+          ${isHidden ? '<br><span class="pixel-badge badge-warning" style="font-size:8px; margin-top:3px; display:inline-block;">🚫 OCULTO</span>' : ''}
+        </td>
         <td><span style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${g.description}</span></td>
         <td><span class="pixel-badge">${g.category}</span></td>
         <td><span class="pixel-badge badge-primary">${g.badge || '16-BIT'}</span></td>
         <td>
+          <span class="pixel-badge ${isHidden ? 'badge-warning' : 'badge-highlight'}" style="font-size:9px;">
+            ${isHidden ? '🚫 OCULTO' : '👁️ VISIBLE'}
+          </span>
+        </td>
+        <td>
           <div class="table-actions">
+            <button type="button" class="${isHidden ? 'table-btn-show' : 'table-btn-hide'}" data-toggle-vis-id="${g.id}" title="${isHidden ? 'Mostrar en la landing page' : 'Ocultar de la landing page'}">
+              ${isHidden ? '👁️ MOSTRAR' : '🚫 OCULTAR'}
+            </button>
             <button type="button" class="table-btn-edit" data-edit-id="${g.id}">EDITAR</button>
             <button type="button" class="table-btn-del" data-del-id="${g.id}">ELIMINAR</button>
           </div>
         </td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
+
+    this.adminGamesTableBody.querySelectorAll('[data-toggle-vis-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-toggle-vis-id');
+        this.toggleGameVisibility(id);
+      });
+    });
 
     this.adminGamesTableBody.querySelectorAll('.table-btn-edit').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1094,6 +1130,15 @@ class ViralGamesApp {
     });
   }
 
+  toggleGameVisibility(id) {
+    const game = this.games.find(g => g.id === id);
+    if (!game) return;
+
+    game.hidden = !game.hidden;
+    this.saveGames();
+    sfx.play('click');
+  }
+
   openGameEditor(game) {
     this.gameEditorContainer.classList.remove('hidden');
 
@@ -1107,6 +1152,7 @@ class ViralGamesApp {
       this.editImage.value = game.image;
       this.editImagePreview.src = game.image;
       if (this.editGameUrl) this.editGameUrl.value = game.gameUrl || '';
+      if (this.editHidden) this.editHidden.checked = !!game.hidden;
     } else {
       this.editorFormTitle.textContent = "AGREGAR NUEVO MINI JUEGO";
       this.editGameId.value = "";
@@ -1117,6 +1163,7 @@ class ViralGamesApp {
       this.editImage.value = "/assets/tio_aceite.jpg";
       this.editImagePreview.src = "/assets/tio_aceite.jpg";
       if (this.editGameUrl) this.editGameUrl.value = "";
+      if (this.editHidden) this.editHidden.checked = false;
     }
 
     this.gameEditorContainer.scrollIntoView({ behavior: 'smooth' });
@@ -1130,6 +1177,7 @@ class ViralGamesApp {
     const description = this.editDescription.value.trim();
     const image = this.editImage.value.trim() || '/assets/tio_aceite.jpg';
     const gameUrl = this.editGameUrl ? this.editGameUrl.value.trim() : '';
+    const hidden = this.editHidden ? this.editHidden.checked : false;
 
     if (!title || !description) {
       alert("Por favor completa los campos obligatorios.");
@@ -1146,7 +1194,8 @@ class ViralGamesApp {
           category,
           description,
           image,
-          gameUrl
+          gameUrl,
+          hidden
         };
       }
     } else {
@@ -1158,6 +1207,7 @@ class ViralGamesApp {
         description,
         image,
         gameUrl,
+        hidden,
         featured: false,
         releaseYear: "1995",
         status: "DISPONIBLE"
