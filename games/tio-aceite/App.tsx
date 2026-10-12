@@ -1546,27 +1546,6 @@ export default function App() {
       );
     }
 
-    // Catching Pan Catch Indicator Ring
-    const panX = player.facingLeft ? player.x + 55 : player.x + 115;
-    const panY = player.y + 102;
-    const basePanRadius = 46;
-    const activePanRadius =
-      (gameStateRef.current.goldenPanTimer ?? 0) > 0 || gameStateRef.current.bravaActive
-        ? basePanRadius * 1.55
-        : basePanRadius;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.ellipse(panX, panY, activePanRadius, activePanRadius * 0.45, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = gameStateRef.current.bravaActive
-      ? 'rgba(251, 191, 36, 0.9)'
-      : (gameStateRef.current.goldenPanTimer ?? 0) > 0
-      ? 'rgba(234, 179, 8, 0.9)'
-      : 'rgba(253, 224, 71, 0.4)';
-    ctx.lineWidth = gameStateRef.current.bravaActive ? 3.5 : 2;
-    ctx.stroke();
-    ctx.restore();
-
     // Floating Text Popups
     const texts = floatingTextsRef.current;
     for (const t of texts) {
