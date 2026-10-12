@@ -13,6 +13,7 @@ const DEFAULT_GAMES = [
     category: "viral",
     badge: "DESTACADO #01",
     image: "/assets/tio_aceite.jpg",
+    gameUrl: "/games/tio-aceite/",
     description: "El mítico maestro nocturno de La Serena en un frenético beat 'em up culinario. Administra la paila de aceite hirviendo a las 4 AM, atiende a los parroquianos carreteros y esquiva a los inspectores.",
     featured: true,
     releaseYear: "1994",
@@ -287,7 +288,17 @@ class ViralGamesApp {
   loadGames() {
     try {
       const stored = localStorage.getItem('viralgames_catalog');
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && Array.isArray(parsed)) {
+          const tio = parsed.find(g => g.id === "tio-aceite-01");
+          if (tio && !tio.gameUrl) {
+            tio.gameUrl = "/games/tio-aceite/";
+            localStorage.setItem('viralgames_catalog', JSON.stringify(parsed));
+          }
+          return parsed;
+        }
+      }
     } catch (e) {
       console.error("Error reading games from localStorage:", e);
     }
@@ -360,11 +371,16 @@ class ViralGamesApp {
     this.btnToggleSound = document.getElementById('btnToggleSound');
     this.soundLabel = document.getElementById('soundLabel');
 
-    // Hero Tio Aceite buttons
+    // Hero Tio Aceite buttons & Arcade Modal
     this.btnPlayTioAceite = document.getElementById('btnPlayTioAceite');
     this.btnInfoTioAceite = document.getElementById('btnInfoTioAceite');
     this.gamePlayModal = document.getElementById('gamePlayModal');
     this.btnCloseGameModal = document.getElementById('btnCloseGameModal');
+    this.gameCabinetIframe = document.getElementById('gameCabinetIframe');
+    this.gameComingSoonNotice = document.getElementById('gameComingSoonNotice');
+    this.comingSoonGameName = document.getElementById('comingSoonGameName');
+    this.btnPlayTioInstead = document.getElementById('btnPlayTioInstead');
+    this.btnFullscreenGame = document.getElementById('btnFullscreenGame');
 
     // Details Modal elements
     this.gameDetailsModal = document.getElementById('gameDetailsModal');
@@ -437,6 +453,7 @@ class ViralGamesApp {
     this.editDescription = document.getElementById('editDescription');
     this.editImage = document.getElementById('editImage');
     this.editImagePreview = document.getElementById('editImagePreview');
+    this.editGameUrl = document.getElementById('editGameUrl');
     this.adminGamesTableBody = document.getElementById('adminGamesTableBody');
 
     // Credits admin editor
@@ -595,16 +612,37 @@ class ViralGamesApp {
       });
     }
 
-    // Canvas Game Close
+    // Arcade Cabinet Modal Close & Fullscreen
     if (this.btnCloseGameModal) {
       this.btnCloseGameModal.addEventListener('click', () => {
+        sfx.play('click');
         this.gamePlayModal.close();
-        if (window.activeGameLoop) {
-          cancelAnimationFrame(window.activeGameLoop);
-          window.activeGameLoop = null;
+        if (this.gameCabinetIframe) this.gameCabinetIframe.src = 'about:blank';
+      });
+    }
+
+    if (this.btnFullscreenGame) {
+      this.btnFullscreenGame.addEventListener('click', () => {
+        if (this.gameCabinetIframe && this.gameCabinetIframe.requestFullscreen) {
+          this.gameCabinetIframe.requestFullscreen();
         }
       });
     }
+
+    if (this.btnPlayTioInstead) {
+      this.btnPlayTioInstead.addEventListener('click', () => {
+        sfx.play('coin');
+        this.openMiniGameModal(this.games[0]);
+      });
+    }
+
+    // Handle postMessage from mini-game iframes (e.g. exit game button)
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'CLOSE_VIRALGAMES_MODAL') {
+        this.gamePlayModal.close();
+        if (this.gameCabinetIframe) this.gameCabinetIframe.src = 'about:blank';
+      }
+    });
 
     // Filter tabs
     this.filterButtons.forEach(btn => {
@@ -1057,6 +1095,7 @@ class ViralGamesApp {
       this.editDescription.value = game.description;
       this.editImage.value = game.image;
       this.editImagePreview.src = game.image;
+      if (this.editGameUrl) this.editGameUrl.value = game.gameUrl || '';
     } else {
       this.editorFormTitle.textContent = "AGREGAR NUEVO MINI JUEGO";
       this.editGameId.value = "";
@@ -1066,6 +1105,7 @@ class ViralGamesApp {
       this.editDescription.value = "";
       this.editImage.value = "/assets/tio_aceite.jpg";
       this.editImagePreview.src = "/assets/tio_aceite.jpg";
+      if (this.editGameUrl) this.editGameUrl.value = "";
     }
 
     this.gameEditorContainer.scrollIntoView({ behavior: 'smooth' });
@@ -1078,6 +1118,7 @@ class ViralGamesApp {
     const category = this.editCategory.value;
     const description = this.editDescription.value.trim();
     const image = this.editImage.value.trim() || '/assets/tio_aceite.jpg';
+    const gameUrl = this.editGameUrl ? this.editGameUrl.value.trim() : '';
 
     if (!title || !description) {
       alert("Por favor completa los campos obligatorios.");
@@ -1093,7 +1134,8 @@ class ViralGamesApp {
           badge,
           category,
           description,
-          image
+          image,
+          gameUrl
         };
       }
     } else {
@@ -1104,6 +1146,7 @@ class ViralGamesApp {
         category,
         description,
         image,
+        gameUrl,
         featured: false,
         releaseYear: "1995",
         status: "DISPONIBLE"
@@ -1310,188 +1353,38 @@ class ViralGamesApp {
   }
 
   // ========================================================================
-  // INTERACTIVE CANVAS MINI-GAME TEASER (TÍO ACEITE)
+  // ARCADE CABINET MINI-GAME RUNNER (IFRAME MONOREPO)
   // ========================================================================
   openMiniGameModal(game = null) {
-    const title = game ? game.title : "TÍO ACEITE: LA FRITANGA SUPREMA";
-    document.getElementById('gameModalTitle').textContent = `🎮 ARCADE TEASER: ${title}`;
+    const targetGame = game || this.games[0];
+    const title = targetGame ? targetGame.title : "TÍO ACEITE: LA FRITANGA SUPREMA";
+    const modalTitleEl = document.getElementById('gameModalTitle');
+    if (modalTitleEl) {
+      modalTitleEl.textContent = `🕹️ ARCADE CABINET: ${title}`;
+    }
+
+    if (targetGame && targetGame.gameUrl) {
+      if (this.gameCabinetIframe) {
+        this.gameCabinetIframe.classList.remove('hidden');
+        this.gameCabinetIframe.src = targetGame.gameUrl;
+      }
+      if (this.gameComingSoonNotice) {
+        this.gameComingSoonNotice.classList.add('hidden');
+      }
+    } else {
+      if (this.gameCabinetIframe) {
+        this.gameCabinetIframe.classList.add('hidden');
+        this.gameCabinetIframe.src = 'about:blank';
+      }
+      if (this.gameComingSoonNotice) {
+        this.gameComingSoonNotice.classList.remove('hidden');
+      }
+      if (this.comingSoonGameName) {
+        this.comingSoonGameName.textContent = title;
+      }
+    }
+
     this.gamePlayModal.showModal();
-
-    this.initCanvasGame();
-  }
-
-  initCanvasGame() {
-    const canvas = document.getElementById('miniGameCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    const overlay = document.getElementById('gameStartOverlay');
-    const scoreEl = document.getElementById('gameCanvasScore');
-    const timerEl = document.getElementById('gameCanvasTimer');
-    const tempEl = document.getElementById('gameCanvasTemp');
-    const startBtn = document.getElementById('btnStartCanvasGame');
-
-    overlay.classList.remove('hidden');
-    scoreEl.textContent = "0";
-    timerEl.textContent = "30s";
-    tempEl.textContent = "180°C";
-
-    let gameState = {
-      running: false,
-      score: 0,
-      timeLeft: 30,
-      pan: { x: canvas.width / 2 - 40, y: canvas.height - 40, width: 80, height: 20, speed: 8 },
-      items: [],
-      particles: [],
-      keys: { left: false, right: false }
-    };
-
-    const onKeyDown = (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a') gameState.keys.left = true;
-      if (e.key === 'ArrowRight' || e.key === 'd') gameState.keys.right = true;
-    };
-    const onKeyUp = (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a') gameState.keys.left = false;
-      if (e.key === 'ArrowRight' || e.key === 'd') gameState.keys.right = false;
-    };
-    const onMouseMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const mouseX = (e.clientX - rect.left) * scaleX;
-      gameState.pan.x = Math.max(0, Math.min(canvas.width - gameState.pan.width, mouseX - gameState.pan.width / 2));
-    };
-
-    window.removeEventListener('keydown', onKeyDown);
-    window.removeEventListener('keyup', onKeyUp);
-    canvas.removeEventListener('mousemove', onMouseMove);
-
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
-    canvas.addEventListener('mousemove', onMouseMove);
-
-    startBtn.onclick = () => {
-      sfx.play('start');
-      overlay.classList.add('hidden');
-      gameState.running = true;
-      gameState.score = 0;
-      gameState.timeLeft = 30;
-      gameState.items = [];
-      gameState.particles = [];
-
-      let timerInterval = setInterval(() => {
-        if (!gameState.running) {
-          clearInterval(timerInterval);
-          return;
-        }
-        gameState.timeLeft--;
-        timerEl.textContent = gameState.timeLeft + "s";
-        if (gameState.timeLeft <= 0) {
-          gameState.running = false;
-          clearInterval(timerInterval);
-          sfx.play('coin');
-          overlay.classList.remove('hidden');
-          overlay.querySelector('.canvas-title').textContent = "¡TIEMPO TERMINADO!";
-          overlay.querySelector('.canvas-instructions').textContent = `Puntuación final del Tío Aceite: ${gameState.score} puntos. ¡El pescado quedó crujiente!`;
-          startBtn.textContent = "▶ JUGAR OTRA VEZ (INSERT COIN)";
-        }
-      }, 1000);
-
-      let lastSpawn = 0;
-      const loop = (timestamp) => {
-        if (!gameState.running) return;
-
-        if (gameState.keys.left) gameState.pan.x = Math.max(0, gameState.pan.x - gameState.pan.speed);
-        if (gameState.keys.right) gameState.pan.x = Math.min(canvas.width - gameState.pan.width, gameState.pan.x + gameState.pan.speed);
-
-        if (timestamp - lastSpawn > 650) {
-          lastSpawn = timestamp;
-          const types = [
-            { name: 'fish', color: '#ffcc00', points: 100, label: '🐟' },
-            { name: 'empanada', color: '#f39c12', points: 150, label: '🥟' },
-            { name: 'limon', color: '#2ecc71', points: 50, label: '🍋' }
-          ];
-          const chosen = types[Math.floor(Math.random() * types.length)];
-          gameState.items.push({
-            x: Math.random() * (canvas.width - 30) + 10,
-            y: -20,
-            speed: Math.random() * 2 + 3,
-            ...chosen
-          });
-        }
-
-        for (let i = gameState.items.length - 1; i >= 0; i--) {
-          const item = gameState.items[i];
-          item.y += item.speed;
-
-          if (
-            item.y + 20 >= gameState.pan.y &&
-            item.y <= gameState.pan.y + gameState.pan.height &&
-            item.x + 20 >= gameState.pan.x &&
-            item.x <= gameState.pan.x + gameState.pan.width
-          ) {
-            gameState.score += item.points;
-            scoreEl.textContent = gameState.score;
-            sfx.play('sizzle');
-
-            for (let p = 0; p < 8; p++) {
-              gameState.particles.push({
-                x: item.x + 10,
-                y: gameState.pan.y,
-                vx: (Math.random() - 0.5) * 4,
-                vy: -Math.random() * 5 - 2,
-                life: 25,
-                color: '#ffe600'
-              });
-            }
-
-            gameState.items.splice(i, 1);
-            continue;
-          }
-
-          if (item.y > canvas.height + 20) {
-            gameState.items.splice(i, 1);
-          }
-        }
-
-        for (let p = gameState.particles.length - 1; p >= 0; p--) {
-          const part = gameState.particles[p];
-          part.x += part.vx;
-          part.y += part.vy;
-          part.vy += 0.2;
-          part.life--;
-          if (part.life <= 0) gameState.particles.splice(p, 1);
-        }
-
-        ctx.fillStyle = '#110a26';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = '#1d123d';
-        for (let y = 0; y < canvas.height; y += 16) {
-          ctx.fillRect(0, y, canvas.width, 1);
-        }
-
-        ctx.fillStyle = '#4a4a5a';
-        ctx.fillRect(gameState.pan.x - 6, gameState.pan.y, gameState.pan.width + 12, gameState.pan.height);
-        ctx.fillStyle = '#ffd000';
-        ctx.fillRect(gameState.pan.x, gameState.pan.y + 3, gameState.pan.width, gameState.pan.height - 6);
-        ctx.fillStyle = '#ff7700';
-        ctx.fillRect(gameState.pan.x, gameState.pan.y + 8, gameState.pan.width, 4);
-
-        ctx.font = '22px sans-serif';
-        gameState.items.forEach(item => {
-          ctx.fillText(item.label, item.x, item.y);
-        });
-
-        gameState.particles.forEach(p => {
-          ctx.fillStyle = p.color;
-          ctx.fillRect(p.x, p.y, 4, 4);
-        });
-
-        window.activeGameLoop = requestAnimationFrame(loop);
-      };
-
-      window.activeGameLoop = requestAnimationFrame(loop);
-    };
   }
 }
 

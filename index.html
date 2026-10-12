@@ -246,30 +246,31 @@
   </dialog>
 
   <!-- ======================================================== -->
-  <!-- MODAL: MINI JUEGO PLAYABLE TEASER (TÍO ACEITE)          -->
+  <!-- MODAL: ARCADE CABINET PLAYER (IFRAME MONOREPO)           -->
   <!-- ======================================================== -->
   <dialog id="gamePlayModal" class="pixel-modal">
-    <div class="modal-window window-game">
+    <div class="modal-window window-game-arcade">
       <div class="modal-header">
-        <span class="modal-title" id="gameModalTitle">🎮 ARCADE TEASER: TÍO ACEITE DE LA SERENA</span>
-        <button type="button" class="modal-close-btn" id="btnCloseGameModal">✖</button>
+        <span class="modal-title" id="gameModalTitle">🎮 ARCADE CABINET: TÍO ACEITE DE LA SERENA</span>
+        <div class="dash-header-actions">
+          <button type="button" class="pixel-mini-btn" id="btnFullscreenGame" title="Pantalla completa">⛶ PANTALLA COMPLETA</button>
+          <button type="button" class="modal-close-btn" id="btnCloseGameModal" aria-label="Cerrar arcade">✖</button>
+        </div>
       </div>
-      <div class="modal-body modal-game-body">
-        <div class="arcade-screen-container">
-          <!-- Canvas mini game -->
-          <canvas id="miniGameCanvas" width="640" height="360"></canvas>
-          <div id="gameStartOverlay" class="canvas-overlay">
-            <h3 class="canvas-title">¡FRÍE EL PESCADO CON EL TÍO ACEITE!</h3>
-            <p class="canvas-instructions">Mueve la paila hirviendo con las flechas ◀ ▶ o el ratón para atrapar los pescados y empanadas sin dejar que se quemen.</p>
-            <button type="button" class="pixel-button btn-primary btn-large btn-sound" id="btnStartCanvasGame">
-              ▶ COMENZAR A FREÍR (INSERT COIN)
+      <div class="modal-body modal-arcade-body">
+        <iframe id="gameCabinetIframe" class="arcade-cabinet-iframe" src="/games/tio-aceite/" allow="autoplay; fullscreen"></iframe>
+        
+        <!-- Pantalla de juego en preparación -->
+        <div id="gameComingSoonNotice" class="arcade-coming-soon-box hidden">
+          <div class="coming-soon-content">
+            <span class="rom-blink">INSERT COIN</span>
+            <h3>🎮 ROM EN DESARROLLO 🎮</h3>
+            <p id="comingSoonGameName" style="color:var(--accent-gold);font-family:var(--font-pixel);font-size:13px;">TÍTULO DEL JUEGO</p>
+            <p class="coming-soon-desc" style="font-size:13px;line-height:1.5;color:var(--text-muted);">Este mini juego 16-bit está actualmente en etapa de programación por Francisco Carle para la próxima actualización de VIRALGAMES.</p>
+            <button type="button" class="pixel-button btn-primary btn-sound" id="btnPlayTioInstead">
+              ▶ JUGAR TÍO ACEITE MIENTRAS TANTO
             </button>
           </div>
-        </div>
-        <div class="game-hud-status">
-          <span>PUNTOS: <strong id="gameCanvasScore">0</strong></span>
-          <span>TEMPERATURA: <strong id="gameCanvasTemp">180°C</strong></span>
-          <span>TIEMPO: <strong id="gameCanvasTimer">30s</strong></span>
         </div>
       </div>
     </div>
@@ -427,6 +428,12 @@
                     <img id="editImagePreview" src="/assets/tio_aceite.jpg" alt="Preview">
                   </div>
                 </div>
+              </div>
+
+              <div class="form-group">
+                <label for="editGameUrl">URL DEL JUEGO / RUTA IFRAME (Ej: /games/tio-aceite/)</label>
+                <input type="text" id="editGameUrl" class="pixel-input" placeholder="/games/tio-aceite/">
+                <small class="field-hint">Estrategia Monorepo: Si configuras <code>/games/nombre-juego/</code> el juego correrá dentro del gabinete arcade.</small>
               </div>
 
               <div class="form-actions">

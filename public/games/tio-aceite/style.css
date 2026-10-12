@@ -1,0 +1,303 @@
+/* ==========================================================================
+   TÍO ACEITE: LA FRITANGA SUPREMA - 16-BIT MINI GAME STYLES
+   ========================================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #0c0817;
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  overflow: hidden;
+  user-select: none;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arcade-cabinet-wrapper {
+  width: 100%;
+  max-width: 860px;
+  height: 100%;
+  max-height: 560px;
+  background: #140d28;
+  border: 4px solid #ffd166;
+  box-shadow: 0 0 30px rgba(255, 209, 102, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* TOP HUD */
+.game-hud {
+  background: #1c1338;
+  border-bottom: 3px solid #ff0055;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: 'Silkscreen', monospace;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-label {
+  font-size: 9px;
+  color: #ffd166;
+  letter-spacing: 0.5px;
+}
+
+.hud-val {
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.hud-order-tag {
+  color: #00ffff;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.heat-item {
+  min-width: 130px;
+}
+
+.heat-bar-wrapper {
+  width: 100%;
+  height: 8px;
+  background: #000;
+  border: 1px solid #fff;
+  overflow: hidden;
+}
+
+.heat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #06d6a0 0%, #ffd166 60%, #ff3300 100%);
+  transition: width 0.15s ease;
+}
+
+.hud-heat-deg {
+  font-size: 10px;
+  color: #ff99aa;
+}
+
+.hud-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.hud-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 6px 8px;
+  background: #3a2b5c;
+  color: #fff;
+  border: 2px solid #fff;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 #000;
+}
+
+.hud-btn:hover {
+  background: #ffd166;
+  color: #000;
+}
+
+.hud-exit {
+  background: #ff0055;
+}
+
+/* SCREEN AREA & CANVAS */
+.game-screen-area {
+  flex: 1;
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#gameCanvas {
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  max-height: 480px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  display: block;
+}
+
+/* OVERLAYS */
+.game-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10, 5, 25, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.game-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.game-overlay.hidden {
+  display: none;
+}
+
+.overlay-modal {
+  background: #1e143b;
+  border: 4px solid #ffd166;
+  box-shadow: 8px 8px 0 #000, 0 0 25px rgba(255, 209, 102, 0.4);
+  padding: 24px;
+  max-width: 580px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pixel-badge {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 4px 8px;
+  background: #ff0055;
+  color: #fff;
+  align-self: center;
+}
+
+.game-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(20px, 4vw, 30px);
+  color: #ffd166;
+  text-shadow: 3px 3px 0 #000, 0 0 10px rgba(255, 209, 102, 0.5);
+  margin-top: 4px;
+}
+
+.game-subtitle {
+  font-family: 'Silkscreen', monospace;
+  font-size: 11px;
+  color: #00ffff;
+  letter-spacing: 1px;
+}
+
+.game-instructions {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  text-align: left;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 12px 16px;
+  border: 1px solid #4a3e75;
+  color: #e2e8f0;
+  line-height: 1.4;
+}
+
+.game-instructions ul {
+  list-style: none;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arcade-start-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  padding: 14px 20px;
+  background: #06d6a0;
+  color: #000;
+  border: none;
+  cursor: pointer;
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,0.6), inset -2px -2px 0 rgba(0,0,0,0.6), 4px 4px 0 #000;
+  text-transform: uppercase;
+  margin-top: 6px;
+  transition: transform 0.1s, filter 0.1s;
+}
+
+.arcade-start-btn:hover {
+  filter: brightness(1.15);
+  transform: translate(-1px, -1px);
+}
+
+.arcade-start-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+.arcade-secondary-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 10px 14px;
+  background: #392b5c;
+  color: #ffd166;
+  border: 2px solid #ffd166;
+  cursor: pointer;
+}
+
+/* GAME OVER */
+.game-over-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  color: #ff0055;
+}
+
+.game-over-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 12px;
+  border: 1px solid #4a3e75;
+  font-size: 11px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.rank-highlight {
+  color: #ffd166;
+}
+
+.game-over-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* FOOTER BAR */
+.game-footer-bar {
+  background: #110a24;
+  border-top: 2px solid #3c2f66;
+  padding: 6px 12px;
+  font-family: 'Silkscreen', monospace;
+  font-size: 10px;
+  color: #a0aec0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-version {
+  color: #ffd166;
+}
