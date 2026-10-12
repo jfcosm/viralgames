@@ -284,6 +284,7 @@ class ViralGamesApp {
     this.currentTheme = localStorage.getItem('viralgames_theme') || 'snes';
     this.crtEnabled = localStorage.getItem('viralgames_crt') === 'true';
     this.showArcadeHud = localStorage.getItem('viralgames_hud_visible') !== 'false';
+    this.showArcadeNavbar = localStorage.getItem('viralgames_navbar_visible') !== 'false';
     this.activeFilter = 'all';
     this.searchQuery = '';
     this.activeModalGame = null;
@@ -294,6 +295,7 @@ class ViralGamesApp {
     this.applyTheme(this.currentTheme);
     this.applyCRT(this.crtEnabled);
     this.applyHudVisibility();
+    this.applyNavbarVisibility();
     this.renderFilterTabs();
     this.initEvents();
     this.renderCatalog();
@@ -377,6 +379,22 @@ class ViralGamesApp {
     }
     if (this.btnAdminToggleHud) {
       this.btnAdminToggleHud.classList.toggle('active', this.showArcadeHud);
+    }
+  }
+
+  applyNavbarVisibility() {
+    if (this.arcadeNavbar) {
+      if (this.showArcadeNavbar) {
+        this.arcadeNavbar.classList.remove('hidden');
+      } else {
+        this.arcadeNavbar.classList.add('hidden');
+      }
+    }
+    if (this.adminNavbarStatusText) {
+      this.adminNavbarStatusText.textContent = this.showArcadeNavbar ? 'VISIBLE' : 'OCULTO';
+    }
+    if (this.btnAdminToggleNavbar) {
+      this.btnAdminToggleNavbar.classList.toggle('active', this.showArcadeNavbar);
     }
   }
 
@@ -582,6 +600,9 @@ class ViralGamesApp {
     this.arcadeHud = document.getElementById('arcadeHud');
     this.btnAdminToggleHud = document.getElementById('btnAdminToggleHud');
     this.adminHudStatusText = document.getElementById('adminHudStatusText');
+    this.arcadeNavbar = document.getElementById('arcadeNavbar');
+    this.btnAdminToggleNavbar = document.getElementById('btnAdminToggleNavbar');
+    this.adminNavbarStatusText = document.getElementById('adminNavbarStatusText');
 
     // Games admin editor
     this.adminTotalCount = document.getElementById('adminTotalCount');
@@ -800,6 +821,16 @@ class ViralGamesApp {
         this.showArcadeHud = !this.showArcadeHud;
         localStorage.setItem('viralgames_hud_visible', this.showArcadeHud ? 'true' : 'false');
         this.applyHudVisibility();
+      });
+    }
+
+    // Admin Toggle Retro Arcade Navbar
+    if (this.btnAdminToggleNavbar) {
+      this.btnAdminToggleNavbar.addEventListener('click', () => {
+        sfx.play('click');
+        this.showArcadeNavbar = !this.showArcadeNavbar;
+        localStorage.setItem('viralgames_navbar_visible', this.showArcadeNavbar ? 'true' : 'false');
+        this.applyNavbarVisibility();
       });
     }
 
@@ -1235,6 +1266,8 @@ class ViralGamesApp {
     this.adminDashboardScreen.classList.remove('hidden');
     this.applyTheme(this.currentTheme);
     this.applyCRT(this.crtEnabled);
+    this.applyHudVisibility();
+    this.applyNavbarVisibility();
     this.renderAdminGamesTable();
     this.renderAdminCreditsTable();
   }

@@ -42,6 +42,37 @@
     </div>
   </header>
 
+  <!-- BARRA DE NAVEGACIÓN RETRO ARCADE (Configurable desde Admin) -->
+  <nav class="arcade-navbar" id="arcadeNavbar" aria-label="Navegación principal">
+    <div class="nav-container">
+      <a href="#mainContent" class="nav-brand btn-sound" title="Ir al inicio de Viralgames">
+        <span class="nav-brand-icon">👾</span>
+        <span class="nav-brand-title">VIRALGAMES</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="#catalogSection" class="nav-link-item btn-sound">
+          <span class="nav-link-dot">●</span>
+          <span>CATÁLOGO</span>
+        </a>
+        <a href="#customDevSection" class="nav-link-item nav-link-custom btn-sound">
+          <span class="nav-link-badge">⚡ ON-DEMAND</span>
+          <span>ENCÁRGAME TU JUEGO</span>
+        </a>
+        <a href="#creditsSection" class="nav-link-item btn-sound">
+          <span class="nav-link-dot">●</span>
+          <span>CRÉDITOS</span>
+        </a>
+      </div>
+
+      <div class="nav-actions">
+        <a href="https://wa.me/56930781181?text=Hola%20Francisco!%20Vi%20tu%20trabajo%20en%20Viralgames%20y%20me%20gustar%C3%ADa%20cotizar%20un%20videojuego%20a%20medida%20para%20mi%20marca/proyecto." target="_blank" rel="noopener noreferrer" class="nav-btn-wa btn-sound">
+          💬 WHATSAPP
+        </a>
+      </div>
+    </div>
+  </nav>
+
   <!-- MAIN LANDING PAGE CONTAINER -->
   <main id="mainContent" class="main-layout">
 
@@ -843,6 +874,17 @@
                     🕹️ BARRA SUPERIOR: <span id="adminHudStatusText">VISIBLE</span>
                   </button>
                   <span class="crt-note">Muestra u oculta la barra superior del arcade con créditos (Insert Coin), status y botón SFX.</span>
+                </div>
+              </div>
+
+              <!-- Navbar toggle -->
+              <div class="setting-item">
+                <span class="setting-title">BARRA DE NAVEGACIÓN (NAVBAR):</span>
+                <div class="crt-admin-toggle-wrapper">
+                  <button type="button" id="btnAdminToggleNavbar" class="pixel-button btn-secondary btn-sound active">
+                    🧭 BARRA DE NAVEGACIÓN: <span id="adminNavbarStatusText">VISIBLE</span>
+                  </button>
+                  <span class="crt-note">Muestra u oculta la barra de navegación con accesos directos a Catálogo, Encárgame tu Juego y Créditos.</span>
                 </div>
               </div>
             </div>
