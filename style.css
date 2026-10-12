@@ -1321,9 +1321,9 @@ body.crt-enabled .crt-vignette {
    -------------------------------------------------------------------------- */
 .window-game-arcade {
   width: 96vw;
-  max-width: 920px;
-  height: 90vh;
-  max-height: 620px;
+  max-width: 980px;
+  height: 92vh;
+  max-height: 680px;
   background: #0d0822;
   border: 6px solid var(--accent-gold);
 }

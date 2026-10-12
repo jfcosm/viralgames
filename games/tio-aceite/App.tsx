@@ -218,6 +218,24 @@ const STAGES: LevelStage[] = [
   },
 ];
 
+// --- 16-BIT RETRO ARCADE LEADERBOARD ---
+export interface LeaderboardEntry {
+  name: string;
+  score: number;
+  stageName: string;
+  date: string;
+}
+
+export const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
+  { name: 'FRANCISC', score: 28500, stageName: 'Polideportivo', date: '1994' },
+  { name: 'JANO_M',   score: 24200, stageName: 'Feria Abastos', date: '1994' },
+  { name: 'CHIMUELO', score: 19800, stageName: 'Plaza Tenri',   date: '1995' },
+  { name: 'EL_TARRO', score: 16400, stageName: 'Plaza Armas',   date: '1993' },
+  { name: 'LA_SEREN', score: 14100, stageName: 'La Recova',     date: '1994' },
+  { name: 'FRITANGA', score: 11500, stageName: 'El Faro',       date: '1994' },
+  { name: 'DON_TIO',  score: 9800,  stageName: 'Carrito',       date: '1994' },
+];
+
 // Character spritesheet configs based on read_assets_metadata
 const PLAYER_SPRITE_CONFIGS: Record<string, SpriteActionConfig> = {
   IDLE: {
@@ -447,6 +465,51 @@ export default function App() {
     }
   });
 
+  // --- 16-BIT ARCADE LEADERBOARD STATE ---
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem('viralgames_tio_aceite_leaderboard');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_LEADERBOARD;
+  });
+
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [playerNameInput, setPlayerNameInput] = useState(() => {
+    try {
+      return (localStorage.getItem('viralgames_tio_aceite_player_name') || 'JUGADOR').slice(0, 8);
+    } catch {
+      return 'JUGADOR';
+    }
+  });
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+
+  const handleSaveScore = (score: number, stageName: string) => {
+    const cleanName = (playerNameInput.trim().toUpperCase() || 'JUGADOR').slice(0, 8);
+    const newEntry: LeaderboardEntry = {
+      name: cleanName,
+      score: score,
+      stageName: stageName,
+      date: 'HOY',
+    };
+    const updated = [...leaderboard, newEntry]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+
+    setLeaderboard(updated);
+    setScoreSubmitted(true);
+    try {
+      localStorage.setItem('viralgames_tio_aceite_leaderboard', JSON.stringify(updated));
+      localStorage.setItem('viralgames_tio_aceite_player_name', cleanName);
+    } catch (e) {
+      console.error(e);
+    }
+    gameAudio.playVictoryJingle();
+    setIsLeaderboardOpen(true);
+  };
+
   // --- PLAYGROUND SDK INTEGRATION ---
   const {sdk, isReady} = usePlayground();
   const [exitChat] = useRpc<Record<string, unknown>, void>('ExitChat');
@@ -627,6 +690,7 @@ export default function App() {
   const initGame = useCallback((startInEndless = false) => {
     const startingLives = getConfig('startingLives') as number;
     setIsEndlessMode(startInEndless);
+    setScoreSubmitted(false);
 
     playerRef.current = {
       x: canvasWidth / 2 - 85,
@@ -1631,6 +1695,23 @@ export default function App() {
           font-family: 'Press Start 2P', monospace;
           text-shadow: 2px 2px 0px #000000;
         }
+        .title-salvemos-tio-aceite {
+          font-family: 'Press Start 2P', monospace;
+          color: #dc2626;
+          text-shadow: 
+            -2px -2px 0 #ffffff,
+             2px -2px 0 #ffffff,
+            -2px  2px 0 #ffffff,
+             2px  2px 0 #ffffff,
+            -2px  0px 0 #ffffff,
+             2px  0px 0 #ffffff,
+             0px -2px 0 #ffffff,
+             0px  2px 0 #ffffff,
+             0px  4px 0 #000000,
+             3px  4px 0 #000000;
+          letter-spacing: 2px;
+          line-height: 1.35;
+        }
         .retro-arcade-box {
           border: 3px solid #f59e0b;
           box-shadow: 4px 4px 0px #000000, inset 2px 2px 0px rgba(255,255,255,0.2);
@@ -1868,41 +1949,41 @@ export default function App() {
       {/* --- DEDICATED WELCOME / TITLE SCREEN --- */}
       {gameState.status === 'START' && (
         <MenuOverlay tone="neutral" zIndex={40}>
-          <div className="w-full max-w-lg bg-slate-950/90 backdrop-blur-md border-4 border-amber-500 rounded-2xl p-4 sm:p-5 shadow-[0_0_50px_rgba(245,158,11,0.35),4px_4px_0px_#000] flex flex-col items-center text-center max-h-[92vh] overflow-y-auto">
-            {/* Title Screen Banner Illustration preview if loaded */}
+          <div className="w-full max-w-md bg-slate-950/95 backdrop-blur-md border-4 border-amber-500 rounded-2xl p-3 sm:p-4 shadow-[0_0_50px_rgba(245,158,11,0.35),4px_4px_0px_#000] flex flex-col items-center text-center max-h-[94vh] overflow-y-auto">
+            {/* Title Screen Banner Illustration: Escala completa sin recortes */}
             {assets['bg_title_screen'] && (
-              <div className="w-full mb-3 rounded-xl overflow-hidden border-2 border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.4)] relative">
+              <div className="w-full mb-2.5 rounded-xl overflow-hidden border-2 border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.4)] relative bg-slate-900 flex items-center justify-center p-1.5">
                 <img
                   src={ASSETS_MANIFEST.bg_title_screen}
                   alt="Portada Salvemos al Tío Aceite"
-                  className="w-full h-36 sm:h-44 object-cover object-center [image-rendering:pixelated]"
+                  className="w-auto h-auto max-h-[145px] sm:max-h-[175px] max-w-full object-contain [image-rendering:pixelated] drop-shadow-md mx-auto"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
-                <div className="absolute top-2 right-2 bg-amber-500/90 text-slate-950 px-2 py-0.5 rounded text-[7px] font-black tracking-wider retro-arcade-text shadow">
+                <div className="absolute top-1.5 right-1.5 bg-red-600 border border-white text-white px-2 py-0.5 rounded text-[7px] font-black tracking-wider retro-arcade-text shadow-[2px_2px_0px_#000]">
                   16-BIT EDITION
                 </div>
               </div>
             )}
 
-            <div className="flex items-center gap-2 mb-1.5 bg-amber-500/20 border border-amber-400/60 px-3 py-1 rounded-full text-[8px] sm:text-[9px] text-amber-300 font-bold retro-arcade-text">
-              <Sparkles size={12} className="text-yellow-400" />
+            <div className="flex items-center gap-1.5 mb-1.5 bg-amber-500/20 border border-amber-400/60 px-2.5 py-0.5 rounded-full text-[7px] sm:text-[8px] text-amber-300 font-bold retro-arcade-text">
+              <Sparkles size={11} className="text-yellow-400" />
               <span>GRAN TOUR URBANO • 8 NIVELES</span>
             </div>
 
-            <h1 className="text-base sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-500 tracking-wider mb-1 retro-arcade-text drop-shadow-[2px_2px_0px_#000]">
+            {/* Título en letras rojas con sombra blanca en estilo pixelado */}
+            <h1 className="text-sm sm:text-base md:text-lg font-black mb-1 title-salvemos-tio-aceite tracking-wider">
               SALVEMOS AL TÍO ACEITE
             </h1>
-            <p className="text-[7px] sm:text-[8px] text-amber-400 font-bold mb-2.5 retro-arcade-text">
+            <p className="text-[7px] text-amber-300 font-bold mb-2 retro-arcade-text">
               EL MAESTRO DE LA FRITANGA CALLEJERA
             </p>
 
             {/* 8 Stages Mini Preview List */}
-            <div className="w-full bg-slate-900/90 border-2 border-amber-500/50 rounded-xl p-2.5 mb-2.5 text-left text-[7px] sm:text-[8px] text-slate-300 space-y-1 retro-arcade-text">
-              <div className="flex items-center justify-between text-yellow-400 pb-1 border-b border-slate-800">
+            <div className="w-full bg-slate-900/90 border-2 border-amber-500/50 rounded-xl p-2 mb-2 text-left text-[7px] text-slate-300 space-y-1 retro-arcade-text">
+              <div className="flex items-center justify-between text-yellow-400 pb-0.5 border-b border-slate-800">
                 <span>📍 8 ESCENARIOS DE LA SERENA:</span>
                 <span className="text-amber-300">META: 26,000 PTS</span>
               </div>
-              <div className="grid grid-cols-2 gap-1 pt-1 text-slate-300">
+              <div className="grid grid-cols-2 gap-1 pt-0.5 text-slate-300">
                 {STAGES.map((s) => (
                   <div key={s.id} className="flex items-center gap-1 truncate text-amber-200">
                     <span>{s.badgeEmoji}</span>
@@ -1912,13 +1993,22 @@ export default function App() {
               </div>
             </div>
 
-            {/* Top High Score Display */}
-            <div className="w-full text-[8px] sm:text-[9px] text-slate-300 mb-2.5 flex items-center justify-between px-3 py-1.5 bg-slate-900 rounded-lg border border-slate-800 retro-arcade-text">
-              <span className="text-amber-400 flex items-center gap-1.5">
-                <Trophy size={12} className="text-amber-400" />
+            {/* Top High Score Display & Leaderboard Button */}
+            <div className="w-full text-[7px] sm:text-[8px] text-slate-300 mb-2 flex items-center justify-between px-2.5 py-1.5 bg-slate-900 rounded-lg border border-slate-800 retro-arcade-text">
+              <span className="text-amber-400 flex items-center gap-1">
+                <Trophy size={11} className="text-amber-400" />
                 RÉCORD:
               </span>
               <span className="font-bold text-yellow-300">{highScore.toLocaleString()} PTS</span>
+              <button
+                type="button"
+                onClick={() => {
+                  gameAudio.playCrispClick();
+                  setIsLeaderboardOpen(true);
+                }}
+                className="text-[7px] text-amber-300 hover:text-white bg-amber-950/80 hover:bg-amber-900 border border-amber-600 px-2 py-0.5 rounded transition-colors ml-2">
+                🏆 SALÓN DE LA FAMA
+              </button>
             </div>
 
             {/* Main Action Buttons */}
@@ -2207,7 +2297,7 @@ export default function App() {
       {/* --- GAME OVER OVERLAY --- */}
       {gameState.status === 'GAME_OVER' && (
         <MenuOverlay tone="danger" zIndex={40}>
-          <div className="w-full max-w-md bg-slate-950 border-4 border-red-600 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col items-center text-center">
+          <div className="w-full max-w-md bg-slate-950 border-4 border-red-600 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col items-center text-center max-h-[92vh] overflow-y-auto">
             <div className="text-3xl mb-1">🍳💨</div>
             <h2 className="text-base sm:text-lg font-black text-red-400 mb-1 retro-arcade-text">
               ¡SE TE CORTÓ EL ACEITE!
@@ -2235,7 +2325,52 @@ export default function App() {
               </div>
             </div>
 
+            {/* In-Game Name Entry for Leaderboard */}
+            {!scoreSubmitted ? (
+              <div className="w-full bg-slate-900/90 border-2 border-amber-500/80 rounded-xl p-3 mb-3 text-center retro-arcade-text shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                <span className="text-[7px] sm:text-[8px] text-yellow-300 block mb-1.5 font-black">
+                  🏆 REGISTRA TU NOMBRE (MÁX 8 CARACTERES)
+                </span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-1.5">
+                  <input
+                    type="text"
+                    maxLength={8}
+                    value={playerNameInput}
+                    onChange={(e) =>
+                      setPlayerNameInput(
+                        e.target.value.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 8)
+                      )
+                    }
+                    placeholder="TU_NOMBRE"
+                    className="bg-black border-2 border-amber-400 text-yellow-400 text-center font-black text-xs py-2 px-3 rounded-lg w-full sm:w-44 tracking-widest uppercase focus:outline-none focus:border-red-500 shadow-[inset_2px_2px_0px_#000]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSaveScore(gameState.score, currentStage.shortName)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-[8px] sm:text-[9px] py-2 px-3 rounded-lg shadow-[2px_2px_0px_#000] active:translate-y-0.5 transition-all">
+                    GUARDAR EN SALÓN
+                  </button>
+                </div>
+                <span className="text-[6px] text-slate-400">Presiona GUARDAR para rankear en el Salón de la Fama</span>
+              </div>
+            ) : (
+              <div className="w-full bg-amber-500/20 border border-amber-400/80 rounded-xl py-2 px-3 mb-3 text-center retro-arcade-text text-[7px] sm:text-[8px] text-amber-300 flex items-center justify-center gap-2">
+                <span>✓ PUNTAJE REGISTRADO: {playerNameInput}</span>
+              </div>
+            )}
+
             <div className="w-full flex flex-col gap-2 retro-arcade-text">
+              <button
+                type="button"
+                onClick={() => {
+                  gameAudio.playCrispClick();
+                  setIsLeaderboardOpen(true);
+                }}
+                className="w-full bg-slate-900 hover:bg-slate-800 border-2 border-amber-500/60 text-amber-300 py-2 rounded-xl font-bold text-[8px] transition-colors flex items-center justify-center gap-1.5">
+                <Trophy size={13} className="text-yellow-400" />
+                VER SALÓN DE LA FAMA
+              </button>
+
               <button
                 autoFocus
                 onClick={() => initGame(false)}
@@ -2260,7 +2395,7 @@ export default function App() {
       {/* --- GRAND VICTORY OVERLAY --- */}
       {gameState.status === 'VICTORY' && (
         <MenuOverlay tone="victory" zIndex={40}>
-          <div className="w-full max-w-md bg-slate-950 border-4 border-emerald-500 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col items-center text-center max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-md bg-slate-950 border-4 border-emerald-500 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col items-center text-center max-h-[92vh] overflow-y-auto">
             <div className="text-3xl mb-1">👑🏆✨</div>
             <h2 className="text-base sm:text-lg font-black text-yellow-400 mb-1 retro-arcade-text">
               ¡REY SUPREMO DEL SARTÉN!
@@ -2300,7 +2435,52 @@ export default function App() {
               </div>
             </div>
 
+            {/* In-Game Name Entry for Victory */}
+            {!scoreSubmitted ? (
+              <div className="w-full bg-slate-900/90 border-2 border-emerald-500/80 rounded-xl p-3 mb-3 text-center retro-arcade-text shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                <span className="text-[7px] sm:text-[8px] text-yellow-300 block mb-1.5 font-black">
+                  👑 REGISTRA TU VICTORIA (MÁX 8 CARACTERES)
+                </span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-1.5">
+                  <input
+                    type="text"
+                    maxLength={8}
+                    value={playerNameInput}
+                    onChange={(e) =>
+                      setPlayerNameInput(
+                        e.target.value.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 8)
+                      )
+                    }
+                    placeholder="TU_NOMBRE"
+                    className="bg-black border-2 border-emerald-400 text-emerald-400 text-center font-black text-xs py-2 px-3 rounded-lg w-full sm:w-44 tracking-widest uppercase focus:outline-none focus:border-yellow-400 shadow-[inset_2px_2px_0px_#000]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSaveScore(gameState.score, 'VICTORIA')}
+                    className="w-full sm:w-auto bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 font-black text-[8px] sm:text-[9px] py-2 px-3 rounded-lg shadow-[2px_2px_0px_#000] active:translate-y-0.5 transition-all">
+                    GUARDAR EN SALÓN
+                  </button>
+                </div>
+                <span className="text-[6px] text-slate-400">Inmortaliza tu victoria en la cima de VIRALGAMES</span>
+              </div>
+            ) : (
+              <div className="w-full bg-emerald-500/20 border border-emerald-400/80 rounded-xl py-2 px-3 mb-3 text-center retro-arcade-text text-[7px] sm:text-[8px] text-emerald-300 flex items-center justify-center gap-2">
+                <span>✓ GLORIA INMORTAL REGISTRADA: {playerNameInput}</span>
+              </div>
+            )}
+
             <div className="w-full flex flex-col gap-2 retro-arcade-text">
+              <button
+                type="button"
+                onClick={() => {
+                  gameAudio.playCrispClick();
+                  setIsLeaderboardOpen(true);
+                }}
+                className="w-full bg-slate-900 hover:bg-slate-800 border-2 border-emerald-500/60 text-emerald-300 py-2 rounded-xl font-bold text-[8px] transition-colors flex items-center justify-center gap-1.5">
+                <Trophy size={13} className="text-yellow-400" />
+                VER SALÓN DE LA FAMA
+              </button>
+
               <button
                 autoFocus
                 onClick={() => initGame(true)}
@@ -2325,6 +2505,59 @@ export default function App() {
                 VOLVER AL TÍTULO
               </button>
             </div>
+          </div>
+        </MenuOverlay>
+      )}
+
+      {/* --- INTEGRATED 16-BIT ARCADE LEADERBOARD OVERLAY --- */}
+      {isLeaderboardOpen && (
+        <MenuOverlay tone="neutral" zIndex={50}>
+          <div className="w-full max-w-md bg-slate-950 border-4 border-amber-500 rounded-2xl p-4 sm:p-5 shadow-[0_0_40px_rgba(245,158,11,0.5),4px_4px_0px_#000] flex flex-col items-center text-center max-h-[90vh] overflow-y-auto retro-arcade-text">
+            <div className="text-3xl mb-1">🏆⭐👑</div>
+            <h2 className="text-base sm:text-lg font-black text-yellow-400 mb-1">
+              SALÓN DE LA FAMA
+            </h2>
+            <p className="text-[7px] text-amber-300 mb-3">
+              MEJORES PUNTAJES • LA FRITANGA SUPREMA
+            </p>
+
+            <div className="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 mb-3 divide-y divide-slate-800/80 text-[7px] sm:text-[8px]">
+              {leaderboard.map((entry, idx) => (
+                <div
+                  key={idx}
+                  className={`py-1.5 px-2 flex items-center justify-between ${
+                    idx === 0
+                      ? 'text-yellow-300 font-black bg-amber-500/10 rounded'
+                      : idx === 1
+                      ? 'text-slate-200 font-bold'
+                      : idx === 2
+                      ? 'text-amber-500 font-bold'
+                      : 'text-slate-400'
+                  }`}>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 text-left">
+                      {idx === 0 ? '🥇 1' : idx === 1 ? '🥈 2' : idx === 2 ? '🥉 3' : `#${idx + 1}`}
+                    </span>
+                    <span className="tracking-wider">{entry.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[6px] text-slate-500 hidden sm:inline">{entry.stageName}</span>
+                    <span className="text-yellow-400 font-black">{entry.score.toLocaleString()} PTS</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                gameAudio.playCrispClick();
+                setIsLeaderboardOpen(false);
+              }}
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-950 py-2.5 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-2 shadow-[2px_2px_0px_#000]">
+              <X size={15} />
+              CERRAR SALÓN DE LA FAMA
+            </button>
           </div>
         </MenuOverlay>
       )}
