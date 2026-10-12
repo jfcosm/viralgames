@@ -35,7 +35,7 @@ const DEFAULT_GAMES = [
     title: "EL TARRO: SALTO BMX MORTAL",
     category: "viral",
     badge: "ACCIÓN EXTREMA",
-    image: "/assets/tarro.jpg",
+    image: "/assets/tarro-title.jpeg",
     gameUrl: "/games/el-tarro/",
     description: "Pedalea a toda máquina por las calles de tierra de Talca. Salta la rampa de tablas improvisada mientras tus amigos gritan ¡DALE TARRO! y calcula el aterrizaje para evitar el legendario tortazo.",
     featured: false,
@@ -299,10 +299,16 @@ class ViralGamesApp {
             migrated = true;
           }
           const tarro = parsed.find(g => g.id === "tarro-03");
-          if (tarro && (!tarro.gameUrl || tarro.status !== "DISPONIBLE")) {
-            tarro.gameUrl = "/games/el-tarro/";
-            tarro.status = "DISPONIBLE";
-            migrated = true;
+          if (tarro) {
+            if (!tarro.gameUrl || tarro.status !== "DISPONIBLE") {
+              tarro.gameUrl = "/games/el-tarro/";
+              tarro.status = "DISPONIBLE";
+              migrated = true;
+            }
+            if (!tarro.image || tarro.image === "/assets/tarro.jpg") {
+              tarro.image = "/assets/tarro-title.jpeg";
+              migrated = true;
+            }
           }
           if (migrated) {
             localStorage.setItem('viralgames_catalog', JSON.stringify(parsed));
@@ -829,6 +835,9 @@ class ViralGamesApp {
     this.detailsModalGameTitle.textContent = game.title;
     this.detailsModalImg.src = game.image;
     this.detailsModalImg.alt = game.title;
+    this.detailsModalImg.onerror = () => {
+      this.detailsModalImg.src = '/assets/tarro-title.jpeg';
+    };
     this.detailsModalBadge.textContent = game.badge || '16-BIT RETRO';
     this.detailsModalCat.textContent = game.category.toUpperCase();
     this.detailsModalStatus.textContent = game.status || 'DISPONIBLE';
