@@ -1,0 +1,86 @@
+{
+  "schema": [
+    {
+      "name": "pedalBoostForce",
+      "type": "number",
+      "label": "Pedal Boost Force",
+      "default": 1.8,
+      "min": 0.8,
+      "max": 3.5,
+      "step": 0.1
+    },
+    {
+      "name": "maxRunwaySpeed",
+      "type": "number",
+      "label": "Max Runway Speed",
+      "default": 36,
+      "min": 20,
+      "max": 60,
+      "step": 1
+    },
+    {
+      "name": "gravity",
+      "type": "number",
+      "label": "Airborne Gravity",
+      "default": 28,
+      "min": 15,
+      "max": 45,
+      "step": 1
+    },
+    {
+      "name": "angleMeterSpeed",
+      "type": "number",
+      "label": "Angle Meter Oscillation Speed",
+      "default": 2.6,
+      "min": 1.0,
+      "max": 5.0,
+      "step": 0.2
+    },
+    {
+      "name": "maxLives",
+      "type": "number",
+      "label": "Lives Per Match",
+      "default": 3,
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    {
+      "name": "perfectAngleTolerance",
+      "type": "number",
+      "label": "Perfect Angle Tolerance (deg)",
+      "default": 5,
+      "min": 2,
+      "max": 10,
+      "step": 1
+    },
+    {
+      "name": "defaultMusicVolume",
+      "type": "number",
+      "label": "Default Music Volume",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "step": 0.1
+    },
+    {
+      "name": "defaultSfxVolume",
+      "type": "number",
+      "label": "Default SFX Volume",
+      "default": 0.7,
+      "min": 0,
+      "max": 1,
+      "step": 0.1
+    }
+  ],
+  "values": {
+    "pedalBoostForce": 1.8,
+    "maxRunwaySpeed": 36,
+    "gravity": 28,
+    "angleMeterSpeed": 2.6,
+    "maxLives": 3,
+    "perfectAngleTolerance": 5,
+    "defaultMusicVolume": 0.5,
+    "defaultSfxVolume": 0.7
+  }
+}

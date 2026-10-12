@@ -1,0 +1,84 @@
+{
+  "title": "El Tarro",
+  "hook": "Jump your bike over obstacles",
+  "game_overview": "Pedalea para ganar velocidad, ajusta el \u00e1ngulo del salto en la rampa con la barra espaciadora y realiza trucos BMX en el aire para lograr la m\u00e1xima distancia.",
+  "artstyle": "pixelated",
+  "genre": "arcade",
+  "winning_condition": "Clear the obstacle distance and safely land the jump to beat the level target score.",
+  "losing_condition": "Wipe out from an extreme launch angle or fail to reach the minimum target distance.",
+  "player_mode": "single_player",
+  "supported_orientations": [
+    "landscape"
+  ],
+  "input_methods": [
+    "keyboard",
+    "touch"
+  ],
+  "score_options": {
+    "score_type": "points",
+    "score_order": "higher_is_better"
+  },
+  "low_end_device_support": true,
+  "mobile_playable": true,
+  "tv_playable": false,
+  "language": [
+    "en"
+  ],
+  "content_descriptors": [],
+  "controls": [
+    {
+      "input": "Q & P Keys / Left-Right Tap Buttons",
+      "action": "Rapidly alternate pressing Q and P to pedal and charge launch speed."
+    },
+    {
+      "input": "Spacebar / Jump Button (Hold & Release)",
+      "action": "Hold to oscillate angle meter and release when aiming at 45 degrees."
+    },
+    {
+      "input": "Virtual Buttons (Mobile)",
+      "action": "Pedal left/right touch buttons and launch touch button on screen."
+    }
+  ],
+  "sections": [
+    {
+      "title": "Design Pillars",
+      "content": "1. High-Energy Button Mashing: Rapidly alternating inputs creates tension and tactile speed build-up. 2. Precision Angle Timing: Releasing at exactly 45 degrees rewards player reflexes with optimal parabolic flight. 3. Hilarious Slapstick & Juice: Comedic wipeouts, tire bounces, dust clouds, and celebratory cheers bring the rustic yard stunt vibe to life.",
+      "summary": "Core arcade principles of rhythm, precision, and rewarding physics."
+    },
+    {
+      "title": "Core Loop",
+      "content": "1. Charge Phase: Player rapidly alternates Q and P to accelerate the BMX down the dirt runway. 2. Ramp Zone: As the bike reaches the makeshift ramp, hold Spacebar to charge the launch angle gauge. 3. Airtime & Landing: Physics calculates parabolic flight; an angle near 45 degrees ensures a clean landing, while extreme angles cause a tumbling roll or crash. 4. Level Progression: Each subsequent level adds more stacked tires and longer plank obstacles, demanding greater speed and angle precision.",
+      "summary": "Pedal sprint -> Ramp launch -> Angle timing -> Flight & landing -> Score & next level."
+    },
+    {
+      "title": "Core Mechanics & Scoring",
+      "content": "1. Pedal Mash Cadence: Alternating Q and P builds velocity up to a maximum boost cap; sluggish mashing yields lower ramp entrance speed. 2. 45-Degree Trajectory Meter: A dynamic needle swings between 10 and 80 degrees; releasing closest to 45 maximizes aerodynamic efficiency and landing stability (within 40-50 degrees gives Perfect/Great bonus; outside 25-65 causes catastrophic wipeout). 3. Scoring Formula: Total Score = (Speed Energy * 100) + (Angle Precision Score [max 2000 for 45\u00b0]) + (Distance Traveled in meters * 50) + (Landing Quality Multiplier).",
+      "summary": "Speed accumulation, angle oscillation, flight calculation, and dynamic scoring."
+    },
+    {
+      "title": "Movement & Scrolling Alignment",
+      "content": "Scrolling Axis: Horizontal (left-to-right). Asset Orientation Baseline: BMX bike and rider face strictly right (3 o'clock). Movement Physics Dynamics: High-torque runway acceleration with drag decay; upon launch, smooth kinematic trajectory influenced by launch velocity and angle with realistic gravity and ground bounce/roll friction. Camera Behavior: Smooth horizontal tracking following the rider with dynamic forward offset during flight to frame the ramp, obstacle spread, and landing zone.",
+      "summary": "Side-scrolling horizontal sprint and projectile physics."
+    },
+    {
+      "title": "Visual Hierarchy & Layering",
+      "content": "Layer Separation: Background features desaturated sky, distant rural trees, wooden fences, and green foliage. Playfield features rich brown dirt soil, detailed black rubber tires, weathered wooden planks, and the vibrant BMX rider. Hazards / Obstacles: Stacked tires and wood panels have distinct outlines and shadows so launch clearance is immediately readable. HUD Overlay: Sleek 16-bit analog tachometer / speed gauge, angle dial with green sweet spot at 45\u00b0, and distance marker.",
+      "summary": "High contrast pixel art with clear yard depth."
+    },
+    {
+      "title": "Characters & Environment",
+      "content": "Player Character: 'El Tarro', a determined boy riding a classic vintage BMX bike with red frame and yellow rims. Obstacles: Weathered timber planks, stacked discarded car tires, rusty barrels, and cardboard boxes. Spectators/Ambiance: Background neighborhood cheer animations on clean landings.",
+      "summary": "The intrepid BMX kid rider and rural backyard obstacle course."
+    },
+    {
+      "title": "Juice & Game Feel",
+      "content": "1. Anticipation Juice: Dirt dust puffs behind the spinning rear wheel during intense Q/P mashing, bike frame vibrates at top speed. 2. State Change Juice: Slow-motion freeze frame for 100ms right at ramp takeoff, camera zoom-out during peak parabolic height. 3. Impact Juice: Screen shake and particle confetti on clean landing; comical tumbling roll with bouncing bike and dust cloud on crash landings; upbeat chiptune fanfare on new records.",
+      "summary": "Sensory feedback for speed, launch, flight, and crashes."
+    },
+    {
+      "title": "Virtual Touch Controls Implementation",
+      "content": "Conditionally render virtual buttons for mobile users: two large 'Pedal L (Q)' and 'Pedal R (P)' buttons on the bottom-left, and a prominent 'JUMP / ANGLE' button on the bottom-right. Wire up onPointerDown, onPointerUp, onPointerLeave, and onPointerCancel to eliminate stuck inputs, using touch-none and pointer-events-auto styling.",
+      "summary": "Responsive touch overlay for mobile devices."
+    }
+  ]
+}

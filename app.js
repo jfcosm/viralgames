@@ -36,6 +36,7 @@ const DEFAULT_GAMES = [
     category: "viral",
     badge: "ACCIÓN EXTREMA",
     image: "/assets/tarro.jpg",
+    gameUrl: "/games/el-tarro/",
     description: "Pedalea a toda máquina por las calles de tierra de Talca. Salta la rampa de tablas improvisada mientras tus amigos gritan ¡DALE TARRO! y calcula el aterrizaje para evitar el legendario tortazo.",
     featured: false,
     releaseYear: "1993",
@@ -291,9 +292,19 @@ class ViralGamesApp {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && Array.isArray(parsed)) {
+          let migrated = false;
           const tio = parsed.find(g => g.id === "tio-aceite-01");
           if (tio && !tio.gameUrl) {
             tio.gameUrl = "/games/tio-aceite/";
+            migrated = true;
+          }
+          const tarro = parsed.find(g => g.id === "tarro-03");
+          if (tarro && (!tarro.gameUrl || tarro.status !== "DISPONIBLE")) {
+            tarro.gameUrl = "/games/el-tarro/";
+            tarro.status = "DISPONIBLE";
+            migrated = true;
+          }
+          if (migrated) {
             localStorage.setItem('viralgames_catalog', JSON.stringify(parsed));
           }
           return parsed;
