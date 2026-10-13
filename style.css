@@ -708,6 +708,12 @@ body:has(.arcade-hud.hidden) .arcade-navbar {
   aspect-ratio: 16 / 9;
 }
 
+.screen-image-box picture {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .pixel-cover {
   width: 100%;
   height: 100%;

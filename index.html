@@ -119,7 +119,10 @@
               <span class="screen-fps">60 FPS</span>
             </div>
             <div class="screen-image-box">
-              <img src="/assets/tio_aceite.jpg" alt="Videojuego 16-bit de Tío Aceite en La Serena friendo pescado en su carrito" id="featuredGameImage" class="pixel-cover" loading="eager">
+              <picture>
+                <source srcset="/assets/tio_aceite.webp" type="image/webp">
+                <img src="/assets/tio_aceite.jpg" alt="Videojuego 16-bit de Tío Aceite en La Serena friendo pescado en su carrito" id="featuredGameImage" class="pixel-cover" loading="eager" fetchpriority="high" decoding="async">
+              </picture>
               <div class="screen-scanline"></div>
               <div class="screen-overlay-hud">
                 <span class="hud-ingame-score">SCORE: 14500</span>
