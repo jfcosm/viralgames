@@ -18,11 +18,13 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {getConfig} from './constants';
 import {SpriteActionConfig, SpriteAnimationState, SpriteRenderer} from './SpriteRenderer';
 import BackgroundMusic from './utils/BackgroundMusic';
 import { subscribeLeaderboard, saveLeaderboardToDb } from '../../firebase';
+
+export type AspectRatioMode = '4:3' | '1:1' | '16:9';
 
 export interface LeaderboardEntry {
   name: string;
@@ -218,8 +220,39 @@ export default function App() {
   };
   const {assets, isReady: assetsReady} = useAssets(ASSETS_MANIFEST);
 
-  const canvasWidth = getConfig('baseCanvasWidth') as number;
+  const baseCanvasWidth = getConfig('baseCanvasWidth') as number;
   const canvasHeight = getConfig('baseCanvasHeight') as number;
+
+  // Mobile portrait orientation & Aspect ratio mode
+  const [isPortrait, setIsPortrait] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerHeight > window.innerWidth;
+  });
+  const [aspectRatioMode, setAspectRatioMode] = useState<AspectRatioMode>('4:3');
+
+  useEffect(() => {
+    const handleOrientation = () => {
+      setIsPortrait(window.innerHeight > window.innerWidth);
+    };
+    window.addEventListener('resize', handleOrientation);
+    window.addEventListener('orientationchange', handleOrientation);
+    return () => {
+      window.removeEventListener('resize', handleOrientation);
+      window.removeEventListener('orientationchange', handleOrientation);
+    };
+  }, []);
+
+  const isMobilePortrait = isMobile && isPortrait;
+
+  // Resolucion dinamica de pantalla:
+  // - En Escritorio o Paisaje: 1376x768 (16:9 Panorámico tradicional)
+  // - En Móvil Vertical: 1024x768 (4:3 óptimo para saltos y visualización de rampa por defecto), o 768x768 (1:1), o 1376x768 (16:9)
+  const canvasWidth = useMemo(() => {
+    if (!isMobilePortrait) return baseCanvasWidth;
+    if (aspectRatioMode === '1:1') return 768;
+    if (aspectRatioMode === '4:3') return 1024;
+    return baseCanvasWidth;
+  }, [isMobilePortrait, aspectRatioMode, baseCanvasWidth]);
 
   if (!stepperRef.current) {
     const stepMs = getConfig('stepMs');
@@ -1199,8 +1232,9 @@ export default function App() {
       }
     }
 
-    // Camera Tracking
-    const targetCamX = Math.max(0, sim.riderX - canvasWidth * 0.35);
+    // Camera Tracking (Lookahead adaptativo para mantener rampa y aterrizaje visibles en móviles)
+    const riderLeadRatio = canvasWidth <= 800 ? 0.22 : (canvasWidth <= 1100 ? 0.28 : 0.35);
+    const targetCamX = Math.max(0, sim.riderX - canvasWidth * riderLeadRatio);
     sim.cameraX += (targetCamX - sim.cameraX) * 0.1;
 
     // Sync HUD Readouts
@@ -1650,16 +1684,19 @@ export default function App() {
       ctx.strokeStyle = '#92400e';
       ctx.lineWidth = 3;
 
+      const isCompact = canvasWidth < 900;
+      const leftW = isCompact ? 240 : (canvasWidth < 1200 ? 270 : 320);
+
       // Top Left SNES Frame
       ctx.beginPath();
-      ctx.roundRect(16, 16, 320, 76, 6);
+      ctx.roundRect(16, 16, leftW, 76, 6);
       ctx.fill();
       ctx.stroke();
 
-      ctx.font = '10px "Press Start 2P", monospace';
+      ctx.font = isCompact ? '9px "Press Start 2P", monospace' : '10px "Press Start 2P", monospace';
       ctx.fillStyle = '#fbbf24';
       ctx.textAlign = 'left';
-      ctx.fillText(`NIVEL ${gameStateRef.current.level}`, 28, 36);
+      ctx.fillText(`NIVEL ${gameStateRef.current.level}`, 24, 36);
 
       // Lives as red retro hearts
       ctx.fillStyle = '#ef4444';
@@ -1668,18 +1705,18 @@ export default function App() {
       for (let i = 0; i < (getConfig('maxLives') as number); i++) {
         heartText += i < livesCount ? '♥ ' : '♡ ';
       }
-      ctx.fillText(`VIDAS: ${heartText}`, 140, 36);
+      ctx.fillText(`VIDAS: ${heartText}`, isCompact ? 116 : 140, 36);
 
       // Speed Meter Bar
       ctx.fillStyle = '#9ca3af';
-      ctx.fillText(`VEL: ${Math.round(sim.vx * 2.5)} KM/H`, 28, 62);
+      ctx.fillText(`VEL: ${Math.round(sim.vx * 2.5)} KM/H`, 24, 62);
 
       // 16-bit Segmented Speed Energy Bar
       const maxSpd = getConfig('maxRunwaySpeed') as number;
       const energyPct = Math.min(1, sim.vx / maxSpd);
-      const barX = 28;
+      const barX = 24;
       const barY = 70;
-      const barW = 296;
+      const barW = leftW - 24;
       const barH = 10;
 
       ctx.fillStyle = '#1f2937';
@@ -1694,37 +1731,44 @@ export default function App() {
       ctx.fillRect(barX, barY, filledW, barH);
 
       // Top Right SNES Frame: Meta, Distancia, Puntaje
+      const rightW = isCompact ? 240 : (canvasWidth < 1200 ? 270 : 320);
+      const rightX = canvasWidth - rightW - 16;
       ctx.fillStyle = 'rgba(17, 24, 39, 0.9)';
       ctx.strokeStyle = '#92400e';
       ctx.beginPath();
-      ctx.roundRect(canvasWidth - 336, 16, 320, 76, 6);
+      ctx.roundRect(rightX, 16, rightW, 76, 6);
       ctx.fill();
       ctx.stroke();
 
+      ctx.font = isCompact ? '9px "Press Start 2P", monospace' : '10px "Press Start 2P", monospace';
       ctx.fillStyle = '#38bdf8';
-      ctx.fillText(`META: ${currentLevel.targetDistance}m`, canvasWidth - 322, 36);
+      ctx.fillText(`META: ${currentLevel.targetDistance}m`, rightX + 14, 36);
 
       const rampEndPos = RAMP_X + RAMP_WIDTH;
       const currentDistM =
         sim.riderX > rampEndPos ? Math.round((sim.riderX - rampEndPos) / 20) : 0;
       ctx.fillStyle = '#34d399';
-      ctx.fillText(`DIST: ${currentDistM}m`, canvasWidth - 180, 36);
+      ctx.fillText(`DIST: ${currentDistM}m`, rightX + (isCompact ? 122 : 140), 36);
 
       ctx.fillStyle = '#fef08a';
-      ctx.fillText(`PUNTOS: ${gameStateRef.current.score}`, canvasWidth - 322, 64);
+      ctx.fillText(`PUNTOS: ${gameStateRef.current.score}`, rightX + 14, 64);
 
-      // Top Center Arcade Stage Name Badge
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      // Top Center / Upper Arcade Stage Name Badge (Ajustado para evitar colisión en pantallas móviles)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
       ctx.strokeStyle = '#d97706';
       ctx.beginPath();
-      ctx.roundRect(canvasWidth / 2 - 190, 16, 380, 36, 4);
+      const badgeW = isCompact ? 260 : (canvasWidth < 1200 ? 300 : 380);
+      const badgeH = 34;
+      const badgeX = canvasWidth / 2 - badgeW / 2;
+      const badgeY = canvasWidth < 1100 ? 98 : 16;
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 4);
       ctx.fill();
       ctx.stroke();
 
-      ctx.font = '10px "Press Start 2P", monospace';
+      ctx.font = isCompact ? '8px "Press Start 2P", monospace' : '9px "Press Start 2P", monospace';
       ctx.fillStyle = '#f59e0b';
       ctx.textAlign = 'center';
-      ctx.fillText(currentLevel.title.toUpperCase(), canvasWidth / 2, 38);
+      ctx.fillText(currentLevel.title.toUpperCase(), canvasWidth / 2, badgeY + 21);
 
       ctx.restore();
     }
@@ -1805,16 +1849,27 @@ export default function App() {
       />
 
       {/* FULL-VIEWPORT INTEGRATED RETRO CANVAS CONTAINER */}
-      <div className="relative w-full h-full flex items-center justify-center bg-stone-950">
+      <div
+        className={`flex-1 w-full min-h-0 relative flex items-center justify-center bg-stone-950 overflow-hidden ${
+          isMobilePortrait ? 'p-1.5 sm:p-2' : ''
+        }`}>
         <canvas
           ref={canvasRef}
           width={canvasWidth}
           height={canvasHeight}
           style={{
             aspectRatio: `${canvasWidth} / ${canvasHeight}`,
-            width: `min(100%, calc(100vh * ${canvasWidth} / ${canvasHeight}))`,
+            width: isMobilePortrait
+              ? 'min(100%, calc(100vh - 215px))'
+              : `min(100%, calc(100vh * ${canvasWidth} / ${canvasHeight}))`,
+            maxHeight: isMobilePortrait ? 'calc(100vh - 215px)' : '100%',
+            imageRendering: 'pixelated',
           }}
-          className="h-auto max-w-full max-h-full drop-shadow-2xl border-2 md:border-4 border-amber-950/80"
+          className={`h-auto max-w-full max-h-full drop-shadow-2xl ${
+            isMobilePortrait
+              ? 'rounded-2xl border-4 border-amber-600/90 shadow-[0_0_25px_rgba(217,119,6,0.35),0_4px_0_#000]'
+              : 'border-2 md:border-4 border-amber-950/80'
+          }`}
         />
 
         {/* Top-Right Retro In-Screen Pause Menu Button */}
@@ -1834,7 +1889,10 @@ export default function App() {
         {gameState.status === 'PLAYING' &&
           hudPhase === 'RUNWAY' &&
           !currentStuntStats && (
-            <div className="absolute top-20 md:top-24 left-1/2 -translate-x-1/2 bg-stone-950/95 border-2 md:border-4 border-amber-500 px-4 md:px-6 py-2 rounded-lg text-[9px] md:text-xs font-bold text-amber-300 flex items-center gap-2 shadow-2xl pointer-events-none animate-pulse z-20 text-center">
+            <div
+              className={`absolute left-1/2 -translate-x-1/2 bg-stone-950/95 border-2 md:border-4 border-amber-500 px-3 md:px-6 py-1.5 md:py-2 rounded-lg text-[8px] md:text-xs font-bold text-amber-300 flex items-center gap-2 shadow-2xl pointer-events-none animate-pulse z-20 text-center max-w-[92%] ${
+                isMobilePortrait ? 'bottom-3' : 'top-20 md:top-24'
+              }`}>
               <Zap size={14} className="text-yellow-400 shrink-0" />
               <span>
                 {isMobile
@@ -1848,7 +1906,12 @@ export default function App() {
         {gameState.status === 'PLAYING' &&
           hudPhase === 'ANGLE_SELECT' &&
           !currentStuntStats && (
-            <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 max-w-xs md:max-w-sm z-20 pointer-events-none animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div
+              className={`absolute z-20 pointer-events-none animate-in fade-in slide-in-from-bottom-4 duration-200 ${
+                isMobilePortrait
+                  ? 'bottom-3 left-1/2 -translate-x-1/2 w-[92%] max-w-sm'
+                  : 'bottom-4 left-4 md:bottom-6 md:left-6 max-w-xs md:max-w-sm'
+              }`}>
               <div className="bg-stone-950/95 border-2 md:border-4 border-amber-500 rounded-xl p-3 md:p-4 shadow-2xl flex flex-col gap-2 text-stone-100 backdrop-blur-md">
                 {/* Header Badge */}
                 <div className="flex items-center gap-1.5 text-amber-400 text-[10px] md:text-xs font-bold">
@@ -2013,75 +2076,195 @@ export default function App() {
           )}
       </div>
 
-      {/* MOBILE TOUCH CONTROLS (SNES/SEGA ARCADE BUTTONS) */}
-      {isMobile && gameState.status === 'PLAYING' && (
-        <div className="w-full bg-stone-950/95 border-t-2 md:border-t-4 border-amber-900/60 px-6 py-2 flex items-center justify-between z-20 shrink-0">
-          {/* Left / Right Pedal Buttons */}
-          <div className="flex items-center gap-3">
-            <button
-              onPointerDown={() => {
-                virtualPedalLRef.current = true;
-                simRef.current.pedalInputQueue.push('L');
-              }}
-              onPointerUp={() => {
-                virtualPedalLRef.current = false;
-              }}
-              onPointerLeave={() => {
-                virtualPedalLRef.current = false;
-              }}
-              onPointerCancel={() => {
-                virtualPedalLRef.current = false;
-              }}
-              className="min-w-[54px] min-h-[54px] w-14 h-14 bg-amber-600 active:bg-amber-400 text-stone-950 font-black rounded-xl border-2 border-yellow-300 flex flex-col items-center justify-center shadow-lg active:scale-95 select-none touch-none">
-              <span className="text-[8px]">PEDAL</span>
-              <span className="text-sm leading-none font-extrabold">IZQ</span>
-            </button>
+      {/* MOBILE TOUCH CONTROLS (HANDHELD DECK EN VERTICAL / FLOTANTE EN PAISAJE) */}
+      {isMobile && (
+        isMobilePortrait ? (
+          <div className="w-full bg-stone-950/95 border-t-3 border-amber-600/90 px-3 py-2 pb-5 flex flex-col items-center justify-between z-30 shrink-0 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9)] select-none">
+            {/* Top Deck: Speaker Grills + Aspect Ratio Switcher */}
+            <div className="w-full flex items-center justify-between mb-2 px-1 text-[7px]">
+              {/* Speaker Grill Left */}
+              <div className="flex items-center gap-1 opacity-40">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              </div>
 
-            <button
-              onPointerDown={() => {
-                virtualPedalRRef.current = true;
-                simRef.current.pedalInputQueue.push('R');
-              }}
-              onPointerUp={() => {
-                virtualPedalRRef.current = false;
-              }}
-              onPointerLeave={() => {
-                virtualPedalRRef.current = false;
-              }}
-              onPointerCancel={() => {
-                virtualPedalRRef.current = false;
-              }}
-              className="min-w-[54px] min-h-[54px] w-14 h-14 bg-amber-600 active:bg-amber-400 text-stone-950 font-black rounded-xl border-2 border-yellow-300 flex flex-col items-center justify-center shadow-lg active:scale-95 select-none touch-none">
-              <span className="text-[8px]">PEDAL</span>
-              <span className="text-sm leading-none font-extrabold">DER</span>
-            </button>
+              {/* Aspect Ratio Switcher */}
+              <div className="flex items-center gap-1 bg-stone-900 border border-amber-600/50 rounded-lg p-0.5 shadow-[1px_1px_0px_#000]">
+                <span className="text-amber-400 text-[6px] px-1 font-bold">FORMATO:</span>
+                {(['4:3', '1:1', '16:9'] as AspectRatioMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => {
+                      gameAudio.playCrispClick();
+                      setAspectRatioMode(mode);
+                    }}
+                    className={`px-1.5 py-0.5 rounded text-[7px] font-black transition-all ${
+                      aspectRatioMode === mode
+                        ? 'bg-amber-500 text-stone-950 shadow-[1px_1px_0px_#000]'
+                        : 'text-amber-300 hover:text-white'
+                    }`}>
+                    {mode}
+                  </button>
+                ))}
+              </div>
+
+              {/* Speaker Grill Right */}
+              <div className="flex items-center gap-1 opacity-40">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              </div>
+            </div>
+
+            {/* Bottom Deck: Dual Pedals (Left) & Volar Launch (Right) */}
+            <div className="w-full flex items-center justify-between px-1">
+              {/* Dual Pedal Buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    virtualPedalLRef.current = true;
+                    simRef.current.pedalInputQueue.push('L');
+                  }}
+                  onPointerUp={() => {
+                    virtualPedalLRef.current = false;
+                  }}
+                  onPointerCancel={() => {
+                    virtualPedalLRef.current = false;
+                  }}
+                  aria-label="Pedal Izquierdo"
+                  className="w-16 h-15 min-w-[56px] min-h-[54px] bg-gradient-to-b from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border-3 border-yellow-400 text-stone-950 rounded-xl flex flex-col items-center justify-center font-black shadow-[0_4px_0_#451a03,0_0_12px_rgba(245,158,11,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none">
+                  <span className="text-[7px] text-amber-950 font-extrabold">PEDAL</span>
+                  <span className="text-sm font-black leading-none">IZQ</span>
+                </button>
+
+                <button
+                  type="button"
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    virtualPedalRRef.current = true;
+                    simRef.current.pedalInputQueue.push('R');
+                  }}
+                  onPointerUp={() => {
+                    virtualPedalRRef.current = false;
+                  }}
+                  onPointerCancel={() => {
+                    virtualPedalRRef.current = false;
+                  }}
+                  aria-label="Pedal Derecho"
+                  className="w-16 h-15 min-w-[56px] min-h-[54px] bg-gradient-to-b from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border-3 border-yellow-400 text-stone-950 rounded-xl flex flex-col items-center justify-center font-black shadow-[0_4px_0_#451a03,0_0_12px_rgba(245,158,11,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none">
+                  <span className="text-[7px] text-amber-950 font-extrabold">PEDAL</span>
+                  <span className="text-sm font-black leading-none">DER</span>
+                </button>
+              </div>
+
+              {/* Handheld Brand Tag */}
+              <div className="hidden min-[360px]:flex flex-col items-center">
+                <span className="text-[7px] text-yellow-400 font-black tracking-widest">EL TARRO</span>
+                <span className="text-[5px] text-amber-500/80 font-mono">16-BIT HANDHELD</span>
+              </div>
+
+              {/* Launch / 45° Button */}
+              <div>
+                <button
+                  type="button"
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    virtualJumpRef.current = true;
+                  }}
+                  onPointerUp={() => {
+                    virtualJumpRef.current = false;
+                  }}
+                  onPointerCancel={() => {
+                    virtualJumpRef.current = false;
+                  }}
+                  aria-label="Botón Volar y Lanzamiento"
+                  className={`w-24 h-15 min-w-[80px] min-h-[54px] rounded-xl border-3 flex flex-col items-center justify-center font-black shadow-[0_4px_0_#064e3b,0_0_15px_rgba(16,185,129,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none ${
+                    hudPhase === 'ANGLE_SELECT'
+                      ? 'bg-gradient-to-b from-emerald-400 to-emerald-500 active:from-emerald-300 active:to-emerald-400 text-stone-950 border-yellow-300 animate-pulse'
+                      : 'bg-gradient-to-b from-emerald-600 to-emerald-700 active:from-emerald-500 active:to-emerald-600 text-white border-emerald-300'
+                  }`}>
+                  <Flame size={18} className={hudPhase === 'ANGLE_SELECT' ? 'text-stone-950 animate-bounce' : 'text-yellow-300'} />
+                  <span className="text-[8px] font-black tracking-wider leading-none mt-0.5">
+                    {hudPhase === 'ANGLE_SELECT' ? 'MANTÉN 45°' : 'VOLAR'}
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
+        ) : (
+          /* Controles flotantes en horizontal / paisaje */
+          gameState.status === 'PLAYING' && (
+            <div className="w-full bg-stone-950/95 border-t-2 md:border-t-4 border-amber-900/60 px-6 py-2 flex items-center justify-between z-20 shrink-0">
+              <div className="flex items-center gap-3">
+                <button
+                  onPointerDown={() => {
+                    virtualPedalLRef.current = true;
+                    simRef.current.pedalInputQueue.push('L');
+                  }}
+                  onPointerUp={() => {
+                    virtualPedalLRef.current = false;
+                  }}
+                  onPointerLeave={() => {
+                    virtualPedalLRef.current = false;
+                  }}
+                  onPointerCancel={() => {
+                    virtualPedalLRef.current = false;
+                  }}
+                  className="min-w-[54px] min-h-[54px] w-14 h-14 bg-amber-600 active:bg-amber-400 text-stone-950 font-black rounded-xl border-2 border-yellow-300 flex flex-col items-center justify-center shadow-lg active:scale-95 select-none touch-none">
+                  <span className="text-[8px]">PEDAL</span>
+                  <span className="text-sm leading-none font-extrabold">IZQ</span>
+                </button>
 
-          {/* Jump / Launch Angle Button */}
-          <button
-            onPointerDown={() => {
-              virtualJumpRef.current = true;
-            }}
-            onPointerUp={() => {
-              virtualJumpRef.current = false;
-            }}
-            onPointerLeave={() => {
-              virtualJumpRef.current = false;
-            }}
-            onPointerCancel={() => {
-              virtualJumpRef.current = false;
-            }}
-            className={`min-w-[90px] min-h-[54px] px-3 h-14 font-black rounded-xl border-2 flex items-center justify-center gap-1 shadow-lg active:scale-95 select-none touch-none transition-colors ${
-              hudPhase === 'ANGLE_SELECT'
-                ? 'bg-emerald-500 active:bg-emerald-300 text-stone-950 border-yellow-300 animate-pulse'
-                : 'bg-emerald-700 active:bg-emerald-500 text-stone-950 border-emerald-400'
-            }`}>
-            <Flame size={18} />
-            <span className="text-[9px] font-extrabold tracking-wider">
-              {hudPhase === 'ANGLE_SELECT' ? 'MANTÉN 45°' : 'VOLAR'}
-            </span>
-          </button>
-        </div>
+                <button
+                  onPointerDown={() => {
+                    virtualPedalRRef.current = true;
+                    simRef.current.pedalInputQueue.push('R');
+                  }}
+                  onPointerUp={() => {
+                    virtualPedalRRef.current = false;
+                  }}
+                  onPointerLeave={() => {
+                    virtualPedalRRef.current = false;
+                  }}
+                  onPointerCancel={() => {
+                    virtualPedalRRef.current = false;
+                  }}
+                  className="min-w-[54px] min-h-[54px] w-14 h-14 bg-amber-600 active:bg-amber-400 text-stone-950 font-black rounded-xl border-2 border-yellow-300 flex flex-col items-center justify-center shadow-lg active:scale-95 select-none touch-none">
+                  <span className="text-[8px]">PEDAL</span>
+                  <span className="text-sm leading-none font-extrabold">DER</span>
+                </button>
+              </div>
+
+              <button
+                onPointerDown={() => {
+                  virtualJumpRef.current = true;
+                }}
+                onPointerUp={() => {
+                  virtualJumpRef.current = false;
+                }}
+                onPointerLeave={() => {
+                  virtualJumpRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  virtualJumpRef.current = false;
+                }}
+                className={`min-w-[90px] min-h-[54px] px-3 h-14 font-black rounded-xl border-2 flex items-center justify-center gap-1 shadow-lg active:scale-95 select-none touch-none transition-colors ${
+                  hudPhase === 'ANGLE_SELECT'
+                    ? 'bg-emerald-500 active:bg-emerald-300 text-stone-950 border-yellow-300 animate-pulse'
+                    : 'bg-emerald-700 active:bg-emerald-500 text-stone-950 border-emerald-400'
+                }`}>
+                <Flame size={18} />
+                <span className="text-[9px] font-extrabold tracking-wider">
+                  {hudPhase === 'ANGLE_SELECT' ? 'MANTÉN 45°' : 'VOLAR'}
+                </span>
+              </button>
+            </div>
+          )
+        )
       )}
 
       {/* START / MAIN MENU OVERLAY (CHILEAN SLANG & RETRO PIXEL STYLING) */}
@@ -2227,6 +2410,31 @@ export default function App() {
                 <HelpCircle size={14} />
                 <span>¿CÓMO SE JUEGA?</span>
               </button>
+
+              {/* Selector de Formato de Pantalla (Especial para Móviles y Adaptabilidad) */}
+              <div className="bg-stone-950/80 p-2.5 rounded-lg border border-amber-600/30 flex flex-col items-center gap-1.5 w-full">
+                <span className="text-[8px] text-amber-300 font-bold">
+                  FORMATO DE PANTALLA:
+                </span>
+                <div className="flex items-center gap-2">
+                  {(['4:3', '1:1', '16:9'] as AspectRatioMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => {
+                        setAspectRatioMode(mode);
+                        gameAudio.playCrispClick();
+                      }}
+                      className={`px-3 py-1 rounded text-[8px] font-black border transition-all ${
+                        aspectRatioMode === mode
+                          ? 'bg-amber-500 text-stone-950 border-yellow-300 shadow-md'
+                          : 'bg-stone-800 text-amber-300 border-stone-700 hover:text-white'
+                      }`}>
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <button
                 onClick={() => {

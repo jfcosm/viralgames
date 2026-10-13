@@ -322,7 +322,7 @@ export const useInput = (
         canvas.removeEventListener('pointercancel', handlePointerUp);
       }
     };
-  }, [canvasRef, enabled]);
+  }, [canvasRef, enabled, logicalSize?.width, logicalSize?.height]);
 
   return inputRef;
 };
