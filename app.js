@@ -1009,8 +1009,50 @@ class ViralGamesApp {
 
     if (this.btnFullscreenGame) {
       this.btnFullscreenGame.addEventListener('click', () => {
-        if (this.gameCabinetIframe && this.gameCabinetIframe.requestFullscreen) {
-          this.gameCabinetIframe.requestFullscreen();
+        sfx.play('click');
+        const iframe = this.gameCabinetIframe;
+
+        // Detección precisa de entorno móvil / tablet táctil
+        const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+        const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+        const isIPad = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+        const isMobileScreen = window.matchMedia && window.matchMedia('(max-width: 768px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        const isMobile = isMobileUA || isIPad || isMobileScreen;
+
+        // Resolver la URL del juego activo en el arcade cabinet
+        const targetUrl = (this.activeModalGame && this.activeModalGame.gameUrl) ||
+          (iframe && (iframe.getAttribute('src') || iframe.src));
+
+        // En dispositivos móviles (iOS / Android): fallback a navegación directa
+        // WebKit en iOS no soporta Fullscreen API en iframes/elementos genéricos y Android Chrome
+        // suele bloquear el API dentro de dialogs top-layer. La navegación directa garantiza
+        // pantalla completa nativa del viewport sin alterar la experiencia de escritorio.
+        if (isMobile) {
+          if (targetUrl && targetUrl !== 'about:blank') {
+            window.location.href = targetUrl;
+          }
+          return;
+        }
+
+        // Experiencia de escritorio 100% preservada e intacta:
+        // Activa el modo de pantalla completa nativo en el iframe sin recargar ni navegar
+        if (iframe) {
+          const requestFs = iframe.requestFullscreen ||
+                            iframe.webkitRequestFullscreen ||
+                            iframe.mozRequestFullScreen ||
+                            iframe.msRequestFullscreen;
+          if (requestFs) {
+            try {
+              const res = requestFs.call(iframe);
+              if (res && typeof res.catch === 'function') {
+                res.catch((err) => {
+                  console.warn('Native desktop fullscreen rejected:', err);
+                });
+              }
+            } catch (err) {
+              console.warn('Native desktop fullscreen error:', err);
+            }
+          }
         }
       });
     }
@@ -2074,6 +2116,7 @@ class ViralGamesApp {
   // ========================================================================
   openMiniGameModal(game = null) {
     const targetGame = game || this.games[0];
+    this.activeModalGame = targetGame;
     const title = targetGame ? targetGame.title : "TÍO ACEITE: LA FRITANGA SUPREMA";
     const modalTitleEl = document.getElementById('gameModalTitle');
     if (modalTitleEl) {

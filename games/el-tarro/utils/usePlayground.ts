@@ -229,7 +229,11 @@ export function useRpc<RequestType, ResponseType>(
         };
         window.parent.postMessage(message, '*'); // Consider restricting target origin
         if (rpcName === 'ExitChat') {
-          window.parent.postMessage({ type: 'CLOSE_VIRALGAMES_MODAL' }, '*');
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'CLOSE_VIRALGAMES_MODAL' }, '*');
+          } else {
+            window.location.href = '/';
+          }
         }
       });
       promise.finally(() => {
