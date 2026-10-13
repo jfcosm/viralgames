@@ -3,6 +3,23 @@
  * Developed for Francisco Carle (Inspiration: Jano Mendoza)
  */
 
+import {
+  subscribeSettings,
+  saveSystemSettings,
+  subscribeCreditsMeta,
+  saveCreditsMetaToDb,
+  subscribeGames,
+  saveGameToDb,
+  saveAllGamesToDb,
+  deleteGameFromDb,
+  subscribeCredits,
+  saveCreditToDb,
+  saveAllCreditsToDb,
+  deleteCreditFromDb,
+  saveLeaderboardToDb,
+  subscribeLeaderboard
+} from './firebase.js';
+
 // ==========================================================================
 // 1. DEFAULT GAMES CATALOG SEED DATA
 // ==========================================================================
@@ -292,15 +309,18 @@ class ViralGamesApp {
     this.adminAuthenticated = sessionStorage.getItem('viralgames_admin_auth') === 'true';
 
     this.initDOM();
-    this.applyTheme(this.currentTheme);
-    this.applyCRT(this.crtEnabled);
-    this.applyHudVisibility();
-    this.applyNavbarVisibility();
+    this.applyTheme(this.currentTheme, false);
+    this.applyCRT(this.crtEnabled, false);
+    this.applyHudVisibility(false);
+    this.applyNavbarVisibility(false);
     this.renderFilterTabs();
     this.initEvents();
     this.renderCatalog();
     this.renderCredits();
     this.checkAdminRoute();
+
+    // Sincronización en tiempo real con Firebase Cloud Firestore
+    this.initFirebaseSync();
   }
 
   // Tags & Categories Storage
@@ -320,6 +340,7 @@ class ViralGamesApp {
     if (!exists) {
       this.customTags.push({ id, label });
       localStorage.setItem('viralgames_custom_tags', JSON.stringify(this.customTags));
+      this.syncSystemSettingsToCloud();
     }
   }
 
@@ -366,7 +387,7 @@ class ViralGamesApp {
     return [...baseTags, ...extraTags];
   }
 
-  applyHudVisibility() {
+  applyHudVisibility(syncToCloud = false) {
     if (this.arcadeHud) {
       if (this.showArcadeHud) {
         this.arcadeHud.classList.remove('hidden');
@@ -380,9 +401,12 @@ class ViralGamesApp {
     if (this.btnAdminToggleHud) {
       this.btnAdminToggleHud.classList.toggle('active', this.showArcadeHud);
     }
+    if (syncToCloud) {
+      this.syncSystemSettingsToCloud();
+    }
   }
 
-  applyNavbarVisibility() {
+  applyNavbarVisibility(syncToCloud = false) {
     if (this.arcadeNavbar) {
       if (this.showArcadeNavbar) {
         this.arcadeNavbar.classList.remove('hidden');
@@ -395,6 +419,9 @@ class ViralGamesApp {
     }
     if (this.btnAdminToggleNavbar) {
       this.btnAdminToggleNavbar.classList.toggle('active', this.showArcadeNavbar);
+    }
+    if (syncToCloud) {
+      this.syncSystemSettingsToCloud();
     }
   }
 
@@ -466,17 +493,20 @@ class ViralGamesApp {
     return [...DEFAULT_GAMES];
   }
 
-  saveGames() {
+  saveGames(syncToCloud = true) {
     localStorage.setItem('viralgames_catalog', JSON.stringify(this.games));
     this.renderFilterTabs();
     this.renderCatalog();
     this.renderAdminGamesTable();
+    if (syncToCloud) {
+      saveAllGamesToDb(this.games);
+    }
   }
 
   resetDefaultGames() {
     if (confirm("¿Estás seguro de restablecer el catálogo de fábrica con los juegos originales?")) {
       this.games = [...DEFAULT_GAMES];
-      this.saveGames();
+      this.saveGames(true);
       sfx.play('start');
       alert("¡Catálogo de juegos restablecido con éxito!");
     }
@@ -494,10 +524,13 @@ class ViralGamesApp {
     return [...DEFAULT_CREDITS];
   }
 
-  saveCredits() {
+  saveCredits(syncToCloud = true) {
     localStorage.setItem('viralgames_credits', JSON.stringify(this.credits));
     this.renderCredits();
     this.renderAdminCreditsTable();
+    if (syncToCloud) {
+      saveAllCreditsToDb(this.credits);
+    }
   }
 
   loadCreditsMeta() {
@@ -511,20 +544,119 @@ class ViralGamesApp {
     return { ...DEFAULT_CREDITS_META };
   }
 
-  saveCreditsMeta() {
+  saveCreditsMeta(syncToCloud = true) {
     localStorage.setItem('viralgames_credits_meta', JSON.stringify(this.creditsMeta));
     this.renderCredits();
+    if (syncToCloud) {
+      saveCreditsMetaToDb(this.creditsMeta);
+    }
   }
 
   resetDefaultCredits() {
     if (confirm("¿Estás seguro de restablecer la sección Créditos con los integrantes originales?")) {
       this.credits = [...DEFAULT_CREDITS];
       this.creditsMeta = { ...DEFAULT_CREDITS_META };
-      this.saveCredits();
-      this.saveCreditsMeta();
+      this.saveCredits(true);
+      this.saveCreditsMeta(true);
       sfx.play('start');
       alert("¡Sección créditos restablecida con éxito!");
     }
+  }
+
+  // ========================================================================
+  // CLOUD FIRESTORE SYNCHRONIZATION
+  // ========================================================================
+  syncSystemSettingsToCloud() {
+    saveSystemSettings({
+      theme: this.currentTheme,
+      crtEnabled: this.crtEnabled,
+      showHud: this.showArcadeHud,
+      showNavbar: this.showArcadeNavbar,
+      customTags: this.customTags
+    });
+  }
+
+  initFirebaseSync() {
+    console.log("[Viralgames] Sincronizando con Cloud Firestore...");
+
+    // 1. Configuración del sistema (Tema, CRT, HUD, Navbar, Custom Tags)
+    subscribeSettings((cloudSettings) => {
+      if (cloudSettings) {
+        console.log("[Firebase] Configuración recibida de la nube:", cloudSettings);
+        if (cloudSettings.theme && cloudSettings.theme !== this.currentTheme) {
+          this.applyTheme(cloudSettings.theme, false);
+        }
+        if (typeof cloudSettings.crtEnabled === 'boolean' && cloudSettings.crtEnabled !== this.crtEnabled) {
+          this.applyCRT(cloudSettings.crtEnabled, false);
+        }
+        if (typeof cloudSettings.showHud === 'boolean' && cloudSettings.showHud !== this.showArcadeHud) {
+          this.showArcadeHud = cloudSettings.showHud;
+          localStorage.setItem('viralgames_hud_visible', this.showArcadeHud ? 'true' : 'false');
+          this.applyHudVisibility(false);
+        }
+        if (typeof cloudSettings.showNavbar === 'boolean' && cloudSettings.showNavbar !== this.showArcadeNavbar) {
+          this.showArcadeNavbar = cloudSettings.showNavbar;
+          localStorage.setItem('viralgames_navbar_visible', this.showArcadeNavbar ? 'true' : 'false');
+          this.applyNavbarVisibility(false);
+        }
+        if (Array.isArray(cloudSettings.customTags)) {
+          this.customTags = cloudSettings.customTags;
+          localStorage.setItem('viralgames_custom_tags', JSON.stringify(this.customTags));
+          this.renderFilterTabs();
+        }
+      } else {
+        // Sembrar datos iniciales en Firestore si aún no existen
+        console.log("[Firebase] settings/system vacía. Sembrando datos iniciales...");
+        this.syncSystemSettingsToCloud();
+      }
+    });
+
+    // 2. Metadatos de la sección Créditos (Títulos y Subtítulos)
+    subscribeCreditsMeta((cloudMeta) => {
+      if (cloudMeta && (cloudMeta.title || cloudMeta.pretitle)) {
+        this.creditsMeta = {
+          pretitle: cloudMeta.pretitle || DEFAULT_CREDITS_META.pretitle,
+          title: cloudMeta.title || DEFAULT_CREDITS_META.title,
+          subtitle: cloudMeta.subtitle || DEFAULT_CREDITS_META.subtitle
+        };
+        localStorage.setItem('viralgames_credits_meta', JSON.stringify(this.creditsMeta));
+        this.renderCredits();
+      } else {
+        console.log("[Firebase] settings/credits_meta vacía. Sembrando datos...");
+        saveCreditsMetaToDb(this.creditsMeta);
+      }
+    });
+
+    // 3. Catálogo de juegos en vivo
+    subscribeGames((cloudGames) => {
+      if (cloudGames && cloudGames.length > 0) {
+        console.log(`[Firebase] Catálogo recibido de la nube (${cloudGames.length} juegos)`);
+        cloudGames.sort((a, b) => (a.catalogOrder ?? 999) - (b.catalogOrder ?? 999));
+        this.games = cloudGames;
+        localStorage.setItem('viralgames_catalog', JSON.stringify(this.games));
+        this.renderFilterTabs();
+        this.renderCatalog();
+        this.renderAdminGamesTable();
+      } else {
+        console.log("[Firebase] Colección de juegos vacía. Sembrando catálogo inicial en la nube...");
+        saveAllGamesToDb(this.games);
+      }
+    });
+
+    // 4. Integrantes de créditos en vivo
+    subscribeCredits((cloudCredits) => {
+      if (cloudCredits && cloudCredits.length > 0) {
+        console.log(`[Firebase] Créditos recibidos de la nube (${cloudCredits.length} integrantes)`);
+        cloudCredits.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        this.credits = cloudCredits;
+        localStorage.setItem('viralgames_credits', JSON.stringify(this.credits));
+        this.renderCredits();
+        this.renderAdminCreditsTable();
+      } else {
+        console.log("[Firebase] Colección de créditos vacía. Sembrando créditos iniciales en la nube...");
+        saveAllCreditsToDb(this.credits);
+      }
+    });
   }
 
   initDOM() {
@@ -674,7 +806,7 @@ class ViralGamesApp {
   // ========================================================================
   // THEME & CRT MANAGEMENT
   // ========================================================================
-  applyTheme(themeKey) {
+  applyTheme(themeKey, syncToCloud = true) {
     if (!THEMES_INFO[themeKey]) themeKey = 'snes';
     this.currentTheme = themeKey;
     document.documentElement.setAttribute('data-theme', themeKey);
@@ -688,9 +820,13 @@ class ViralGamesApp {
       const info = THEMES_INFO[themeKey];
       this.adminThemeDescription.innerHTML = `Estilo actual: <strong>${info.name}</strong> — ${info.desc}`;
     }
+
+    if (syncToCloud) {
+      this.syncSystemSettingsToCloud();
+    }
   }
 
-  applyCRT(enabled) {
+  applyCRT(enabled, syncToCloud = true) {
     this.crtEnabled = Boolean(enabled);
     if (this.crtEnabled) {
       document.body.classList.add('crt-enabled');
@@ -705,6 +841,10 @@ class ViralGamesApp {
     if (this.btnAdminToggleCRT) {
       this.btnAdminToggleCRT.classList.toggle('btn-primary', this.crtEnabled);
       this.btnAdminToggleCRT.classList.toggle('btn-secondary', !this.crtEnabled);
+    }
+
+    if (syncToCloud) {
+      this.syncSystemSettingsToCloud();
     }
   }
 
@@ -806,11 +946,16 @@ class ViralGamesApp {
       });
     }
 
-    // Handle postMessage from mini-game iframes (e.g. exit game button)
+    // Handle postMessage from mini-game iframes (e.g. exit game button, leaderboard score)
     window.addEventListener('message', (e) => {
       if (e.data && e.data.type === 'CLOSE_VIRALGAMES_MODAL') {
         this.gamePlayModal.close();
         if (this.gameCabinetIframe) this.gameCabinetIframe.src = 'about:blank';
+      } else if (e.data && e.data.type === 'VIRALGAMES_SAVE_SCORE') {
+        const { gameId, entries } = e.data;
+        if (gameId && entries) {
+          saveLeaderboardToDb(gameId, entries);
+        }
       }
     });
 
@@ -820,7 +965,7 @@ class ViralGamesApp {
         sfx.play('click');
         this.showArcadeHud = !this.showArcadeHud;
         localStorage.setItem('viralgames_hud_visible', this.showArcadeHud ? 'true' : 'false');
-        this.applyHudVisibility();
+        this.applyHudVisibility(true);
       });
     }
 
@@ -830,7 +975,7 @@ class ViralGamesApp {
         sfx.play('click');
         this.showArcadeNavbar = !this.showArcadeNavbar;
         localStorage.setItem('viralgames_navbar_visible', this.showArcadeNavbar ? 'true' : 'false');
-        this.applyNavbarVisibility();
+        this.applyNavbarVisibility(true);
       });
     }
 
@@ -1223,7 +1368,7 @@ class ViralGamesApp {
   // ========================================================================
   checkAdminRoute() {
     const isPathAdmin = window.location.pathname === '/panel-admin' || window.location.pathname.endsWith('/panel-admin');
-    const isHashAdmin = window.location.hash === '#panel-admin';
+    const isHashAdmin = window.location.hash === '#panel-admin' || window.location.hash === '#admin';
 
     if (isPathAdmin || isHashAdmin) {
       this.openAdminPanel();
@@ -1494,7 +1639,8 @@ class ViralGamesApp {
 
     if (confirm(`¿Eliminar el juego "${game.title}"?`)) {
       this.games = this.games.filter(g => g.id !== id);
-      this.saveGames();
+      deleteGameFromDb(id);
+      this.saveGames(false);
       sfx.play('click');
     }
   }
@@ -1675,7 +1821,8 @@ class ViralGamesApp {
 
     if (confirm(`¿Eliminar a "${member.name}" de la sección de créditos?`)) {
       this.credits = this.credits.filter(c => c.id !== id);
-      this.saveCredits();
+      deleteCreditFromDb(id);
+      this.saveCredits(false);
       sfx.play('click');
     }
   }

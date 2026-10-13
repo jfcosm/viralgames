@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {getConfig} from './constants';
+import { subscribeLeaderboard, saveLeaderboardToDb } from '../../firebase';
 import {
   SpriteActionConfig,
   SpriteAnimationState,
@@ -486,6 +487,26 @@ export default function App() {
   });
   const [scoreSubmitted, setScoreSubmitted] = useState(false);
 
+  // Sync with Cloud Firestore global arcade leaderboard
+  useEffect(() => {
+    const unsub = subscribeLeaderboard('tio-aceite', (cloudEntries: LeaderboardEntry[] | null) => {
+      if (cloudEntries && Array.isArray(cloudEntries) && cloudEntries.length > 0) {
+        setLeaderboard(cloudEntries);
+        try {
+          localStorage.setItem('viralgames_tio_aceite_leaderboard', JSON.stringify(cloudEntries));
+          if (cloudEntries[0]?.score) {
+            setHighScore((prev) => Math.max(prev, cloudEntries[0].score));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+  }, []);
+
   const handleSaveScore = (score: number, stageName: string) => {
     const cleanName = (playerNameInput.trim().toUpperCase() || 'JUGADOR').slice(0, 8);
     const newEntry: LeaderboardEntry = {
@@ -506,6 +527,9 @@ export default function App() {
     } catch (e) {
       console.error(e);
     }
+    // Sincronizar en tiempo real en Cloud Firestore
+    saveLeaderboardToDb('tio-aceite', updated);
+
     gameAudio.playVictoryJingle();
     setIsLeaderboardOpen(true);
   };

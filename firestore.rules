@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model for Viralgames Arcade
+    // ===============================================================
+    //
+    // Collection: settings
+    //   Document: system (theme, crtEnabled, showHud, showNavbar, customTags)
+    //   Document: credits_meta (pretitle, title, subtitle)
+    //
+    // Collection: games
+    //   Document: {gameId} (id, title, badge, category, description, image, gameUrl, status, hidden, etc.)
+    //
+    // Collection: credits
+    //   Document: {creditId} (id, role, name, handle, avatar, badge, order)
+    //
+    // Collection: leaderboards
+    //   Document: {gameId} (entries: list of {name, score, stageName, date})
+    // ===============================================================
+
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    match /games/{gameId} {
+      allow read, write: if true;
+    }
+
+    match /credits/{creditId} {
+      allow read, write: if true;
+    }
+
+    match /leaderboards/{gameId} {
+      allow read, write: if true;
+    }
+
+    match /leaderboards/{gameId}/scores/{scoreId} {
+      allow read, write: if true;
+    }
+  }
+}
