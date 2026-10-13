@@ -76,9 +76,91 @@
         <a href="https://wa.me/56930781181?text=Hola%20Francisco!%20Vi%20tu%20trabajo%20en%20Viralgames%20y%20me%20gustar%C3%ADa%20cotizar%20un%20videojuego%20a%20medida%20para%20mi%20marca/proyecto." target="_blank" rel="noopener noreferrer" class="nav-btn-wa btn-sound">
           💬 WHATSAPP
         </a>
+        <button type="button" class="nav-hamburger-btn btn-sound" id="btnMobileNavToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobileNavDrawer">
+          <span class="hamburger-box">
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+          </span>
+        </button>
       </div>
     </div>
   </nav>
+
+  <!-- ======================================================== -->
+  <!-- RETRO ARCADE MOBILE NAVIGATION DRAWER                     -->
+  <!-- ======================================================== -->
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop" aria-hidden="true"></div>
+  <aside class="mobile-nav-drawer" id="mobileNavDrawer" aria-label="Menú principal de Viralgames" aria-hidden="true">
+    <div class="mobile-nav-header">
+      <div class="mobile-nav-brand">
+        <span class="nav-brand-icon">👾</span>
+        <span class="mobile-brand-title">VIRALGAMES</span>
+      </div>
+      <button type="button" class="mobile-nav-close-btn btn-sound" id="btnMobileNavClose" aria-label="Cerrar menú">✖</button>
+    </div>
+
+    <!-- Arcade Topbar HUD Integrado en Móvil -->
+    <div class="mobile-nav-hud-card">
+      <div class="mobile-hud-status">
+        <span class="hud-badge pulse">● 1P READY</span>
+        <span class="hud-credits"><span class="blink">INSERT COIN</span> [99]</span>
+      </div>
+      <button type="button" id="btnMobileToggleSound" class="hud-toggle-btn active btn-sound" title="Alternar audio chiptune">
+        🔊 <span id="mobileSoundLabel">SFX ON</span>
+      </button>
+    </div>
+
+    <!-- Navegación por Secciones con Retro Styling -->
+    <nav class="mobile-nav-links">
+      <a href="#catalogSection" class="mobile-nav-item btn-sound">
+        <span class="item-icon">🕹️</span>
+        <div class="item-info">
+          <span class="item-title">CATÁLOGO</span>
+          <span class="item-sub">Arcade multiverso 16-bit</span>
+        </div>
+        <span class="item-arrow">▶</span>
+      </a>
+
+      <a href="#leaderboardSection" class="mobile-nav-item btn-sound">
+        <span class="item-icon">🏆</span>
+        <div class="item-info">
+          <span class="item-title">RANKINGS</span>
+          <span class="item-sub">Salón de la fama mundial</span>
+        </div>
+        <span class="item-arrow">▶</span>
+      </a>
+
+      <a href="#customDevSection" class="mobile-nav-item item-highlight btn-sound">
+        <span class="item-icon">⚡</span>
+        <div class="item-info">
+          <span class="item-badge">ON-DEMAND</span>
+          <span class="item-title">ENCÁRGAME TU JUEGO</span>
+          <span class="item-sub">Cotiza tu juego viral</span>
+        </div>
+        <span class="item-arrow">▶</span>
+      </a>
+
+      <a href="#creditsSection" class="mobile-nav-item btn-sound">
+        <span class="item-icon">📜</span>
+        <div class="item-info">
+          <span class="item-title">CRÉDITOS</span>
+          <span class="item-sub">MelodiaLab & Francisco</span>
+        </div>
+        <span class="item-arrow">▶</span>
+      </a>
+    </nav>
+
+    <!-- Footer del Menú: Botón WhatsApp y Tagline -->
+    <div class="mobile-nav-footer">
+      <a href="https://wa.me/56930781181?text=Hola%20Francisco!%20Vi%20tu%20trabajo%20en%20Viralgames%20y%20me%20gustar%C3%ADa%20cotizar%20un%20videojuego%20a%20medida%20para%20mi%20marca/proyecto." target="_blank" rel="noopener noreferrer" class="mobile-wa-btn btn-sound">
+        💬 COTIZAR POR WHATSAPP
+      </a>
+      <div class="mobile-nav-copyright">
+        ★ 16-BIT RETRO GAMING CHILE ★
+      </div>
+    </div>
+  </aside>
 
   <!-- MAIN LANDING PAGE CONTAINER -->
   <main id="mainContent" class="main-layout">

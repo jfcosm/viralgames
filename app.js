@@ -737,6 +737,15 @@ class ViralGamesApp {
     this.btnToggleSound = document.getElementById('btnToggleSound');
     this.soundLabel = document.getElementById('soundLabel');
 
+    // Mobile Navigation Drawer & Hamburger
+    this.btnMobileNavToggle = document.getElementById('btnMobileNavToggle');
+    this.btnMobileNavClose = document.getElementById('btnMobileNavClose');
+    this.mobileNavDrawer = document.getElementById('mobileNavDrawer');
+    this.mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
+    this.btnMobileToggleSound = document.getElementById('btnMobileToggleSound');
+    this.mobileSoundLabel = document.getElementById('mobileSoundLabel');
+    this.mobileNavLinks = document.querySelectorAll('.mobile-nav-item');
+
     // Hero Tio Aceite buttons & Arcade Modal
     this.btnPlayTioAceite = document.getElementById('btnPlayTioAceite');
     this.btnInfoTioAceite = document.getElementById('btnInfoTioAceite');
@@ -870,13 +879,41 @@ class ViralGamesApp {
     this.creditPreviewCrown = document.getElementById('creditPreviewCrown');
     this.adminCreditsTableBody = document.getElementById('adminCreditsTableBody');
 
-    if (sfx.muted) {
-      this.soundLabel.textContent = "SFX OFF";
-      this.btnToggleSound.classList.remove('active');
-    } else {
-      this.soundLabel.textContent = "SFX ON";
-      this.btnToggleSound.classList.add('active');
+    this.updateSoundUI(!sfx.muted);
+  }
+
+  updateSoundUI(isSoundOn) {
+    const text = isSoundOn ? "SFX ON" : "SFX OFF";
+    if (this.soundLabel) this.soundLabel.textContent = text;
+    if (this.mobileSoundLabel) this.mobileSoundLabel.textContent = text;
+    if (this.btnToggleSound) this.btnToggleSound.classList.toggle('active', isSoundOn);
+    if (this.btnMobileToggleSound) this.btnMobileToggleSound.classList.toggle('active', isSoundOn);
+  }
+
+  openMobileNav() {
+    if (!this.mobileNavDrawer) return;
+    sfx.play('click');
+    this.mobileNavDrawer.classList.add('open');
+    if (this.mobileNavBackdrop) this.mobileNavBackdrop.classList.add('open');
+    if (this.btnMobileNavToggle) {
+      this.btnMobileNavToggle.classList.add('open');
+      this.btnMobileNavToggle.setAttribute('aria-expanded', 'true');
     }
+    this.mobileNavDrawer.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('nav-drawer-open');
+  }
+
+  closeMobileNav() {
+    if (!this.mobileNavDrawer) return;
+    sfx.play('click');
+    this.mobileNavDrawer.classList.remove('open');
+    if (this.mobileNavBackdrop) this.mobileNavBackdrop.classList.remove('open');
+    if (this.btnMobileNavToggle) {
+      this.btnMobileNavToggle.classList.remove('open');
+      this.btnMobileNavToggle.setAttribute('aria-expanded', 'false');
+    }
+    this.mobileNavDrawer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('nav-drawer-open');
   }
 
   // ========================================================================
@@ -928,12 +965,59 @@ class ViralGamesApp {
   // EVENTS INITIALIZATION
   // ========================================================================
   initEvents() {
-    // Sound toggle
-    this.btnToggleSound.addEventListener('click', () => {
+    // Sound toggle (Desktop & Mobile Drawer)
+    const handleSoundToggle = () => {
       const isSoundOn = sfx.toggleMute();
-      this.soundLabel.textContent = isSoundOn ? "SFX ON" : "SFX OFF";
-      this.btnToggleSound.classList.toggle('active', isSoundOn);
+      this.updateSoundUI(isSoundOn);
       if (isSoundOn) sfx.play('coin');
+    };
+    if (this.btnToggleSound) {
+      this.btnToggleSound.addEventListener('click', handleSoundToggle);
+    }
+    if (this.btnMobileToggleSound) {
+      this.btnMobileToggleSound.addEventListener('click', handleSoundToggle);
+    }
+
+    // Mobile Navigation Drawer Toggle & Close
+    if (this.btnMobileNavToggle) {
+      this.btnMobileNavToggle.addEventListener('click', () => {
+        const isOpen = this.mobileNavDrawer && this.mobileNavDrawer.classList.contains('open');
+        if (isOpen) {
+          this.closeMobileNav();
+        } else {
+          this.openMobileNav();
+        }
+      });
+    }
+
+    if (this.btnMobileNavClose) {
+      this.btnMobileNavClose.addEventListener('click', () => {
+        this.closeMobileNav();
+      });
+    }
+
+    if (this.mobileNavBackdrop) {
+      this.mobileNavBackdrop.addEventListener('click', () => {
+        this.closeMobileNav();
+      });
+    }
+
+    // Close drawer when clicking any mobile nav link
+    if (this.mobileNavLinks) {
+      this.mobileNavLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          this.closeMobileNav();
+        });
+      });
+    }
+
+    // Escape key closes mobile navigation drawer
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (this.mobileNavDrawer && this.mobileNavDrawer.classList.contains('open')) {
+          this.closeMobileNav();
+        }
+      }
     });
 
     // Admin theme switcher
