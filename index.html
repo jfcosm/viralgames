@@ -55,6 +55,10 @@
           <span class="nav-link-dot">●</span>
           <span>CATÁLOGO</span>
         </a>
+        <a href="#leaderboardSection" class="nav-link-item btn-sound">
+          <span class="nav-link-dot">🏆</span>
+          <span>RANKINGS</span>
+        </a>
         <a href="#customDevSection" class="nav-link-item nav-link-custom btn-sound">
           <span class="nav-link-badge">⚡ ON-DEMAND</span>
           <span>ENCÁRGAME TU JUEGO</span>
@@ -201,16 +205,17 @@
       </div>
     </section>
 
-    <!-- CREATOR & INSPIRATION CREDITS SECTION (Dinámica y configurable) -->
-    <section class="credits-section" id="creditsSection">
+    <!-- LEADERBOARDS ARCADE / SALÓN DE LA FAMA (Top 5 por juego) -->
+    <section class="leaderboard-section" id="leaderboardSection">
       <div class="section-title-wrapper">
-        <span class="section-pretitle" id="creditsSectionPretitle">PLAYER SELECT / STAFF ROLL</span>
-        <h2 class="section-title" id="creditsSectionTitle">CREADORES & INSPIRACIÓN</h2>
-        <p class="section-subtitle" id="creditsSectionSubtitle">El equipo detrás de la máquina arcade de VIRALGAMES</p>
+        <span class="section-pretitle">★ SALÓN DE LA FAMA ARCADE ★</span>
+        <h2 class="section-title">LEADERBOARDS &amp; HIGH SCORES</h2>
+        <p class="section-subtitle">Los 5 mejores puntajes de cada juego grabados en la placa arcade. ¡Firma con tu @usuario de Instagram para que todos visiten tu perfil!</p>
       </div>
 
-      <div class="credits-grid" id="creditsGrid">
-        <!-- Rendered dynamically by app.js from this.credits -->
+      <!-- Leaderboards Grid for the 3 playable games -->
+      <div class="leaderboards-grid" id="leaderboardsGrid" aria-live="polite">
+        <!-- Rendered dynamically by app.js -->
       </div>
     </section>
 
@@ -333,6 +338,19 @@
       </div>
     </section>
 
+    <!-- CREATOR & INSPIRATION CREDITS SECTION (Dinámica y configurable - Justo encima del footer) -->
+    <section class="credits-section" id="creditsSection">
+      <div class="section-title-wrapper">
+        <span class="section-pretitle" id="creditsSectionPretitle">PLAYER SELECT / STAFF ROLL</span>
+        <h2 class="section-title" id="creditsSectionTitle">CREADORES & INSPIRACIÓN</h2>
+        <p class="section-subtitle" id="creditsSectionSubtitle">El equipo detrás de la máquina arcade de VIRALGAMES</p>
+      </div>
+
+      <div class="credits-grid" id="creditsGrid">
+        <!-- Rendered dynamically by app.js from this.credits -->
+      </div>
+    </section>
+
     <!-- FOOTER RETRO ARCADE -->
     <footer class="arcade-footer">
       <div class="footer-top">
@@ -343,8 +361,9 @@
         <div class="footer-links">
           <a href="#featuredSection" class="footer-link-btn">Tío Aceite</a>
           <a href="#catalogSection" class="footer-link-btn">Todos los Juegos</a>
-          <a href="#creditsSection" class="footer-link-btn">Créditos</a>
+          <a href="#leaderboardSection" class="footer-link-btn">Rankings Arcade</a>
           <a href="#customDevSection" class="footer-link-btn">Juegos a Medida</a>
+          <a href="#creditsSection" class="footer-link-btn">Créditos</a>
         </div>
       </div>
       <div class="footer-bottom">

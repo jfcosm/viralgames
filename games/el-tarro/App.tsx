@@ -22,6 +22,22 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {getConfig} from './constants';
 import {SpriteActionConfig, SpriteAnimationState, SpriteRenderer} from './SpriteRenderer';
 import BackgroundMusic from './utils/BackgroundMusic';
+import { subscribeLeaderboard, saveLeaderboardToDb } from '../../firebase';
+
+export interface LeaderboardEntry {
+  name: string;
+  score: number;
+  stageName: string;
+  date: string;
+}
+
+export const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
+  { name: '@el_tarro_bmx', score: 8500, stageName: 'Talca BMX',  date: '1993' },
+  { name: 'MANZANA_BMX',  score: 6400, stageName: 'La Zanja',   date: '1993' },
+  { name: '@caluga_pique',score: 5100, stageName: 'Los Primos', date: '1993' },
+  { name: 'BICI_PANA',    score: 3800, stageName: 'El Patio',   date: '1993' },
+  { name: 'DALE_TARRO',   score: 2200, stageName: 'Rampa 1',    date: '1993' },
+];
 import {
   createFixedStepper,
   drawAsset,
@@ -228,6 +244,77 @@ export default function App() {
   const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
   const [sfxMuted, setSfxMuted] = useState(false);
   const [musicMuted, setMusicMuted] = useState(false);
+
+  // --- 16-BIT ARCADE LEADERBOARD STATE ---
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem('viralgames_el_tarro_leaderboard');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_LEADERBOARD;
+  });
+
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [playerNameInput, setPlayerNameInput] = useState(() => {
+    try {
+      return (localStorage.getItem('viralgames_el_tarro_player_name') || 'JUGADOR').slice(0, 12);
+    } catch {
+      return 'JUGADOR';
+    }
+  });
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+
+  // Sincronizar en tiempo real con Cloud Firestore
+  useEffect(() => {
+    const unsub = subscribeLeaderboard('el-tarro', (cloudEntries: LeaderboardEntry[] | null) => {
+      if (cloudEntries && Array.isArray(cloudEntries) && cloudEntries.length > 0) {
+        setLeaderboard(cloudEntries);
+        try {
+          localStorage.setItem('viralgames_el_tarro_leaderboard', JSON.stringify(cloudEntries));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+  }, []);
+
+  const handleSaveScore = (score: number, stageName: string) => {
+    const raw = playerNameInput.trim();
+    let cleanName = 'JUGADOR';
+    if (raw.startsWith('@')) {
+      const handle = raw.slice(1).replace(/[^a-zA-Z0-9_.]/g, '').slice(0, 11);
+      cleanName = handle ? `@${handle}` : 'JUGADOR';
+    } else if (raw) {
+      cleanName = raw.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 12) || 'JUGADOR';
+    }
+
+    const newEntry: LeaderboardEntry = {
+      name: cleanName,
+      score: score,
+      stageName: stageName,
+      date: 'HOY',
+    };
+    const updated = [...leaderboard, newEntry]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+
+    setLeaderboard(updated);
+    setScoreSubmitted(true);
+    try {
+      localStorage.setItem('viralgames_el_tarro_leaderboard', JSON.stringify(updated));
+      localStorage.setItem('viralgames_el_tarro_player_name', cleanName);
+    } catch (e) {
+      console.error(e);
+    }
+    saveLeaderboardToDb('el-tarro', updated);
+    gameAudio.playVictoryJingle();
+    setIsLeaderboardOpen(true);
+  };
 
   // Stunt Stats for end of round review
   const [currentStuntStats, setCurrentStuntStats] = useState<StuntStats | null>(
@@ -490,6 +577,8 @@ export default function App() {
     });
     setIsGameMenuOpen(false);
     setIsHowToPlayOpen(false);
+    setIsLeaderboardOpen(false);
+    setScoreSubmitted(false);
     resetRun();
 
     if (sdk) {
@@ -2014,14 +2103,28 @@ export default function App() {
               <span>¡DALE A JUGAR, CHORO!</span>
             </button>
 
-            <button
-              onClick={() => {
-                setIsHowToPlayOpen(true);
-                gameAudio.playCrispClick();
-              }}
-              className="text-[9px] md:text-[10px] text-amber-400 hover:text-yellow-300 underline font-semibold cursor-pointer">
-              ¿CÓMO SE JUEGA ESTA WEÁ?
-            </button>
+            <div className="flex items-center justify-center gap-4 mt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLeaderboardOpen(true);
+                  gameAudio.playCrispClick();
+                }}
+                className="text-[9px] md:text-[10px] text-amber-300 hover:text-yellow-200 underline font-bold flex items-center gap-1 cursor-pointer">
+                <Trophy size={12} className="text-yellow-400" />
+                <span>SALÓN DE LA FAMA</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsHowToPlayOpen(true);
+                  gameAudio.playCrispClick();
+                }}
+                className="text-[9px] md:text-[10px] text-amber-400 hover:text-yellow-300 underline font-semibold cursor-pointer">
+                ¿CÓMO SE JUEGA?
+              </button>
+            </div>
           </div>
         </MenuOverlay>
       )}
@@ -2044,6 +2147,17 @@ export default function App() {
                 className="w-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-black py-3 rounded-lg flex items-center justify-center gap-2 text-xs md:text-sm cursor-pointer shadow transition-colors">
                 <Play size={14} />
                 <span>SEGUIR JUGANDO</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLeaderboardOpen(true);
+                  gameAudio.playCrispClick();
+                }}
+                className="w-full bg-stone-800 hover:bg-stone-700 text-amber-300 font-bold py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-xs cursor-pointer border border-amber-600/40">
+                <Trophy size={14} className="text-yellow-400" />
+                <span>SALÓN DE LA FAMA</span>
               </button>
 
               <div className="grid grid-cols-2 gap-3">
@@ -2159,28 +2273,240 @@ export default function App() {
         </MenuOverlay>
       )}
 
-      {/* GAME OVER OVERLAY (CHILEAN SLANG) */}
+      {/* GAME OVER OVERLAY (CHILEAN SLANG + LEADERBOARD) */}
       {gameState.status === 'GAME_OVER' && (
-        <Overlay
-          title="¡TE FUISTE A LA CTM!"
-          description={`¡El Tarro se hizo pebre! Puntaje Final: ${gameState.score} PTS`}
-          actionLabel="OTRO INTENTO"
-          onAction={initGame}
-          icon={<RotateCw size={20} />}
-          tone="danger"
-        />
+        <MenuOverlay tone="danger" zIndex={40}>
+          <div className="w-full max-w-md bg-stone-950 border-4 border-red-600 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col items-center text-center max-h-[92vh] overflow-y-auto text-white">
+            <div className="text-3xl mb-1">💥🚲🤕</div>
+            <h2 className="text-base sm:text-lg font-black text-red-400 mb-1">
+              ¡TE FUISTE A LA CTM!
+            </h2>
+            <p className="text-xs text-stone-300 mb-3">
+              ¡El Tarro se hizo pebre contra el tierral de Talca!
+            </p>
+
+            <div className="w-full bg-stone-900 p-3 rounded-xl border border-stone-800 text-left text-xs text-stone-300 space-y-1.5 mb-3">
+              <div className="flex justify-between">
+                <span>PUNTAJE FINAL:</span>
+                <strong className="text-yellow-400 font-bold">{gameState.score.toLocaleString()} PTS</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>NIVEL ALCANZADO:</span>
+                <strong className="text-amber-300">Nivel {gameState.level} - {LEVEL_CONFIGS[gameState.level - 1]?.title || 'BMX'}</strong>
+              </div>
+            </div>
+
+            {/* In-Game Name Entry for Leaderboard */}
+            {!scoreSubmitted ? (
+              <div className="w-full bg-stone-900/90 border-2 border-amber-500/80 rounded-xl p-3 mb-3 text-center shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                <span className="text-[10px] text-yellow-300 block mb-1.5 font-black">
+                  🏆 REGISTRA TU NOMBRE O @INSTAGRAM (MÁX 12 CARACTERES)
+                </span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-1.5">
+                  <input
+                    type="text"
+                    maxLength={12}
+                    value={playerNameInput}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val.startsWith('@')) {
+                        val = '@' + val.slice(1).replace(/[^a-zA-Z0-9_.]/g, '').slice(0, 11);
+                      } else {
+                        val = val.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 12);
+                      }
+                      setPlayerNameInput(val);
+                    }}
+                    placeholder="@TU_INSTA O NOMBRE"
+                    className="bg-black border-2 border-amber-400 text-yellow-400 text-center font-black text-xs py-2 px-3 rounded-lg w-full sm:w-52 tracking-widest uppercase focus:outline-none focus:border-red-500 shadow-[inset_2px_2px_0px_#000]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSaveScore(gameState.score, LEVEL_CONFIGS[gameState.level - 1]?.title || `Nivel ${gameState.level}`)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs py-2 px-3 rounded-lg shadow active:translate-y-0.5 transition-all cursor-pointer">
+                    GUARDAR EN SALÓN
+                  </button>
+                </div>
+                <span className="text-[9px] text-stone-400">Presiona GUARDAR para rankear en el Salón de la Fama</span>
+              </div>
+            ) : (
+              <div className="w-full bg-amber-500/20 border border-amber-400/80 rounded-xl py-2 px-3 mb-3 text-center text-xs text-amber-300 flex items-center justify-center gap-2">
+                <span>✓ PUNTAJE REGISTRADO: {playerNameInput}</span>
+              </div>
+            )}
+
+            <div className="w-full flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  gameAudio.playCrispClick();
+                  setIsLeaderboardOpen(true);
+                }}
+                className="w-full bg-stone-900 hover:bg-stone-800 border-2 border-amber-500/60 text-amber-300 py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                <Trophy size={14} className="text-yellow-400" />
+                VER SALÓN DE LA FAMA
+              </button>
+
+              <button
+                autoFocus
+                onClick={initGame}
+                className="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow cursor-pointer">
+                <RotateCw size={15} />
+                OTRO INTENTO, CHORO
+              </button>
+            </div>
+          </div>
+        </MenuOverlay>
       )}
 
-      {/* VICTORY OVERLAY (CHILEAN SLANG) */}
+      {/* VICTORY OVERLAY (CHILEAN SLANG + LEADERBOARD) */}
       {gameState.status === 'VICTORY' && (
-        <Overlay
-          title="¡CAMPEÓN BRÍGIDO DEL BARRIO!"
-          description={`¡El Tarro superó todos los niveles y es leyenda nacional! Puntaje Final: ${gameState.score} PTS`}
-          actionLabel="JUGAR DE NUEVO"
-          onAction={initGame}
-          icon={<RotateCw size={20} />}
-          tone="victory"
-        />
+        <MenuOverlay tone="victory" zIndex={40}>
+          <div className="w-full max-w-md bg-stone-950 border-4 border-emerald-500 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col items-center text-center max-h-[92vh] overflow-y-auto text-white">
+            <div className="text-3xl mb-1">🚲🏆👑</div>
+            <h2 className="text-base sm:text-lg font-black text-emerald-400 mb-1">
+              ¡CAMPEÓN BRÍGIDO DEL BARRIO!
+            </h2>
+            <p className="text-xs text-stone-300 mb-3">
+              ¡El Tarro superó todos los niveles y es leyenda nacional de Talca!
+            </p>
+
+            <div className="w-full bg-stone-900 p-3 rounded-xl border border-stone-800 text-left text-xs text-stone-300 space-y-1.5 mb-3">
+              <div className="flex justify-between">
+                <span>PUNTAJE FINAL:</span>
+                <strong className="text-yellow-400 font-bold">{gameState.score.toLocaleString()} PTS</strong>
+              </div>
+              <div className="flex justify-between">
+                <span>ESTADO:</span>
+                <strong className="text-emerald-400 font-bold">¡HAZAÑA COMPLETADA!</strong>
+              </div>
+            </div>
+
+            {/* In-Game Name Entry for Victory */}
+            {!scoreSubmitted ? (
+              <div className="w-full bg-stone-900/90 border-2 border-emerald-500/80 rounded-xl p-3 mb-3 text-center shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                <span className="text-[10px] text-yellow-300 block mb-1.5 font-black">
+                  👑 REGISTRA TU VICTORIA O @INSTAGRAM (MÁX 12 CARACTERES)
+                </span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-1.5">
+                  <input
+                    type="text"
+                    maxLength={12}
+                    value={playerNameInput}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val.startsWith('@')) {
+                        val = '@' + val.slice(1).replace(/[^a-zA-Z0-9_.]/g, '').slice(0, 11);
+                      } else {
+                        val = val.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 12);
+                      }
+                      setPlayerNameInput(val);
+                    }}
+                    placeholder="@TU_INSTA O NOMBRE"
+                    className="bg-black border-2 border-emerald-400 text-emerald-400 text-center font-black text-xs py-2 px-3 rounded-lg w-full sm:w-52 tracking-widest uppercase focus:outline-none focus:border-yellow-400 shadow-[inset_2px_2px_0px_#000]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSaveScore(gameState.score, 'VICTORIA BMX')}
+                    className="w-full sm:w-auto bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 font-black text-xs py-2 px-3 rounded-lg shadow active:translate-y-0.5 transition-all cursor-pointer">
+                    GUARDAR EN SALÓN
+                  </button>
+                </div>
+                <span className="text-[9px] text-stone-400">Inmortaliza tu salto en el Salón de la Fama</span>
+              </div>
+            ) : (
+              <div className="w-full bg-emerald-500/20 border border-emerald-400/80 rounded-xl py-2 px-3 mb-3 text-center text-xs text-emerald-300 flex items-center justify-center gap-2">
+                <span>✓ GLORIA INMORTAL REGISTRADA: {playerNameInput}</span>
+              </div>
+            )}
+
+            <div className="w-full flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  gameAudio.playCrispClick();
+                  setIsLeaderboardOpen(true);
+                }}
+                className="w-full bg-stone-900 hover:bg-stone-800 border-2 border-emerald-500/60 text-emerald-300 py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                <Trophy size={14} className="text-yellow-400" />
+                VER SALÓN DE LA FAMA
+              </button>
+
+              <button
+                autoFocus
+                onClick={initGame}
+                className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow cursor-pointer">
+                <RotateCw size={15} />
+                JUGAR DE NUEVO
+              </button>
+            </div>
+          </div>
+        </MenuOverlay>
+      )}
+
+      {/* LEADERBOARD OVERLAY */}
+      {isLeaderboardOpen && (
+        <MenuOverlay zIndex={50}>
+          <div className="w-full max-w-md bg-stone-950 border-4 border-amber-500 rounded-2xl p-4 sm:p-5 shadow-[0_0_40px_rgba(245,158,11,0.5),4px_4px_0px_#000] flex flex-col items-center text-center max-h-[90vh] overflow-y-auto text-white">
+            <div className="text-3xl mb-1">🚲🏆⭐</div>
+            <h2 className="text-base sm:text-lg font-black text-yellow-400 mb-1">
+              SALÓN DE LA FAMA
+            </h2>
+            <p className="text-[10px] text-amber-300 mb-3">
+              MEJORES SALTOS BMX • EL TARRO DE TALCA
+            </p>
+
+            <div className="w-full bg-stone-900/90 border border-stone-800 rounded-xl p-2.5 mb-3 divide-y divide-stone-800/80 text-xs">
+              {leaderboard.map((entry, idx) => (
+                <div
+                  key={idx}
+                  className={`py-2 px-2 flex items-center justify-between ${
+                    idx === 0
+                      ? 'text-yellow-300 font-black bg-amber-500/10 rounded'
+                      : idx === 1
+                      ? 'text-stone-200 font-bold'
+                      : idx === 2
+                      ? 'text-amber-500 font-bold'
+                      : 'text-stone-400'
+                  }`}>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 text-left shrink-0">
+                      {idx === 0 ? '🥇 1' : idx === 1 ? '🥈 2' : idx === 2 ? '🥉 3' : `#${idx + 1}`}
+                    </span>
+                    {entry.name.startsWith('@') ? (
+                      <a
+                        href={`https://instagram.com/${entry.name.slice(1).replace(/[^a-zA-Z0-9_.]/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="tracking-wider text-pink-400 hover:text-pink-300 underline decoration-pink-500/60 transition-colors inline-flex items-center gap-0.5"
+                        title={`Ver perfil de Instagram de ${entry.name}`}>
+                        <span>{entry.name}</span>
+                        <span className="text-[9px]">↗</span>
+                      </a>
+                    ) : (
+                      <span className="tracking-wider">{entry.name}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-stone-500 hidden sm:inline">{entry.stageName}</span>
+                    <span className="text-yellow-400 font-black">{entry.score.toLocaleString()} PTS</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                gameAudio.playCrispClick();
+                setIsLeaderboardOpen(false);
+              }}
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-stone-950 py-2.5 rounded-xl font-black text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow">
+              <X size={15} />
+              CERRAR SALÓN DE LA FAMA
+            </button>
+          </div>
+        </MenuOverlay>
       )}
     </div>
   );

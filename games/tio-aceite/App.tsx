@@ -237,13 +237,13 @@ export interface LeaderboardEntry {
 }
 
 export const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
-  { name: 'FRANCISC', score: 28500, stageName: 'Polideportivo', date: '1994' },
-  { name: 'JANO_M',   score: 24200, stageName: 'Feria Abastos', date: '1994' },
-  { name: 'CHIMUELO', score: 19800, stageName: 'Plaza Tenri',   date: '1995' },
-  { name: 'EL_TARRO', score: 16400, stageName: 'Plaza Armas',   date: '1993' },
-  { name: 'LA_SEREN', score: 14100, stageName: 'La Recova',     date: '1994' },
-  { name: 'FRITANGA', score: 11500, stageName: 'El Faro',       date: '1994' },
-  { name: 'DON_TIO',  score: 9800,  stageName: 'Carrito',       date: '1994' },
+  { name: '@francisco',   score: 28500, stageName: 'Polideportivo', date: '1994' },
+  { name: 'JANO_MASTER',  score: 24200, stageName: 'Feria Abastos', date: '1994' },
+  { name: '@chimuelo_cl', score: 19800, stageName: 'Plaza Tenri',   date: '1995' },
+  { name: 'EL_TARRO_BMX', score: 16400, stageName: 'Plaza Armas',   date: '1993' },
+  { name: 'LA_SERENA_94', score: 14100, stageName: 'La Recova',     date: '1994' },
+  { name: 'FRITANGA_TOP', score: 11500, stageName: 'El Faro',       date: '1994' },
+  { name: 'DON_TIO_CHIL', score: 9800,  stageName: 'Carrito',       date: '1994' },
 ];
 
 // Character spritesheet configs based on read_assets_metadata
@@ -489,7 +489,7 @@ export default function App() {
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [playerNameInput, setPlayerNameInput] = useState(() => {
     try {
-      return (localStorage.getItem('viralgames_tio_aceite_player_name') || 'JUGADOR').slice(0, 8);
+      return (localStorage.getItem('viralgames_tio_aceite_player_name') || 'JUGADOR').slice(0, 12);
     } catch {
       return 'JUGADOR';
     }
@@ -517,7 +517,15 @@ export default function App() {
   }, []);
 
   const handleSaveScore = (score: number, stageName: string) => {
-    const cleanName = (playerNameInput.trim().toUpperCase() || 'JUGADOR').slice(0, 8);
+    const raw = playerNameInput.trim();
+    let cleanName = 'JUGADOR';
+    if (raw.startsWith('@')) {
+      const handle = raw.slice(1).replace(/[^a-zA-Z0-9_.]/g, '').slice(0, 11);
+      cleanName = handle ? `@${handle}` : 'JUGADOR';
+    } else if (raw) {
+      cleanName = raw.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 12) || 'JUGADOR';
+    }
+
     const newEntry: LeaderboardEntry = {
       name: cleanName,
       score: score,
@@ -2436,20 +2444,24 @@ export default function App() {
             {!scoreSubmitted ? (
               <div className="w-full bg-slate-900/90 border-2 border-amber-500/80 rounded-xl p-3 mb-3 text-center retro-arcade-text shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                 <span className="text-[7px] sm:text-[8px] text-yellow-300 block mb-1.5 font-black">
-                  🏆 REGISTRA TU NOMBRE (MÁX 8 CARACTERES)
+                  🏆 REGISTRA TU NOMBRE O @INSTAGRAM (MÁX 12 CARACTERES)
                 </span>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-1.5">
                   <input
                     type="text"
-                    maxLength={8}
+                    maxLength={12}
                     value={playerNameInput}
-                    onChange={(e) =>
-                      setPlayerNameInput(
-                        e.target.value.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 8)
-                      )
-                    }
-                    placeholder="TU_NOMBRE"
-                    className="bg-black border-2 border-amber-400 text-yellow-400 text-center font-black text-xs py-2 px-3 rounded-lg w-full sm:w-44 tracking-widest uppercase focus:outline-none focus:border-red-500 shadow-[inset_2px_2px_0px_#000]"
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val.startsWith('@')) {
+                        val = '@' + val.slice(1).replace(/[^a-zA-Z0-9_.]/g, '').slice(0, 11);
+                      } else {
+                        val = val.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 12);
+                      }
+                      setPlayerNameInput(val);
+                    }}
+                    placeholder="@TU_INSTA O NOMBRE"
+                    className="bg-black border-2 border-amber-400 text-yellow-400 text-center font-black text-xs py-2 px-3 rounded-lg w-full sm:w-52 tracking-widest uppercase focus:outline-none focus:border-red-500 shadow-[inset_2px_2px_0px_#000]"
                   />
                   <button
                     type="button"
@@ -2546,20 +2558,24 @@ export default function App() {
             {!scoreSubmitted ? (
               <div className="w-full bg-slate-900/90 border-2 border-emerald-500/80 rounded-xl p-3 mb-3 text-center retro-arcade-text shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                 <span className="text-[7px] sm:text-[8px] text-yellow-300 block mb-1.5 font-black">
-                  👑 REGISTRA TU VICTORIA (MÁX 8 CARACTERES)
+                  👑 REGISTRA TU VICTORIA O @INSTAGRAM (MÁX 12 CARACTERES)
                 </span>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-1.5">
                   <input
                     type="text"
-                    maxLength={8}
+                    maxLength={12}
                     value={playerNameInput}
-                    onChange={(e) =>
-                      setPlayerNameInput(
-                        e.target.value.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 8)
-                      )
-                    }
-                    placeholder="TU_NOMBRE"
-                    className="bg-black border-2 border-emerald-400 text-emerald-400 text-center font-black text-xs py-2 px-3 rounded-lg w-full sm:w-44 tracking-widest uppercase focus:outline-none focus:border-yellow-400 shadow-[inset_2px_2px_0px_#000]"
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (val.startsWith('@')) {
+                        val = '@' + val.slice(1).replace(/[^a-zA-Z0-9_.]/g, '').slice(0, 11);
+                      } else {
+                        val = val.toUpperCase().replace(/[^A-Z0-9_\-\s]/g, '').slice(0, 12);
+                      }
+                      setPlayerNameInput(val);
+                    }}
+                    placeholder="@TU_INSTA O NOMBRE"
+                    className="bg-black border-2 border-emerald-400 text-emerald-400 text-center font-black text-xs py-2 px-3 rounded-lg w-full sm:w-52 tracking-widest uppercase focus:outline-none focus:border-yellow-400 shadow-[inset_2px_2px_0px_#000]"
                   />
                   <button
                     type="button"
@@ -2642,10 +2658,23 @@ export default function App() {
                       : 'text-slate-400'
                   }`}>
                   <div className="flex items-center gap-2">
-                    <span className="w-6 text-left">
+                    <span className="w-6 text-left shrink-0">
                       {idx === 0 ? '🥇 1' : idx === 1 ? '🥈 2' : idx === 2 ? '🥉 3' : `#${idx + 1}`}
                     </span>
-                    <span className="tracking-wider">{entry.name}</span>
+                    {entry.name.startsWith('@') ? (
+                      <a
+                        href={`https://instagram.com/${entry.name.slice(1).replace(/[^a-zA-Z0-9_.]/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="tracking-wider text-pink-400 hover:text-pink-300 underline decoration-pink-500/60 transition-colors inline-flex items-center gap-0.5"
+                        title={`Ver perfil de Instagram de ${entry.name}`}>
+                        <span>{entry.name}</span>
+                        <span className="text-[6px]">↗</span>
+                      </a>
+                    ) : (
+                      <span className="tracking-wider">{entry.name}</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[6px] text-slate-500 hidden sm:inline">{entry.stageName}</span>

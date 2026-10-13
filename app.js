@@ -147,6 +147,33 @@ const DEFAULT_CREDITS = [
 ];
 
 // ==========================================================================
+// 2B. DEFAULT LEADERBOARDS SEED DATA (Top 5 per playable game)
+// ==========================================================================
+const DEFAULT_TIO_ACEITE_LEADERBOARD = [
+  { name: '@francisco',   score: 28500, stageName: 'Polideportivo', date: '1994' },
+  { name: 'JANO_MASTER',  score: 24200, stageName: 'Feria Abastos', date: '1994' },
+  { name: '@chimuelo_cl', score: 19800, stageName: 'Plaza Tenri',   date: '1995' },
+  { name: 'EL_TARRO_BMX', score: 16400, stageName: 'Plaza Armas',   date: '1993' },
+  { name: 'LA_SERENA_94', score: 14100, stageName: 'La Recova',     date: '1994' }
+];
+
+const DEFAULT_EL_TARRO_LEADERBOARD = [
+  { name: '@el_tarro_bmx', score: 8500, stageName: 'Talca BMX',  date: '1993' },
+  { name: 'MANZANA_BMX',  score: 6400, stageName: 'La Zanja',   date: '1993' },
+  { name: '@caluga_pique',score: 5100, stageName: 'Los Primos', date: '1993' },
+  { name: 'BICI_PANA',    score: 3800, stageName: 'El Patio',   date: '1993' },
+  { name: 'DALE_TARRO',   score: 2200, stageName: 'Rampa 1',    date: '1993' }
+];
+
+const DEFAULT_EL_TIEMPO_ES_ORO_LEADERBOARD = [
+  { name: '@concurso_tv', score: 14200, stageName: 'Minuto de Oro', date: '1995' },
+  { name: 'DON_FRANCIS', score: 11800, stageName: 'Etapa 8',        date: '1995' },
+  { name: '@susana_fan',  score: 9500,  stageName: 'Etapa 7',        date: '1995' },
+  { name: 'ROBERTO_TV',  score: 7400,  stageName: 'Etapa 5',        date: '1995' },
+  { name: 'CURIOSO_90',  score: 5200,  stageName: 'Etapa 3',        date: '1995' }
+];
+
+// ==========================================================================
 // 3. THEMES METADATA
 // ==========================================================================
 const THEMES_INFO = {
@@ -297,6 +324,7 @@ class ViralGamesApp {
     this.credits = this.loadCredits();
     this.creditsMeta = this.loadCreditsMeta();
     this.customTags = this.loadCustomTags();
+    this.leaderboards = this.loadLeaderboards();
 
     this.currentTheme = localStorage.getItem('viralgames_theme') || 'snes';
     this.crtEnabled = localStorage.getItem('viralgames_crt') === 'true';
@@ -316,11 +344,37 @@ class ViralGamesApp {
     this.renderFilterTabs();
     this.initEvents();
     this.renderCatalog();
+    this.renderLeaderboards();
     this.renderCredits();
     this.checkAdminRoute();
 
     // Sincronización en tiempo real con Firebase Cloud Firestore
     this.initFirebaseSync();
+  }
+
+  // Leaderboards Storage Loader
+  loadLeaderboards() {
+    const leaderboards = {
+      'tio-aceite': DEFAULT_TIO_ACEITE_LEADERBOARD,
+      'el-tarro': DEFAULT_EL_TARRO_LEADERBOARD,
+      'el-tiempo-es-oro': DEFAULT_EL_TIEMPO_ES_ORO_LEADERBOARD
+    };
+
+    ['tio-aceite', 'el-tarro', 'el-tiempo-es-oro'].forEach(id => {
+      try {
+        const stored = localStorage.getItem(`viralgames_leaderboard_${id}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            leaderboards[id] = parsed;
+          }
+        }
+      } catch (e) {
+        console.warn(`Error reading leaderboard ${id} from localStorage:`, e);
+      }
+    });
+
+    return leaderboards;
   }
 
   // Tags & Categories Storage
@@ -657,6 +711,25 @@ class ViralGamesApp {
         saveAllCreditsToDb(this.credits);
       }
     });
+
+    // 5. Leaderboards en vivo (Top 5 por juego con sincronización Cloud Firestore)
+    const playableGameIds = ['tio-aceite', 'el-tarro', 'el-tiempo-es-oro'];
+    playableGameIds.forEach(gameId => {
+      subscribeLeaderboard(gameId, (cloudEntries) => {
+        if (cloudEntries && Array.isArray(cloudEntries) && cloudEntries.length > 0) {
+          console.log(`[Firebase] Leaderboard recibido de la nube (${gameId}): ${cloudEntries.length} entradas`);
+          this.leaderboards[gameId] = cloudEntries;
+          localStorage.setItem(`viralgames_leaderboard_${gameId}`, JSON.stringify(cloudEntries));
+          this.renderLeaderboards();
+        } else {
+          console.log(`[Firebase] Leaderboard ${gameId} vacío en Firestore. Sembrando defaults...`);
+          const defaults = this.leaderboards[gameId] || [];
+          if (defaults.length > 0) {
+            saveLeaderboardToDb(gameId, defaults);
+          }
+        }
+      });
+    });
   }
 
   initDOM() {
@@ -693,6 +766,9 @@ class ViralGamesApp {
     this.filterButtons = document.querySelectorAll('.filter-btn');
     this.gameSearchInput = document.getElementById('gameSearchInput');
     this.gamesGrid = document.getElementById('gamesGrid');
+
+    // Leaderboards on landing page
+    this.leaderboardsGrid = document.getElementById('leaderboardsGrid');
 
     // Credits elements on landing page
     this.creditsSectionPretitle = document.getElementById('creditsSectionPretitle');
@@ -955,6 +1031,9 @@ class ViralGamesApp {
         const { gameId, entries } = e.data;
         if (gameId && entries) {
           saveLeaderboardToDb(gameId, entries);
+          this.leaderboards[gameId] = entries;
+          localStorage.setItem(`viralgames_leaderboard_${gameId}`, JSON.stringify(entries));
+          this.renderLeaderboards();
         }
       }
     });
@@ -1281,6 +1360,169 @@ class ViralGamesApp {
         const game = this.games.find(g => g.id === id);
         sfx.play('click');
         this.openGameDetailsModal(game);
+      });
+    });
+  }
+
+  // ========================================================================
+  // ESCAPE HTML HELPER
+  // ========================================================================
+  escapeHtml(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // ========================================================================
+  // LEADERBOARDS RENDERING (Landing Page Top 5 with Instagram handles)
+  // ========================================================================
+  renderLeaderboards() {
+    if (!this.leaderboardsGrid) return;
+
+    const gameConfigs = [
+      {
+        id: 'tio-aceite',
+        title: 'TÍO ACEITE',
+        subtitle: 'LA FRITANGA SUPREMA',
+        badge: '🍳 STREET FOOD 16-BIT',
+        themeClass: 'card-gold',
+        image: '/assets/tio_aceite.jpg',
+        gameUrl: '/games/tio-aceite/'
+      },
+      {
+        id: 'el-tarro',
+        title: 'EL TARRO',
+        subtitle: 'SALTO BMX MORTAL',
+        badge: '🚲 TALCA BMX EXTREMO',
+        themeClass: 'card-cyan',
+        image: '/assets/tarro-title.jpeg',
+        gameUrl: '/games/el-tarro/'
+      },
+      {
+        id: 'el-tiempo-es-oro',
+        title: 'EL TIEMPO ES ORO',
+        subtitle: 'GRAN CONCURSO TV',
+        badge: '⏳ TRIVIA CULTURAL 90s',
+        themeClass: 'card-purple',
+        image: '/assets/tiempo-title.jpeg',
+        gameUrl: '/games/el-tiempo-es-oro/'
+      }
+    ];
+
+    this.leaderboardsGrid.innerHTML = gameConfigs.map(cfg => {
+      const rawEntries = this.leaderboards[cfg.id] || [];
+      const topEntries = [...rawEntries]
+        .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0))
+        .slice(0, 5);
+
+      const rowsHtml = topEntries.map((entry, idx) => {
+        const rank = idx + 1;
+        let rankBadgeClass = `rank-${rank}`;
+        let rankText = `#0${rank}`;
+        if (rank === 1) rankText = '🥇 1ST';
+        else if (rank === 2) rankText = '🥈 2ND';
+        else if (rank === 3) rankText = '🥉 3RD';
+
+        const rawName = (entry.name || 'ANÓNIMO').trim();
+        const isInstagram = rawName.startsWith('@');
+        let playerHtml = '';
+
+        if (isInstagram) {
+          const cleanHandle = rawName.slice(1).replace(/[^a-zA-Z0-9_.]/g, '');
+          playerHtml = `
+            <a href="https://instagram.com/${cleanHandle}" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               class="lb-player-link lb-insta-link" 
+               title="Ver perfil de Instagram de @${cleanHandle}">
+              <span class="lb-insta-icon">📸</span>
+              <span class="lb-handle-text">${this.escapeHtml(rawName)}</span>
+              <span class="lb-external-icon">↗</span>
+            </a>
+          `;
+        } else {
+          playerHtml = `<span class="lb-player-name">${this.escapeHtml(rawName)}</span>`;
+        }
+
+        const scoreFormatted = Number(entry.score || 0).toLocaleString('es-CL');
+        const stage = entry.stageName ? this.escapeHtml(entry.stageName) : 'STAGE 1';
+
+        return `
+          <tr class="lb-row lb-row-${rank}">
+            <td class="lb-col-rank">
+              <span class="lb-rank-badge ${rankBadgeClass}">${rankText}</span>
+            </td>
+            <td class="lb-col-player">
+              ${playerHtml}
+            </td>
+            <td class="lb-col-score">
+              <span class="lb-score-val">${scoreFormatted}</span>
+            </td>
+            <td class="lb-col-stage">
+              <span class="lb-stage-tag">${stage}</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <article class="leaderboard-card ${cfg.themeClass}">
+          <div class="lb-card-header">
+            <div class="lb-card-badge-row">
+              <span class="pixel-badge badge-primary">${cfg.badge}</span>
+              <span class="lb-live-dot">● EN VIVO</span>
+            </div>
+            <div class="lb-card-title-row">
+              <img src="${cfg.image}" alt="${cfg.title}" class="lb-card-thumb" onerror="this.src='/assets/tio_aceite.jpg'">
+              <div class="lb-card-headings">
+                <h3 class="lb-card-title">${cfg.title}</h3>
+                <span class="lb-card-subtitle">${cfg.subtitle}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lb-card-table-wrapper">
+            <table class="lb-table">
+              <thead>
+                <tr>
+                  <th class="lb-th-rank">POS</th>
+                  <th class="lb-th-player">JUGADOR / INSTAGRAM</th>
+                  <th class="lb-th-score">SCORE</th>
+                  <th class="lb-th-stage">ETAPA</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml || `<tr><td colspan="4" class="lb-empty">Aún no hay récords registrados. ¡Sé el primero!</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="lb-card-footer">
+            <div class="lb-hint-box">
+              <span class="lb-hint-icon">💡</span>
+              <span class="lb-hint-text">Firma con <strong>@usuario</strong> (máx 12 caracteres) para enlazar tu Instagram</span>
+            </div>
+            <button type="button" class="pixel-button btn-primary btn-play-lb btn-sound" data-play-game="${cfg.id}">
+              ▶ INSERTAR FICHA &amp; JUGAR
+            </button>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    // Wire up the Play buttons in the leaderboard cards
+    this.leaderboardsGrid.querySelectorAll('.btn-play-lb').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sfx.play('coin');
+        const gameId = btn.getAttribute('data-play-game');
+        const matchedGame = this.games.find(g => g.gameUrl && g.gameUrl.includes(gameId)) 
+          || this.games.find(g => g.id.includes(gameId)) 
+          || this.games[0];
+        this.openMiniGameModal(matchedGame);
       });
     });
   }
