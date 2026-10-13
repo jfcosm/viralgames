@@ -590,6 +590,10 @@ export default function App() {
     (window as any).canHandleBackKey = gameState.status !== 'START';
   }, [gameState.status]);
 
+  useEffect(() => {
+    gameAudio.preloadAllVoices();
+  }, []);
+
   const inputRef = useInput(canvasRef, true, {
     width: canvasWidth,
     height: canvasHeight,
@@ -789,6 +793,7 @@ export default function App() {
       sdk.startGame();
     }
     gameAudio.playConfirmSelect();
+    gameAudio.playVoiceStart();
   }, [canvasWidth, groundY, sdk]);
 
   // --- PLAYGROUND SDK SCORE & LIFECYCLE REPORTING ---
@@ -810,8 +815,10 @@ export default function App() {
   useEffect(() => {
     if (gameState.status === 'GAME_OVER') {
       gameAudio.playDefeatMotif();
+      gameAudio.playVoiceGameOver();
     } else if (gameState.status === 'VICTORY') {
       gameAudio.playVictoryFanfare();
+      gameAudio.playVoiceVictory();
     }
   }, [gameState.status]);
 
@@ -1234,18 +1241,35 @@ export default function App() {
               bannerSub = '+1 VIDA DE ACEITE RECUPERADA';
             }
             spawnParticles(itemCenterX, itemCenterY, 16, 'bubble', '#f59e0b');
+            const voice = gameAudio.playVoiceAceite();
+            addFloatingText(voice.text, itemCenterX, itemCenterY - 45, '#f59e0b', '💛 +1 VIDA DE ACEITE');
           } else if (item.type === 'hot_sauce') {
             currentSpeedTimer = 5.0;
             bannerSub = '¡TURBO AJÍ ACTIVADO (5s)!';
             spawnParticles(itemCenterX, itemCenterY, 16, 'spark', '#ef4444');
+            const voice = gameAudio.playVoiceAji();
+            addFloatingText(voice.text, itemCenterX, itemCenterY - 45, '#ef4444', '🌶️ ¡TURBO PICANTE!');
           } else if (item.type === 'frying_pan') {
             currentGoldenTimer = 6.0;
             bannerSub = '¡SARTÉN DE ORO! 2X RADIO & PUNTOS';
             spawnParticles(itemCenterX, itemCenterY, 20, 'star', '#fbbf24');
+          } else if (item.type === 'fried_fish') {
+            spawnParticles(itemCenterX, itemCenterY, 12, 'bubble', '#fde047');
+            spawnParticles(itemCenterX, itemCenterY - 10, 8, 'smoke', '#ffffff');
+            if (currentCombo === 5 || (currentCombo >= 4 && Math.random() < 0.3)) {
+              const voice = gameAudio.playVoicePescadoFresco();
+              addFloatingText(voice.text, itemCenterX, itemCenterY - 45, '#38bdf8', '🐟 ¡RECIÉN SACADO!');
+            }
           } else {
             // Sizzle steam particles for delicious frying
             spawnParticles(itemCenterX, itemCenterY, 12, 'bubble', '#fde047');
             spawnParticles(itemCenterX, itemCenterY - 10, 8, 'smoke', '#ffffff');
+          }
+
+          // Combo milestone voice
+          if (currentCombo === 10 || (currentCombo > 10 && currentCombo % 10 === 0)) {
+            const voice = gameAudio.playVoicePescadoAnejo();
+            addFloatingText(voice.text, player.x + 85, player.y - 60, '#22c55e', `🔥 ¡COMBO x${currentCombo}!`);
           }
 
           // Notificar cuota cumplida la primera vez en este turno
@@ -1337,7 +1361,15 @@ export default function App() {
             quotaAchievedNotifiedRef.current = -1;
 
             gameAudio.playLevelUpStinger();
+            const voice = gameAudio.playVoiceLevelUp();
             triggerLevelCelebration(nextStage);
+            addFloatingText(
+              voice.text,
+              canvasWidth / 2,
+              canvasHeight / 2 - 120,
+              '#38bdf8',
+              '👥 ¡CLIENTELA FIEL!',
+            );
             addFloatingText(
               `¡TURNO ${currentStage.id}/8 COMPLETADO!`,
               canvasWidth / 2,
@@ -1349,6 +1381,7 @@ export default function App() {
             // On Final Stage (Stage 8) - Victory!
             if (gameStateRef.current.status === 'PLAYING') {
               gameAudio.playVictoryFanfare();
+              gameAudio.playVoiceVictory();
               setGameState((prev) => ({
                 ...prev,
                 score: currentScore,

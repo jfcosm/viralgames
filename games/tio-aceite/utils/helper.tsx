@@ -347,6 +347,41 @@ export const useInput = (
  * gameAudio.toggleMute().
  */
 
+export interface VoiceClipInfo {
+  filename: string;
+  text: string;
+}
+
+export const TIO_VOICES = {
+  AJI: [
+    { filename: 'aji-a-lo-picasso.mp3', text: '¡Ají a lo Picasso!' },
+    { filename: 'aji-a-lo-pintor.mp3', text: '¡Ají a lo pintor!' },
+    { filename: 'porque-le-hacen-el-quite-a-lo-picante.mp3', text: '¡Le hacen el quite a lo picante!' },
+    { filename: 'pero-no-todos-comen-aji.mp3', text: '¡Pero no todos comen ají!' },
+  ],
+  ACEITE: [
+    { filename: 'de-cualquier-aceite.mp3', text: '¡De cualquier aceite!' },
+  ],
+  LEVEL_UP: [
+    { filename: 'tengo-buena-clientela.mp3', text: '¡Tengo buena clientela!' },
+  ],
+  VICTORY: [
+    { filename: 'fin-exitoso-del-juego.mp3', text: '¡Victoria de la Fritanga!' },
+  ],
+  GAME_OVER: [
+    { filename: 'derrota.mp3', text: '¡Se enfrió el sartén!' },
+  ],
+  START: [
+    { filename: 'vendo-churrascos-empanadas.mp3', text: '¡Vendo churrascos, empanadas!' },
+  ],
+  PESCADO_FRESCO: [
+    { filename: 'pescado-fresco.mp3', text: '¡Pescado fresco!' },
+  ],
+  PESCADO_ANEJO: [
+    { filename: 'no-acumulo-pescado-anejo.mp3', text: '¡No acumulo pescado añejo!' },
+  ],
+};
+
 interface Beat {
   ctx: AudioContext;
   out: GainNode;
@@ -357,8 +392,15 @@ class GameAudio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private sfxMaster: GainNode | null = null;
+  private voiceMaster: GainNode | null = null;
   private muted = false; // SFX muted
   private volume = 0.6; // master volume, 0..1
+
+  private voiceBuffers: Map<string, AudioBuffer> = new Map();
+  private voiceLoading: Map<string, Promise<AudioBuffer | null>> = new Map();
+  private currentVoiceSource: AudioBufferSourceNode | null = null;
+  private currentVoiceGain: GainNode | null = null;
+  private voicePlayingUntil = 0;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -392,12 +434,18 @@ class GameAudio {
     this.ctx = new Ctor();
     this.master = this.ctx.createGain();
     this.sfxMaster = this.ctx.createGain();
+    this.voiceMaster = this.ctx.createGain();
     this.master.gain.setValueAtTime(this.volume, this.ctx.currentTime);
     this.sfxMaster.gain.setValueAtTime(
       this.muted ? 0 : 1,
       this.ctx.currentTime,
     );
+    this.voiceMaster.gain.setValueAtTime(
+      this.muted ? 0 : 1.2,
+      this.ctx.currentTime,
+    );
     this.sfxMaster.connect(this.master);
+    this.voiceMaster.connect(this.master);
     this.master.connect(this.ctx.destination);
     this.attachUnlock();
     return this.ctx;
@@ -450,8 +498,13 @@ class GameAudio {
 
   setMuted(muted: boolean) {
     this.muted = muted;
-    if (this.sfxMaster && this.ctx) {
-      this.sfxMaster.gain.setValueAtTime(muted ? 0 : 1, this.ctx.currentTime);
+    if (this.ctx) {
+      if (this.sfxMaster) {
+        this.sfxMaster.gain.setValueAtTime(muted ? 0 : 1, this.ctx.currentTime);
+      }
+      if (this.voiceMaster) {
+        this.voiceMaster.gain.setValueAtTime(muted ? 0 : 1.2, this.ctx.currentTime);
+      }
     }
   }
 
@@ -683,6 +736,180 @@ class GameAudio {
         gain: 0.03
       });
     }
+  }
+
+  // --- Voice Clip Playback ---------------------------------------------------
+
+  private getVoiceUrl(filename: string): string {
+    if (filename.startsWith('http://') || filename.startsWith('https://')) return filename;
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname;
+      if (p.includes('games/tio-aceite')) {
+        const idx = p.indexOf('games/tio-aceite');
+        const prefix = p.substring(0, idx + 'games/tio-aceite'.length);
+        return `${prefix.replace(/\/+$/, '')}/assets/audio/voices/${filename.replace(/^\/+/, '')}`;
+      }
+    }
+    return `assets/audio/voices/${filename}`;
+  }
+
+  async loadVoice(filename: string): Promise<AudioBuffer | null> {
+    const existing = this.voiceBuffers.get(filename);
+    if (existing) return existing;
+
+    const inFlight = this.voiceLoading.get(filename);
+    if (inFlight) return inFlight;
+
+    const ctx = this.ensure();
+    if (!ctx) return null;
+
+    const promise = (async () => {
+      try {
+        const url = this.getVoiceUrl(filename);
+        const res = await fetch(url);
+        if (!res.ok) {
+          console.warn(`[audio] Failed to fetch voice ${url}: ${res.status}`);
+          return null;
+        }
+        const arrayBuf = await res.arrayBuffer();
+        const audioBuf = await ctx.decodeAudioData(arrayBuf);
+        this.voiceBuffers.set(filename, audioBuf);
+        return audioBuf;
+      } catch (err) {
+        console.warn(`[audio] Error decoding voice ${filename}:`, err);
+        return null;
+      } finally {
+        this.voiceLoading.delete(filename);
+      }
+    })();
+
+    this.voiceLoading.set(filename, promise);
+    return promise;
+  }
+
+  preloadAllVoices(): void {
+    const filenames = [
+      'aji-a-lo-picasso.mp3',
+      'aji-a-lo-pintor.mp3',
+      'porque-le-hacen-el-quite-a-lo-picante.mp3',
+      'pero-no-todos-comen-aji.mp3',
+      'de-cualquier-aceite.mp3',
+      'derrota.mp3',
+      'fin-exitoso-del-juego.mp3',
+      'no-acumulo-pescado-anejo.mp3',
+      'pescado-fresco.mp3',
+      'tengo-buena-clientela.mp3',
+      'vendo-churrascos-empanadas.mp3',
+    ];
+    filenames.forEach((f) => {
+      void this.loadVoice(f);
+    });
+  }
+
+  async playVoice(
+    filename: string,
+    priority: 'normal' | 'high' = 'normal',
+    volumeGain = 1.0,
+  ): Promise<boolean> {
+    const ctx = this.ensure();
+    if (!ctx || !this.voiceMaster || this.muted) return false;
+    if (ctx.state === 'suspended') void ctx.resume().catch(() => {});
+
+    const now = ctx.currentTime;
+    const isPlaying = now < this.voicePlayingUntil;
+
+    if (isPlaying && priority === 'normal') {
+      return false;
+    }
+
+    const buffer = await this.loadVoice(filename);
+    if (!buffer) return false;
+
+    if (this.currentVoiceSource) {
+      try {
+        if (this.currentVoiceGain) {
+          this.currentVoiceGain.gain.setValueAtTime(this.currentVoiceGain.gain.value, ctx.currentTime);
+          this.currentVoiceGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        }
+        this.currentVoiceSource.stop(ctx.currentTime + 0.06);
+      } catch {
+        // ignore
+      }
+      this.currentVoiceSource = null;
+      this.currentVoiceGain = null;
+    }
+
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(volumeGain, ctx.currentTime);
+
+    src.connect(gain);
+    gain.connect(this.voiceMaster);
+
+    this.currentVoiceSource = src;
+    this.currentVoiceGain = gain;
+    this.voicePlayingUntil = ctx.currentTime + buffer.duration;
+
+    src.onended = () => {
+      if (this.currentVoiceSource === src) {
+        this.currentVoiceSource = null;
+        this.currentVoiceGain = null;
+      }
+    };
+
+    src.start(ctx.currentTime);
+    return true;
+  }
+
+  playVoiceAji(): VoiceClipInfo {
+    const clips = TIO_VOICES.AJI;
+    const chosen = clips[Math.floor(Math.random() * clips.length)];
+    void this.playVoice(chosen.filename, 'normal');
+    return chosen;
+  }
+
+  playVoiceAceite(): VoiceClipInfo {
+    const clip = TIO_VOICES.ACEITE[0];
+    void this.playVoice(clip.filename, 'normal');
+    return clip;
+  }
+
+  playVoiceLevelUp(): VoiceClipInfo {
+    const clip = TIO_VOICES.LEVEL_UP[0];
+    void this.playVoice(clip.filename, 'high');
+    return clip;
+  }
+
+  playVoiceVictory(): VoiceClipInfo {
+    const clip = TIO_VOICES.VICTORY[0];
+    void this.playVoice(clip.filename, 'high');
+    return clip;
+  }
+
+  playVoiceGameOver(): VoiceClipInfo {
+    const clip = TIO_VOICES.GAME_OVER[0];
+    void this.playVoice(clip.filename, 'high');
+    return clip;
+  }
+
+  playVoiceStart(): VoiceClipInfo {
+    const clip = TIO_VOICES.START[0];
+    void this.playVoice(clip.filename, 'normal');
+    return clip;
+  }
+
+  playVoicePescadoFresco(): VoiceClipInfo {
+    const clip = TIO_VOICES.PESCADO_FRESCO[0];
+    void this.playVoice(clip.filename, 'normal');
+    return clip;
+  }
+
+  playVoicePescadoAnejo(): VoiceClipInfo {
+    const clip = TIO_VOICES.PESCADO_ANEJO[0];
+    void this.playVoice(clip.filename, 'normal');
+    return clip;
   }
 }
 
