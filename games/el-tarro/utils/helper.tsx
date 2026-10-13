@@ -347,6 +347,54 @@ export const useInput = (
  * gameAudio.toggleMute().
  */
 
+export interface VoiceClipInfo {
+  filename: string;
+  text: string;
+}
+
+export const TARRO_VOICES = {
+  INTRO: [
+    { filename: 'intro1.mp3', text: '¡Tírate po\' Tarro!' },
+    { filename: 'intro2.mp3', text: '¡Dale Tarro, con todo!' },
+    { filename: 'intro3.mp3', text: '¡Se viene el medio salto del Tarro!' },
+  ],
+  TRANSCURSO: [
+    { filename: 'transcurso1.mp3', text: '¡Va con vuelo!' },
+    { filename: 'transcurso2.mp3', text: '¡Pedalea, pedalea!' },
+    { filename: 'transcurso3.mp3', text: '¡A fondo!' },
+    { filename: 'transcurso4.mp3', text: '¡Mira cómo vuela por los aires!' },
+    { filename: 'transcurso5.mp3', text: '¡Qué velocidad, hermano!' },
+  ],
+  CAIDA: [
+    { filename: 'caida1.mp3', text: '¡El Tarro se sacó la chucha!' },
+  ],
+  EXITO: [
+    { filename: 'exito1.mp3', text: '¡Buena, Tarro!' },
+    { filename: 'exito2.mp3', text: '¡Cayó parao!' },
+    { filename: 'exito3.mp3', text: '¡Puro filete el salto!' },
+    { filename: 'exito4.mp3', text: '¡Medio aterrizaje, hermano!' },
+    { filename: 'exito5.mp3', text: '¡Zafó perfecto el Tarro!' },
+  ],
+  CELEBRACION: [
+    { filename: 'celebracion1.mp3', text: '¡Celebrando la hazaña!' },
+    { filename: 'celebracion2.mp3', text: '¡Héroe nacional de la rampa!' },
+    { filename: 'celebracion3.mp3', text: '¡El Tarro es inmortal!' },
+    { filename: 'celebracion4.mp3', text: '¡Aplausos pal Tarro, cabros!' },
+  ],
+  SUBIR_NIVEL: [
+    { filename: 'subir-nivel-1.mp3', text: '¡Subiendo de nivel!' },
+    { filename: 'subir-nivel-2.mp3', text: '¡La rampa se pone brígida!' },
+  ],
+  FIN_EXITOSO: [
+    { filename: 'fin-exitoso1.mp3', text: '¡El Tarro conquistó la gloria máxima!' },
+  ],
+  FIN_FRACASO: [
+    { filename: 'fin-fracaso1.mp3', text: '¡Llamen a la ambulancia!' },
+    { filename: 'fin-fracaso2.mp3', text: '¡Se mató el Tarro!' },
+    { filename: 'fin-fracaso3.mp3', text: '¡Hasta aquí llegó la bicicleta!' },
+  ],
+};
+
 interface Beat {
   ctx: AudioContext;
   out: GainNode;
@@ -357,8 +405,15 @@ class GameAudio {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private sfxMaster: GainNode | null = null;
+  private voiceMaster: GainNode | null = null;
   private muted = false; // SFX muted
   private volume = 0.6; // master volume, 0..1
+
+  private voiceBuffers: Map<string, AudioBuffer> = new Map();
+  private voiceLoading: Map<string, Promise<AudioBuffer | null>> = new Map();
+  private currentVoiceSource: AudioBufferSourceNode | null = null;
+  private currentVoiceGain: GainNode | null = null;
+  private voicePlayingUntil = 0;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -392,12 +447,18 @@ class GameAudio {
     this.ctx = new Ctor();
     this.master = this.ctx.createGain();
     this.sfxMaster = this.ctx.createGain();
+    this.voiceMaster = this.ctx.createGain();
     this.master.gain.setValueAtTime(this.volume, this.ctx.currentTime);
     this.sfxMaster.gain.setValueAtTime(
       this.muted ? 0 : 1,
       this.ctx.currentTime,
     );
+    this.voiceMaster.gain.setValueAtTime(
+      this.muted ? 0 : 1.25,
+      this.ctx.currentTime,
+    );
     this.sfxMaster.connect(this.master);
+    this.voiceMaster.connect(this.master);
     this.master.connect(this.ctx.destination);
     this.attachUnlock();
     return this.ctx;
@@ -450,8 +511,13 @@ class GameAudio {
 
   setMuted(muted: boolean) {
     this.muted = muted;
-    if (this.sfxMaster && this.ctx) {
-      this.sfxMaster.gain.setValueAtTime(muted ? 0 : 1, this.ctx.currentTime);
+    if (this.ctx) {
+      if (this.sfxMaster) {
+        this.sfxMaster.gain.setValueAtTime(muted ? 0 : 1, this.ctx.currentTime);
+      }
+      if (this.voiceMaster) {
+        this.voiceMaster.gain.setValueAtTime(muted ? 0 : 1.25, this.ctx.currentTime);
+      }
     }
   }
 
@@ -678,6 +744,198 @@ class GameAudio {
     if (!b) return;
     const v = this.vary();
     this.blip(b, b.now, { type: 'sine', freq: 1200 * v, dur: 0.015, gain: 0.1 });
+  }
+
+  // --- Voice Clip Playback ---------------------------------------------------
+
+  private getVoiceUrl(filename: string): string {
+    if (filename.startsWith('http://') || filename.startsWith('https://')) return filename;
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname;
+      if (p.includes('games/el-tarro')) {
+        const idx = p.indexOf('games/el-tarro');
+        const prefix = p.substring(0, idx + 'games/el-tarro'.length);
+        return `${prefix.replace(/\/+$/, '')}/assets/audio/voices/${filename.replace(/^\/+/, '')}`;
+      }
+    }
+    return `assets/audio/voices/${filename}`;
+  }
+
+  async loadVoice(filename: string): Promise<AudioBuffer | null> {
+    const existing = this.voiceBuffers.get(filename);
+    if (existing) return existing;
+
+    const inFlight = this.voiceLoading.get(filename);
+    if (inFlight) return inFlight;
+
+    const ctx = this.ensure();
+    if (!ctx) return null;
+
+    const promise = (async () => {
+      try {
+        const url = this.getVoiceUrl(filename);
+        const res = await fetch(url);
+        if (!res.ok) {
+          console.warn(`[audio] Failed to fetch voice ${url}: ${res.status}`);
+          return null;
+        }
+        const arrayBuf = await res.arrayBuffer();
+        const audioBuf = await ctx.decodeAudioData(arrayBuf);
+        this.voiceBuffers.set(filename, audioBuf);
+        return audioBuf;
+      } catch (err) {
+        console.warn(`[audio] Error decoding voice ${filename}:`, err);
+        return null;
+      } finally {
+        this.voiceLoading.delete(filename);
+      }
+    })();
+
+    this.voiceLoading.set(filename, promise);
+    return promise;
+  }
+
+  preloadAllVoices(): void {
+    const filenames = [
+      'caida1.mp3',
+      'celebracion1.mp3',
+      'celebracion2.mp3',
+      'celebracion3.mp3',
+      'celebracion4.mp3',
+      'exito1.mp3',
+      'exito2.mp3',
+      'exito3.mp3',
+      'exito4.mp3',
+      'exito5.mp3',
+      'fin-exitoso1.mp3',
+      'fin-fracaso1.mp3',
+      'fin-fracaso2.mp3',
+      'fin-fracaso3.mp3',
+      'intro1.mp3',
+      'intro2.mp3',
+      'intro3.mp3',
+      'subir-nivel-1.mp3',
+      'subir-nivel-2.mp3',
+      'transcurso1.mp3',
+      'transcurso2.mp3',
+      'transcurso3.mp3',
+      'transcurso4.mp3',
+      'transcurso5.mp3',
+    ];
+    filenames.forEach((f) => {
+      void this.loadVoice(f);
+    });
+  }
+
+  async playVoice(
+    filename: string,
+    priority: 'normal' | 'high' = 'normal',
+    volumeGain = 1.0,
+  ): Promise<boolean> {
+    const ctx = this.ensure();
+    if (!ctx || !this.voiceMaster || this.muted) return false;
+    if (ctx.state === 'suspended') void ctx.resume().catch(() => {});
+
+    const now = ctx.currentTime;
+    const isPlaying = now < this.voicePlayingUntil;
+
+    if (isPlaying && priority === 'normal') {
+      return false;
+    }
+
+    const buffer = await this.loadVoice(filename);
+    if (!buffer) return false;
+
+    if (this.currentVoiceSource) {
+      try {
+        if (this.currentVoiceGain) {
+          this.currentVoiceGain.gain.setValueAtTime(this.currentVoiceGain.gain.value, ctx.currentTime);
+          this.currentVoiceGain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        }
+        this.currentVoiceSource.stop(ctx.currentTime + 0.06);
+      } catch {
+        // ignore
+      }
+      this.currentVoiceSource = null;
+      this.currentVoiceGain = null;
+    }
+
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(volumeGain, ctx.currentTime);
+
+    src.connect(gain);
+    gain.connect(this.voiceMaster);
+
+    this.currentVoiceSource = src;
+    this.currentVoiceGain = gain;
+    this.voicePlayingUntil = ctx.currentTime + buffer.duration;
+
+    src.onended = () => {
+      if (this.currentVoiceSource === src) {
+        this.currentVoiceSource = null;
+        this.currentVoiceGain = null;
+      }
+    };
+
+    src.start(ctx.currentTime);
+    return true;
+  }
+
+  playVoiceIntro(): VoiceClipInfo {
+    const clips = TARRO_VOICES.INTRO;
+    const chosen = clips[Math.floor(Math.random() * clips.length)];
+    void this.playVoice(chosen.filename, 'normal');
+    return chosen;
+  }
+
+  playVoiceTranscurso(): VoiceClipInfo {
+    const clips = TARRO_VOICES.TRANSCURSO;
+    const chosen = clips[Math.floor(Math.random() * clips.length)];
+    void this.playVoice(chosen.filename, 'normal');
+    return chosen;
+  }
+
+  playVoiceCaida(): VoiceClipInfo {
+    const clip = TARRO_VOICES.CAIDA[0];
+    void this.playVoice(clip.filename, 'high');
+    return clip;
+  }
+
+  playVoiceExito(): VoiceClipInfo {
+    const clips = TARRO_VOICES.EXITO;
+    const chosen = clips[Math.floor(Math.random() * clips.length)];
+    void this.playVoice(chosen.filename, 'high');
+    return chosen;
+  }
+
+  playVoiceCelebracion(): VoiceClipInfo {
+    const clips = TARRO_VOICES.CELEBRACION;
+    const chosen = clips[Math.floor(Math.random() * clips.length)];
+    void this.playVoice(chosen.filename, 'normal');
+    return chosen;
+  }
+
+  playVoiceSubirNivel(): VoiceClipInfo {
+    const clips = TARRO_VOICES.SUBIR_NIVEL;
+    const chosen = clips[Math.floor(Math.random() * clips.length)];
+    void this.playVoice(chosen.filename, 'high');
+    return chosen;
+  }
+
+  playVoiceFinExitoso(): VoiceClipInfo {
+    const clip = TARRO_VOICES.FIN_EXITOSO[0];
+    void this.playVoice(clip.filename, 'high');
+    return clip;
+  }
+
+  playVoiceFinFracaso(): VoiceClipInfo {
+    const clips = TARRO_VOICES.FIN_FRACASO;
+    const chosen = clips[Math.floor(Math.random() * clips.length)];
+    void this.playVoice(chosen.filename, 'high');
+    return chosen;
   }
 }
 

@@ -516,7 +516,7 @@ export default function App() {
   };
 
   // Reset a stunt run
-  const resetRun = useCallback(() => {
+  const resetRun = useCallback((playVoice = true) => {
     simRef.current = {
       phase: 'RUNWAY' as StuntPhase,
       riderX: 140,
@@ -564,6 +564,9 @@ export default function App() {
     setHudDistance(0);
     setFlightTrickText('');
     setCurrentStuntStats(null);
+    if (playVoice) {
+      gameAudio.playVoiceIntro();
+    }
   }, []);
 
   // Initialize Game from Main Menu
@@ -616,8 +619,9 @@ export default function App() {
       level: prev.level + 1,
       lives: maxLives,
     }));
-    resetRun();
+    resetRun(false);
     gameAudio.playLevelUpStinger();
+    gameAudio.playVoiceSubirNivel();
   }, [resetRun]);
 
   // Handle Level Failure / Life Loss
@@ -650,6 +654,19 @@ export default function App() {
       initGame();
     }
   }, [initGame]);
+
+  useEffect(() => {
+    gameAudio.preloadAllVoices();
+  }, []);
+
+  // Sound effects on status change
+  useEffect(() => {
+    if (gameState.status === 'GAME_OVER') {
+      gameAudio.playVoiceFinFracaso();
+    } else if (gameState.status === 'VICTORY') {
+      gameAudio.playVoiceFinExitoso();
+    }
+  }, [gameState.status]);
 
   // Keyboard Event Listeners for Q, P, Spacebar, Escape
   useEffect(() => {
@@ -920,6 +937,7 @@ export default function App() {
         sim.flashAlpha = 0.85;
         sim.screenShake = 10;
         gameAudio.playRetroJump();
+        gameAudio.playVoiceTranscurso();
         spawnParticles(sim.riderX, sim.riderY + 20, 16, 'spark');
       }
     }
@@ -1002,6 +1020,7 @@ export default function App() {
           sim.flashAlpha = 0.9;
           gameAudio.playChiptuneExplosion();
           gameAudio.playGeneralDamage();
+          gameAudio.playVoiceCaida();
           spawnParticles(sim.riderX, sim.riderY, 25, 'spark');
 
           const distMeters = Math.max(
@@ -1056,6 +1075,7 @@ export default function App() {
           sim.screenShake = 14;
           sim.vx = 4;
           gameAudio.playChiptuneExplosion();
+          gameAudio.playVoiceCaida();
           spawnParticles(sim.riderX, GROUND_Y - 20, 20, 'dust');
 
           const stats: StuntStats = {
@@ -1085,6 +1105,7 @@ export default function App() {
           sim.rotation = 0;
           sim.screenShake = 6;
           gameAudio.playJumpLandingThud();
+          gameAudio.playVoiceExito();
 
           let quality: 'PERFECT' | 'GREAT' | 'GOOD' = 'GOOD';
           let landingMult = 1.0;
@@ -1161,6 +1182,7 @@ export default function App() {
       if (sim.summaryTimer >= 1.5) {
         sim.phase = 'ROUND_SUMMARY';
         setHudPhase('ROUND_SUMMARY');
+        gameAudio.playVoiceCelebracion();
       }
     }
 
