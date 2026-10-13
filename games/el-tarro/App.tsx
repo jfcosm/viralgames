@@ -2118,126 +2118,96 @@ export default function App() {
               </div>
             </div>
 
-            {/* Bottom Deck: Dual Pedals (Left) & Volar Launch (Right) */}
-            <div className="w-full flex items-center justify-between px-1">
-              {/* Dual Pedal Buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                    virtualPedalLRef.current = true;
-                    simRef.current.pedalInputQueue.push('L');
-                  }}
-                  onPointerUp={() => {
-                    virtualPedalLRef.current = false;
-                  }}
-                  onPointerCancel={() => {
-                    virtualPedalLRef.current = false;
-                  }}
-                  aria-label="Pedal Izquierdo"
-                  className="w-16 h-15 min-w-[56px] min-h-[54px] bg-gradient-to-b from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border-3 border-yellow-400 text-stone-950 rounded-xl flex flex-col items-center justify-center font-black shadow-[0_4px_0_#451a03,0_0_12px_rgba(245,158,11,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none">
-                  <span className="text-[7px] text-amber-950 font-extrabold">PEDAL</span>
-                  <span className="text-sm font-black leading-none">IZQ</span>
-                </button>
+            {/* Bottom Deck: IZQ (Extremo Izquierdo), VOLAR (Centro), DER (Extremo Derecho) */}
+            <div className="w-full flex items-center justify-between px-2 gap-2">
+              {/* Botón Extremo Izquierdo: PEDAL IZQ */}
+              <button
+                type="button"
+                onPointerDown={(e) => {
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  virtualPedalLRef.current = true;
+                  simRef.current.pedalInputQueue.push('L');
+                }}
+                onPointerUp={() => {
+                  virtualPedalLRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  virtualPedalLRef.current = false;
+                }}
+                aria-label="Pedal Izquierdo"
+                className="flex-1 max-w-[110px] h-15 min-h-[56px] bg-gradient-to-b from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border-3 border-yellow-400 text-stone-950 rounded-xl flex flex-col items-center justify-center font-black shadow-[0_4px_0_#451a03,0_0_12px_rgba(245,158,11,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none">
+                <span className="text-[7px] text-amber-950 font-extrabold">PEDAL</span>
+                <span className="text-sm sm:text-base font-black leading-none">IZQ</span>
+              </button>
 
-                <button
-                  type="button"
-                  onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                    virtualPedalRRef.current = true;
-                    simRef.current.pedalInputQueue.push('R');
-                  }}
-                  onPointerUp={() => {
-                    virtualPedalRRef.current = false;
-                  }}
-                  onPointerCancel={() => {
-                    virtualPedalRRef.current = false;
-                  }}
-                  aria-label="Pedal Derecho"
-                  className="w-16 h-15 min-w-[56px] min-h-[54px] bg-gradient-to-b from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border-3 border-yellow-400 text-stone-950 rounded-xl flex flex-col items-center justify-center font-black shadow-[0_4px_0_#451a03,0_0_12px_rgba(245,158,11,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none">
-                  <span className="text-[7px] text-amber-950 font-extrabold">PEDAL</span>
-                  <span className="text-sm font-black leading-none">DER</span>
-                </button>
-              </div>
+              {/* Botón Central: VOLAR / MANTÉN 45° */}
+              <button
+                type="button"
+                onPointerDown={(e) => {
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  virtualJumpRef.current = true;
+                }}
+                onPointerUp={() => {
+                  virtualJumpRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  virtualJumpRef.current = false;
+                }}
+                aria-label="Botón Volar y Lanzamiento"
+                className={`flex-1 max-w-[140px] h-15 min-h-[56px] rounded-xl border-3 flex flex-col items-center justify-center font-black shadow-[0_4px_0_#064e3b,0_0_15px_rgba(16,185,129,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none ${
+                  hudPhase === 'ANGLE_SELECT'
+                    ? 'bg-gradient-to-b from-emerald-400 to-emerald-500 active:from-emerald-300 active:to-emerald-400 text-stone-950 border-yellow-300 animate-pulse'
+                    : 'bg-gradient-to-b from-emerald-600 to-emerald-700 active:from-emerald-500 active:to-emerald-600 text-white border-emerald-300'
+                }`}>
+                <Flame size={20} className={hudPhase === 'ANGLE_SELECT' ? 'text-stone-950 animate-bounce' : 'text-yellow-300'} />
+                <span className="text-[8px] sm:text-[9px] font-black tracking-wider leading-none mt-0.5">
+                  {hudPhase === 'ANGLE_SELECT' ? 'MANTÉN 45°' : 'VOLAR'}
+                </span>
+              </button>
 
-              {/* Handheld Brand Tag */}
-              <div className="hidden min-[360px]:flex flex-col items-center">
-                <span className="text-[7px] text-yellow-400 font-black tracking-widest">EL TARRO</span>
-                <span className="text-[5px] text-amber-500/80 font-mono">16-BIT HANDHELD</span>
-              </div>
-
-              {/* Launch / 45° Button */}
-              <div>
-                <button
-                  type="button"
-                  onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                    virtualJumpRef.current = true;
-                  }}
-                  onPointerUp={() => {
-                    virtualJumpRef.current = false;
-                  }}
-                  onPointerCancel={() => {
-                    virtualJumpRef.current = false;
-                  }}
-                  aria-label="Botón Volar y Lanzamiento"
-                  className={`w-24 h-15 min-w-[80px] min-h-[54px] rounded-xl border-3 flex flex-col items-center justify-center font-black shadow-[0_4px_0_#064e3b,0_0_15px_rgba(16,185,129,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none ${
-                    hudPhase === 'ANGLE_SELECT'
-                      ? 'bg-gradient-to-b from-emerald-400 to-emerald-500 active:from-emerald-300 active:to-emerald-400 text-stone-950 border-yellow-300 animate-pulse'
-                      : 'bg-gradient-to-b from-emerald-600 to-emerald-700 active:from-emerald-500 active:to-emerald-600 text-white border-emerald-300'
-                  }`}>
-                  <Flame size={18} className={hudPhase === 'ANGLE_SELECT' ? 'text-stone-950 animate-bounce' : 'text-yellow-300'} />
-                  <span className="text-[8px] font-black tracking-wider leading-none mt-0.5">
-                    {hudPhase === 'ANGLE_SELECT' ? 'MANTÉN 45°' : 'VOLAR'}
-                  </span>
-                </button>
-              </div>
+              {/* Botón Extremo Derecho: PEDAL DER */}
+              <button
+                type="button"
+                onPointerDown={(e) => {
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  virtualPedalRRef.current = true;
+                  simRef.current.pedalInputQueue.push('R');
+                }}
+                onPointerUp={() => {
+                  virtualPedalRRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  virtualPedalRRef.current = false;
+                }}
+                aria-label="Pedal Derecho"
+                className="flex-1 max-w-[110px] h-15 min-h-[56px] bg-gradient-to-b from-amber-600 to-amber-700 active:from-amber-400 active:to-amber-500 border-3 border-yellow-400 text-stone-950 rounded-xl flex flex-col items-center justify-center font-black shadow-[0_4px_0_#451a03,0_0_12px_rgba(245,158,11,0.3)] active:translate-y-1 active:shadow-none transition-all touch-none select-none">
+                <span className="text-[7px] text-amber-950 font-extrabold">PEDAL</span>
+                <span className="text-sm sm:text-base font-black leading-none">DER</span>
+              </button>
             </div>
           </div>
         ) : (
           /* Controles flotantes en horizontal / paisaje */
           gameState.status === 'PLAYING' && (
             <div className="w-full bg-stone-950/95 border-t-2 md:border-t-4 border-amber-900/60 px-6 py-2 flex items-center justify-between z-20 shrink-0">
-              <div className="flex items-center gap-3">
-                <button
-                  onPointerDown={() => {
-                    virtualPedalLRef.current = true;
-                    simRef.current.pedalInputQueue.push('L');
-                  }}
-                  onPointerUp={() => {
-                    virtualPedalLRef.current = false;
-                  }}
-                  onPointerLeave={() => {
-                    virtualPedalLRef.current = false;
-                  }}
-                  onPointerCancel={() => {
-                    virtualPedalLRef.current = false;
-                  }}
-                  className="min-w-[54px] min-h-[54px] w-14 h-14 bg-amber-600 active:bg-amber-400 text-stone-950 font-black rounded-xl border-2 border-yellow-300 flex flex-col items-center justify-center shadow-lg active:scale-95 select-none touch-none">
-                  <span className="text-[8px]">PEDAL</span>
-                  <span className="text-sm leading-none font-extrabold">IZQ</span>
-                </button>
-
-                <button
-                  onPointerDown={() => {
-                    virtualPedalRRef.current = true;
-                    simRef.current.pedalInputQueue.push('R');
-                  }}
-                  onPointerUp={() => {
-                    virtualPedalRRef.current = false;
-                  }}
-                  onPointerLeave={() => {
-                    virtualPedalRRef.current = false;
-                  }}
-                  onPointerCancel={() => {
-                    virtualPedalRRef.current = false;
-                  }}
-                  className="min-w-[54px] min-h-[54px] w-14 h-14 bg-amber-600 active:bg-amber-400 text-stone-950 font-black rounded-xl border-2 border-yellow-300 flex flex-col items-center justify-center shadow-lg active:scale-95 select-none touch-none">
-                  <span className="text-[8px]">PEDAL</span>
-                  <span className="text-sm leading-none font-extrabold">DER</span>
-                </button>
-              </div>
+              <button
+                onPointerDown={() => {
+                  virtualPedalLRef.current = true;
+                  simRef.current.pedalInputQueue.push('L');
+                }}
+                onPointerUp={() => {
+                  virtualPedalLRef.current = false;
+                }}
+                onPointerLeave={() => {
+                  virtualPedalLRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  virtualPedalLRef.current = false;
+                }}
+                className="min-w-[64px] min-h-[54px] w-16 h-14 bg-amber-600 active:bg-amber-400 text-stone-950 font-black rounded-xl border-2 border-yellow-300 flex flex-col items-center justify-center shadow-lg active:scale-95 select-none touch-none">
+                <span className="text-[8px]">PEDAL</span>
+                <span className="text-sm leading-none font-extrabold">IZQ</span>
+              </button>
 
               <button
                 onPointerDown={() => {
@@ -2252,15 +2222,34 @@ export default function App() {
                 onPointerCancel={() => {
                   virtualJumpRef.current = false;
                 }}
-                className={`min-w-[90px] min-h-[54px] px-3 h-14 font-black rounded-xl border-2 flex items-center justify-center gap-1 shadow-lg active:scale-95 select-none touch-none transition-colors ${
+                className={`min-w-[110px] min-h-[54px] px-4 h-14 font-black rounded-xl border-2 flex items-center justify-center gap-1.5 shadow-lg active:scale-95 select-none touch-none transition-colors ${
                   hudPhase === 'ANGLE_SELECT'
                     ? 'bg-emerald-500 active:bg-emerald-300 text-stone-950 border-yellow-300 animate-pulse'
                     : 'bg-emerald-700 active:bg-emerald-500 text-stone-950 border-emerald-400'
                 }`}>
-                <Flame size={18} />
+                <Flame size={20} />
                 <span className="text-[9px] font-extrabold tracking-wider">
                   {hudPhase === 'ANGLE_SELECT' ? 'MANTÉN 45°' : 'VOLAR'}
                 </span>
+              </button>
+
+              <button
+                onPointerDown={() => {
+                  virtualPedalRRef.current = true;
+                  simRef.current.pedalInputQueue.push('R');
+                }}
+                onPointerUp={() => {
+                  virtualPedalRRef.current = false;
+                }}
+                onPointerLeave={() => {
+                  virtualPedalRRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  virtualPedalRRef.current = false;
+                }}
+                className="min-w-[64px] min-h-[54px] w-16 h-14 bg-amber-600 active:bg-amber-400 text-stone-950 font-black rounded-xl border-2 border-yellow-300 flex flex-col items-center justify-center shadow-lg active:scale-95 select-none touch-none">
+                <span className="text-[8px]">PEDAL</span>
+                <span className="text-sm leading-none font-extrabold">DER</span>
               </button>
             </div>
           )
