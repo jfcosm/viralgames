@@ -20,8 +20,10 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {getConfig} from './constants';
+
+export type AspectRatioMode = '1:1' | '4:3' | '16:9';
 import { subscribeLeaderboard, saveLeaderboardToDb } from '../../firebase';
 import {
   SpriteActionConfig,
@@ -558,8 +560,49 @@ export default function App() {
   // --- ASSETS PRELOADING ---
   const {assets, isReady: assetsReady} = useAssets(ASSETS_MANIFEST);
 
-  const canvasWidth = getConfig('baseCanvasWidth') as number;
+  const baseCanvasWidth = getConfig('baseCanvasWidth') as number;
   const canvasHeight = getConfig('baseCanvasHeight') as number;
+
+  // Mobile portrait orientation & Aspect ratio mode
+  const [isPortrait, setIsPortrait] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerHeight > window.innerWidth;
+  });
+  const [aspectRatioMode, setAspectRatioMode] = useState<AspectRatioMode>('1:1');
+
+  useEffect(() => {
+    const handleOrientation = () => {
+      setIsPortrait(window.innerHeight > window.innerWidth);
+    };
+    window.addEventListener('resize', handleOrientation);
+    window.addEventListener('orientationchange', handleOrientation);
+    return () => {
+      window.removeEventListener('resize', handleOrientation);
+      window.removeEventListener('orientationchange', handleOrientation);
+    };
+  }, []);
+
+  const isMobilePortrait = isMobile && isPortrait;
+
+  // Calculo dinamico de resolucion de juego:
+  // - En Escritorio o Movil Paisaje (Landscape): 1376 x 768 (16:9 Panoramico)
+  // - En Movil Vertical (Portrait): 768 x 768 (1:1 Cuadrado Arcade por defecto), o 1024 x 768 (4:3)
+  const canvasWidth = useMemo(() => {
+    if (!isMobilePortrait) return baseCanvasWidth;
+    if (aspectRatioMode === '1:1') return 768;
+    if (aspectRatioMode === '4:3') return 1024;
+    return baseCanvasWidth;
+  }, [isMobilePortrait, aspectRatioMode, baseCanvasWidth]);
+
+  // Asegurar que la posicion del jugador se mantenga dentro de los limites al cambiar de formato
+  useEffect(() => {
+    if (playerRef.current) {
+      const maxX = canvasWidth - playerRef.current.width - 10;
+      if (playerRef.current.x > maxX) {
+        playerRef.current.x = Math.max(10, maxX);
+      }
+    }
+  }, [canvasWidth]);
 
   if (!stepperRef.current) {
     const stepMs = getConfig('stepMs');
@@ -2016,74 +2059,163 @@ export default function App() {
       </header>
 
       {/* --- CANVAS CONTAINER --- */}
-      <div className="flex-1 w-full min-h-0 relative flex items-center justify-center bg-slate-950 overflow-hidden">
+      <div className={`flex-1 w-full min-h-0 relative flex items-center justify-center bg-slate-950 overflow-hidden ${isMobilePortrait ? 'p-1.5 sm:p-2' : ''}`}>
         <canvas
           ref={canvasRef}
           width={canvasWidth}
           height={canvasHeight}
           style={{
             aspectRatio: `${canvasWidth} / ${canvasHeight}`,
-            width: `min(100%, calc(100vh * ${canvasWidth} / ${canvasHeight}))`,
+            width: isMobilePortrait ? 'min(100%, calc(100vh - 215px))' : `min(100%, calc(100vh * ${canvasWidth} / ${canvasHeight}))`,
+            maxHeight: isMobilePortrait ? 'calc(100vh - 215px)' : '100%',
             imageRendering: 'pixelated',
           }}
-          className="h-auto max-w-full max-h-full bg-black shadow-2xl drop-shadow-2xl"
+          className={`h-auto max-w-full max-h-full bg-black ${
+            isMobilePortrait
+              ? 'rounded-2xl border-4 border-amber-500/90 shadow-[0_0_25px_rgba(245,158,11,0.35),0_4px_0_#000]'
+              : 'shadow-2xl drop-shadow-2xl'
+          }`}
         />
       </div>
 
-      {/* --- MOBILE TOUCH CONTROLS --- */}
-      {isMobile && gameState.status === 'PLAYING' && !isMenuOpen && !isHowToPlayOpen && !isStagesViewOpen && (
-        <div className="w-full px-4 py-2 pb-4 flex items-center justify-between pointer-events-none z-30 shrink-0">
-          {/* Directional cluster */}
-          <div className="flex items-center gap-2.5 pointer-events-auto">
-            <button
-              onPointerDown={(e) => {
-                e.currentTarget.setPointerCapture(e.pointerId);
-                touchLeftRef.current = true;
-              }}
-              onPointerUp={() => {
-                touchLeftRef.current = false;
-              }}
-              onPointerCancel={() => {
-                touchLeftRef.current = false;
-              }}
-              className="w-14 h-14 min-w-[56px] min-h-[56px] bg-slate-900 active:bg-amber-600 border-3 border-amber-500 text-yellow-400 rounded-xl flex items-center justify-center text-xl font-black shadow-[3px_3px_0px_#000] active:scale-95 transition-transform touch-none">
-              ◀
-            </button>
-            <button
-              onPointerDown={(e) => {
-                e.currentTarget.setPointerCapture(e.pointerId);
-                touchRightRef.current = true;
-              }}
-              onPointerUp={() => {
-                touchRightRef.current = false;
-              }}
-              onPointerCancel={() => {
-                touchRightRef.current = false;
-              }}
-              className="w-14 h-14 min-w-[56px] min-h-[56px] bg-slate-900 active:bg-amber-600 border-3 border-amber-500 text-yellow-400 rounded-xl flex items-center justify-center text-xl font-black shadow-[3px_3px_0px_#000] active:scale-95 transition-transform touch-none">
-              ▶
-            </button>
-          </div>
+      {/* --- MOBILE TOUCH CONTROLS (HANDHELD DECK EN VERTICAL / FLOTANTE EN PAISAJE) --- */}
+      {isMobile && (
+        isMobilePortrait ? (
+          <div className="w-full bg-slate-950/95 border-t-3 border-amber-500/90 px-3 py-2 pb-5 flex flex-col items-center justify-between z-30 shrink-0 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9)] select-none">
+            {/* Top Deck: Speaker Grills + Aspect Ratio Mode Pills */}
+            <div className="w-full flex items-center justify-between mb-2 px-1 text-[7px] retro-arcade-text">
+              {/* Speaker grill */}
+              <div className="flex items-center gap-1 opacity-40">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              </div>
 
-          {/* Dash / Boost button */}
-          <div className="pointer-events-auto">
-            <button
-              onPointerDown={(e) => {
-                e.currentTarget.setPointerCapture(e.pointerId);
-                touchBoostRef.current = true;
-              }}
-              onPointerUp={() => {
-                touchBoostRef.current = false;
-              }}
-              onPointerCancel={() => {
-                touchBoostRef.current = false;
-              }}
-              className="w-24 h-14 min-w-[90px] min-h-[56px] bg-gradient-to-r from-amber-500 to-yellow-400 active:from-yellow-400 active:to-amber-500 border-3 border-black text-slate-950 font-black rounded-xl flex items-center justify-center gap-1 shadow-[3px_3px_0px_#000] active:scale-95 transition-transform touch-none text-xs retro-arcade-text">
-              <Zap size={18} className="fill-current text-slate-950" />
-              <span>PIQUE</span>
-            </button>
+              {/* Aspect Ratio Switcher */}
+              <div className="flex items-center gap-1 bg-slate-900 border border-amber-500/50 rounded-lg p-0.5 shadow-[1px_1px_0px_#000]">
+                <span className="text-slate-400 text-[6px] px-1 font-bold">FORMATO:</span>
+                {(['1:1', '4:3', '16:9'] as AspectRatioMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => {
+                      gameAudio.playCrispClick();
+                      setAspectRatioMode(mode);
+                    }}
+                    className={`px-1.5 py-0.5 rounded text-[7px] font-bold transition-all ${
+                      aspectRatioMode === mode
+                        ? 'bg-amber-500 text-slate-950 shadow-[1px_1px_0px_#000]'
+                        : 'text-amber-300 hover:text-white'
+                    }`}>
+                    {mode}
+                  </button>
+                ))}
+              </div>
+
+              {/* Speaker grill */}
+              <div className="flex items-center gap-1 opacity-40">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              </div>
+            </div>
+
+            {/* Bottom Deck: D-Pad & Turbo Dash */}
+            <div className="w-full flex items-center justify-between px-1">
+              {/* Directional Cluster */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    touchLeftRef.current = true;
+                  }}
+                  onPointerUp={() => { touchLeftRef.current = false; }}
+                  onPointerCancel={() => { touchLeftRef.current = false; }}
+                  aria-label="Mover a la izquierda"
+                  className="w-16 h-15 min-w-[56px] min-h-[54px] bg-gradient-to-b from-slate-800 to-slate-900 active:from-amber-600 active:to-amber-700 border-3 border-amber-500 text-yellow-300 rounded-xl flex items-center justify-center text-2xl font-black shadow-[0_4px_0_#000,0_0_10px_rgba(245,158,11,0.2)] active:translate-y-1 active:shadow-none transition-all touch-none">
+                  ◀
+                </button>
+                <button
+                  type="button"
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    touchRightRef.current = true;
+                  }}
+                  onPointerUp={() => { touchRightRef.current = false; }}
+                  onPointerCancel={() => { touchRightRef.current = false; }}
+                  aria-label="Mover a la derecha"
+                  className="w-16 h-15 min-w-[56px] min-h-[54px] bg-gradient-to-b from-slate-800 to-slate-900 active:from-amber-600 active:to-amber-700 border-3 border-amber-500 text-yellow-300 rounded-xl flex items-center justify-center text-2xl font-black shadow-[0_4px_0_#000,0_0_10px_rgba(245,158,11,0.2)] active:translate-y-1 active:shadow-none transition-all touch-none">
+                  ▶
+                </button>
+              </div>
+
+              {/* Handheld Brand Tag */}
+              <div className="hidden min-[360px]:flex flex-col items-center">
+                <span className="text-[6px] text-amber-500 font-bold tracking-widest">VIRALGAMES</span>
+                <span className="text-[5px] text-slate-500 font-mono">16-BIT HANDHELD</span>
+              </div>
+
+              {/* Action Cluster */}
+              <div>
+                <button
+                  type="button"
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    touchBoostRef.current = true;
+                  }}
+                  onPointerUp={() => { touchBoostRef.current = false; }}
+                  onPointerCancel={() => { touchBoostRef.current = false; }}
+                  aria-label="Pique rápido"
+                  className="w-28 h-15 min-w-[96px] min-h-[54px] px-2 bg-gradient-to-r from-red-600 via-amber-500 to-yellow-400 active:from-yellow-400 active:to-red-600 border-3 border-black text-slate-950 font-black rounded-xl flex items-center justify-center gap-1.5 shadow-[0_4px_0_#78350f,0_0_12px_rgba(239,68,68,0.35)] active:translate-y-1 active:shadow-none transition-all touch-none retro-arcade-text">
+                  <Zap size={15} className="fill-current text-slate-950 shrink-0" />
+                  <span className="text-[10px] tracking-tight">PIQUE</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Landscape mode floating controls */
+          gameState.status === 'PLAYING' && !isMenuOpen && !isHowToPlayOpen && !isStagesViewOpen && (
+            <div className="w-full px-4 py-2 pb-4 flex items-center justify-between pointer-events-none z-30 shrink-0">
+              <div className="flex items-center gap-2.5 pointer-events-auto">
+                <button
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    touchLeftRef.current = true;
+                  }}
+                  onPointerUp={() => { touchLeftRef.current = false; }}
+                  onPointerCancel={() => { touchLeftRef.current = false; }}
+                  className="w-14 h-14 min-w-[56px] min-h-[56px] bg-slate-900 active:bg-amber-600 border-3 border-amber-500 text-yellow-400 rounded-xl flex items-center justify-center text-xl font-black shadow-[3px_3px_0px_#000] active:scale-95 transition-transform touch-none">
+                  ◀
+                </button>
+                <button
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    touchRightRef.current = true;
+                  }}
+                  onPointerUp={() => { touchRightRef.current = false; }}
+                  onPointerCancel={() => { touchRightRef.current = false; }}
+                  className="w-14 h-14 min-w-[56px] min-h-[56px] bg-slate-900 active:bg-amber-600 border-3 border-amber-500 text-yellow-400 rounded-xl flex items-center justify-center text-xl font-black shadow-[3px_3px_0px_#000] active:scale-95 transition-transform touch-none">
+                  ▶
+                </button>
+              </div>
+              <div className="pointer-events-auto">
+                <button
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    touchBoostRef.current = true;
+                  }}
+                  onPointerUp={() => { touchBoostRef.current = false; }}
+                  onPointerCancel={() => { touchBoostRef.current = false; }}
+                  className="w-24 h-14 min-w-[90px] min-h-[56px] bg-gradient-to-r from-amber-500 to-yellow-400 active:from-yellow-400 active:to-amber-500 border-3 border-black text-slate-950 font-black rounded-xl flex items-center justify-center gap-1 shadow-[3px_3px_0px_#000] active:scale-95 transition-transform touch-none text-xs retro-arcade-text">
+                  <Zap size={18} className="fill-current text-slate-950" />
+                  <span>PIQUE</span>
+                </button>
+              </div>
+            </div>
+          )
+        )
       )}
 
       {/* --- DEDICATED WELCOME / TITLE SCREEN --- */}
@@ -2287,6 +2419,31 @@ export default function App() {
                   MÚSICA: {isMusicMuted ? 'OFF' : 'ON'}
                 </button>
               </div>
+
+              {/* Aspect Ratio Selector for mobile */}
+              {isMobilePortrait && (
+                <div className="bg-slate-900 border border-slate-700 rounded-xl p-2 text-center text-[7px]">
+                  <span className="text-amber-400 font-bold block mb-1.5">📐 FORMATO DE PANTALLA:</span>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['1:1', '4:3', '16:9'] as AspectRatioMode[]).map((mode) => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => {
+                          gameAudio.playCrispClick();
+                          setAspectRatioMode(mode);
+                        }}
+                        className={`py-1.5 rounded-lg border font-bold transition-all ${
+                          aspectRatioMode === mode
+                            ? 'bg-amber-500 border-yellow-300 text-slate-950 shadow-[1px_1px_0px_#000]'
+                            : 'bg-slate-950 border-slate-800 text-slate-300 hover:text-white'
+                        }`}>
+                        {mode === '1:1' ? '1:1 (CUADRADO)' : mode === '4:3' ? '4:3 (ARCADE)' : '16:9 (ANCHO)'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <button
                 onClick={() => {

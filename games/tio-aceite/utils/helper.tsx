@@ -322,7 +322,7 @@ export const useInput = (
         canvas.removeEventListener('pointercancel', handlePointerUp);
       }
     };
-  }, [canvasRef, enabled]);
+  }, [canvasRef, enabled, logicalSize?.width, logicalSize?.height]);
 
   return inputRef;
 };
@@ -1158,22 +1158,39 @@ export function drawBackground(
   camY = 0,
 ) {
   if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
-    // Parallax logic: scroll the background slightly slower than the camera
-    const parallaxFactor = 0.5;
-    const bgX = (camX * parallaxFactor) % canvasWidth;
-    const bgY = (camY * parallaxFactor) % canvasHeight;
+    const imgW = bgImg.naturalWidth || 1376;
+    const imgH = bgImg.naturalHeight || 768;
 
-    // Draw a 2x2 grid of the background image to ensure the whole screen is covered during scrolling
-    ctx.drawImage(bgImg, -bgX, -bgY, canvasWidth, canvasHeight);
-    ctx.drawImage(bgImg, -bgX + canvasWidth, -bgY, canvasWidth, canvasHeight);
-    ctx.drawImage(bgImg, -bgX, -bgY + canvasHeight, canvasWidth, canvasHeight);
-    ctx.drawImage(
-      bgImg,
-      -bgX + canvasWidth,
-      -bgY + canvasHeight,
-      canvasWidth,
-      canvasHeight,
-    );
+    if (canvasWidth >= imgW) {
+      // Standard widescreen 16:9 parallax logic
+      const parallaxFactor = 0.5;
+      const bgX = (camX * parallaxFactor) % canvasWidth;
+      const bgY = (camY * parallaxFactor) % canvasHeight;
+
+      ctx.drawImage(bgImg, -bgX, -bgY, canvasWidth, canvasHeight);
+      ctx.drawImage(bgImg, -bgX + canvasWidth, -bgY, canvasWidth, canvasHeight);
+      ctx.drawImage(bgImg, -bgX, -bgY + canvasHeight, canvasWidth, canvasHeight);
+      ctx.drawImage(
+        bgImg,
+        -bgX + canvasWidth,
+        -bgY + canvasHeight,
+        canvasWidth,
+        canvasHeight,
+      );
+    } else {
+      // Responsive 1:1 or 4:3 Centered Cover Mode:
+      // Preserves crisp aspect ratio without stretching or compressing horizontally
+      const scale = Math.max(canvasWidth / imgW, canvasHeight / imgH);
+      const drawW = imgW * scale;
+      const drawH = imgH * scale;
+      const panRange = drawW - canvasWidth;
+      // Slight parallax as player moves horizontally
+      const panOffsetX = panRange > 0 ? (camX / (canvasWidth || 1)) * panRange * 0.4 : 0;
+      const drawX = (canvasWidth - drawW) / 2 - panOffsetX;
+      const drawY = (canvasHeight - drawH) / 2;
+
+      ctx.drawImage(bgImg, drawX, drawY, drawW, drawH);
+    }
   } else {
     // Fallback to solid color
     ctx.fillStyle = fallbackColor;
