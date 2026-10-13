@@ -1375,7 +1375,7 @@ body.nav-drawer-open {
 
 .leaderboards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
   gap: 28px;
 }
 
@@ -1389,6 +1389,9 @@ body.nav-drawer-open {
   position: relative;
   transition: transform 0.2s, box-shadow 0.2s;
   overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .leaderboard-card:hover {
@@ -1649,7 +1652,7 @@ body.nav-drawer-open {
 
 .credits-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
   gap: 28px;
 }
 
@@ -1663,6 +1666,9 @@ body.nav-drawer-open {
   gap: 18px;
   position: relative;
   transition: transform 0.2s, box-shadow 0.2s;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .credit-card:hover {
@@ -3084,5 +3090,112 @@ body.nav-drawer-open {
   .dev-banner-title {
     font-size: 1rem;
   }
+
+  /* Main layout margin & padding containment */
+  .main-layout {
+    padding: 18px 14px 60px 14px;
+  }
+
+  /* Leaderboards mobile containment */
+  .leaderboards-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .leaderboard-card {
+    border-width: 4px;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .lb-card-header {
+    padding: 14px 14px 10px 14px;
+  }
+
+  .lb-card-table-wrapper {
+    padding: 8px 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .lb-card-footer {
+    padding: 14px;
+  }
+
+  /* Credits mobile containment */
+  .credits-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .credit-card {
+    border-width: 4px;
+    box-shadow: 4px 4px 0 #000;
+    padding: 18px 16px;
+    gap: 14px;
+  }
+
+  .credit-name {
+    font-size: 14px;
+    word-break: break-word;
+  }
+
+  .credit-bio {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .btn-instagram,
+  .btn-instagram-cyan {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+    text-align: center;
+  }
 }
+
+@media (max-width: 560px) {
+  /* En pantallas móviles, ocultar columna ETAPA para que POS, JUGADOR y SCORE se contengan con holgura */
+  .lb-th-stage,
+  .lb-col-stage {
+    display: none;
+  }
+
+  .lb-col-rank {
+    width: 58px;
+  }
+
+  .lb-col-player {
+    min-width: 0;
+  }
+
+  .lb-player-link.lb-insta-link {
+    max-width: 100%;
+    padding: 2px 5px;
+    font-size: 12px;
+  }
+
+  .lb-handle-text,
+  .lb-player-name {
+    max-width: 125px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .lb-table th {
+    padding: 6px 6px;
+    font-size: 8px;
+  }
+
+  .lb-table td {
+    padding: 8px 6px;
+  }
+
+  .lb-score-val {
+    font-size: 11px;
+  }
+}
+
 
