@@ -96,7 +96,7 @@ export const CONFIG = {
     group: 'Rules',
   },
   spawnInterval: {
-    value: 1.1,
+    value: 1.05,
     type: 'number',
     label: 'Intervalo de Caída (s)',
     group: 'Rules',
@@ -108,19 +108,19 @@ export const CONFIG = {
     group: 'Rules',
   },
   bravaComboRequirement: {
-    value: 10,
+    value: 12,
     type: 'number',
     label: 'Combo para Fritanga Brava',
     group: 'Rules',
   },
   bravaDuration: {
-    value: 6.0,
+    value: 5.0,
     type: 'number',
     label: 'Duración Fritanga Brava (s)',
     group: 'Rules',
   },
   victoryScore: {
-    value: 26000,
+    value: 23000,
     type: 'number',
     label: 'Puntaje de Victoria Final (Nivel 8)',
     group: 'Rules',

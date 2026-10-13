@@ -94,6 +94,7 @@ export interface LevelStage {
   hazardChance: number;
   badgeEmoji: string;
   accentColor: string;
+  duration: number; // Duración mínima del turno en segundos
 }
 
 const STAGES: LevelStage[] = [
@@ -104,11 +105,12 @@ const STAGES: LevelStage[] = [
     subtitle: 'El Origen de la Leyenda',
     location: 'Calle Brasil / Esquina Nocturna',
     bgKey: 'bg_1',
-    targetScore: 1500,
+    targetScore: 1200,
     prevScoreRequirement: 0,
+    duration: 35,
     fallSpeedMult: 1.0,
     spawnRateMult: 1.0,
-    hazardChance: 0.18,
+    hazardChance: 0.16,
     badgeEmoji: '🌙',
     accentColor: '#f59e0b',
   },
@@ -119,10 +121,11 @@ const STAGES: LevelStage[] = [
     subtitle: 'Brisa Marina y Pescado Crujiente',
     location: 'Avenida del Mar, Costanera',
     bgKey: 'bg_2',
-    targetScore: 3500,
-    prevScoreRequirement: 1500,
+    targetScore: 2800,
+    prevScoreRequirement: 1200,
+    duration: 35,
     fallSpeedMult: 1.15,
-    spawnRateMult: 1.12,
+    spawnRateMult: 1.1,
     hazardChance: 0.22,
     badgeEmoji: '🗼',
     accentColor: '#38bdf8',
@@ -134,11 +137,12 @@ const STAGES: LevelStage[] = [
     subtitle: 'Corazón Tradicional Serenense',
     location: 'Mercado Tradicional La Recova',
     bgKey: 'bg_3',
-    targetScore: 6000,
-    prevScoreRequirement: 3500,
+    targetScore: 4800,
+    prevScoreRequirement: 2800,
+    duration: 40,
     fallSpeedMult: 1.3,
-    spawnRateMult: 1.25,
-    hazardChance: 0.25,
+    spawnRateMult: 1.2,
+    hazardChance: 0.26,
     badgeEmoji: '🏛️',
     accentColor: '#fbbf24',
   },
@@ -149,11 +153,12 @@ const STAGES: LevelStage[] = [
     subtitle: 'Sirenas y Fuego Callejero',
     location: 'Cuerpo de Bomberos La Serena',
     bgKey: 'bg_4',
-    targetScore: 9200,
-    prevScoreRequirement: 6000,
+    targetScore: 7200,
+    prevScoreRequirement: 4800,
+    duration: 40,
     fallSpeedMult: 1.45,
-    spawnRateMult: 1.38,
-    hazardChance: 0.28,
+    spawnRateMult: 1.3,
+    hazardChance: 0.30,
     badgeEmoji: '🚒',
     accentColor: '#ef4444',
   },
@@ -164,11 +169,12 @@ const STAGES: LevelStage[] = [
     subtitle: 'La Gran Concurrencia Colonial',
     location: 'Plaza de Armas & Catedral',
     bgKey: 'bg_5',
-    targetScore: 13000,
-    prevScoreRequirement: 9200,
+    targetScore: 10200,
+    prevScoreRequirement: 7200,
+    duration: 45,
     fallSpeedMult: 1.6,
-    spawnRateMult: 1.5,
-    hazardChance: 0.32,
+    spawnRateMult: 1.4,
+    hazardChance: 0.34,
     badgeEmoji: '⛲',
     accentColor: '#10b981',
   },
@@ -179,11 +185,12 @@ const STAGES: LevelStage[] = [
     subtitle: 'Hora Punta de la Fritura Brava',
     location: 'Feria Libre Mayorista de Abastos',
     bgKey: 'bg_6',
-    targetScore: 17200,
-    prevScoreRequirement: 13000,
-    fallSpeedMult: 1.78,
-    spawnRateMult: 1.62,
-    hazardChance: 0.35,
+    targetScore: 13800,
+    prevScoreRequirement: 10200,
+    duration: 45,
+    fallSpeedMult: 1.75,
+    spawnRateMult: 1.5,
+    hazardChance: 0.38,
     badgeEmoji: '🎪',
     accentColor: '#a855f7',
   },
@@ -194,11 +201,12 @@ const STAGES: LevelStage[] = [
     shortName: 'Plaza Tenri',
     location: 'Parque Japonés / Plaza Tenri',
     bgKey: 'bg_7',
-    targetScore: 21800,
-    prevScoreRequirement: 17200,
-    fallSpeedMult: 1.95,
-    spawnRateMult: 1.75,
-    hazardChance: 0.38,
+    targetScore: 18000,
+    prevScoreRequirement: 13800,
+    duration: 45,
+    fallSpeedMult: 1.9,
+    spawnRateMult: 1.65,
+    hazardChance: 0.42,
     badgeEmoji: '🏮',
     accentColor: '#ec4899',
   },
@@ -209,11 +217,12 @@ const STAGES: LevelStage[] = [
     subtitle: '¡La Gran Final de la Fritanga!',
     location: 'Estadio y Polideportivo Municipal',
     bgKey: 'bg_8',
-    targetScore: 26000,
-    prevScoreRequirement: 21800,
-    fallSpeedMult: 2.15,
-    spawnRateMult: 1.9,
-    hazardChance: 0.42,
+    targetScore: 23000,
+    prevScoreRequirement: 18000,
+    duration: 50,
+    fallSpeedMult: 2.1,
+    spawnRateMult: 1.8,
+    hazardChance: 0.46,
     badgeEmoji: '🏟️',
     accentColor: '#eab308',
   },
@@ -343,7 +352,7 @@ const CHILEAN_GOOD_CRIES = [
   '¡Puro Sabor Callejero!',
   '¡Rico el marraqueta!',
   '¡Oro Puro del Sartén!',
-  '¡Pasa la paila ligera!',
+  '¡Pasa el sartén ligero!',
 ];
 
 const CHILEAN_BAD_CRIES = [
@@ -563,6 +572,7 @@ export default function App() {
     speedBoostTimer: 0,
     goldenPanTimer: 0,
     currentStageIndex: 0,
+    stageTimeRemaining: STAGES[0].duration,
   });
 
   const gameStateRef = useRef(gameState);
@@ -623,6 +633,7 @@ export default function App() {
   const currentBgKeyRef = useRef('bg_1');
   const nextBgKeyRef = useRef<string | null>(null);
   const bgTransitionProgressRef = useRef(1);
+  const quotaAchievedNotifiedRef = useRef<number>(-1);
 
   // Sizzle sound throttle
   const lastCatchSoundTime = useRef(0);
@@ -742,6 +753,7 @@ export default function App() {
     currentBgKeyRef.current = 'bg_1';
     nextBgKeyRef.current = null;
     bgTransitionProgressRef.current = 1;
+    quotaAchievedNotifiedRef.current = -1;
 
     setGameState({
       status: 'PLAYING',
@@ -756,6 +768,7 @@ export default function App() {
       speedBoostTimer: 0,
       goldenPanTimer: 0,
       currentStageIndex: 0,
+      stageTimeRemaining: STAGES[0].duration,
     });
 
     triggerLevelCelebration(STAGES[0]);
@@ -824,49 +837,49 @@ export default function App() {
       const hRoll = Math.random();
       if (hRoll < 0.35) {
         type = 'dish_soap';
-        points = -100;
+        points = -150;
         name = 'Lavalozas Verde';
       } else if (hRoll < 0.7) {
         type = 'soap_bar';
-        points = -50;
+        points = -100;
         name = 'Barra de Jabón';
       } else {
         type = 'water_bucket';
-        points = -150;
+        points = -200;
         name = 'Balde de Agua';
       }
     } else if (isSpecialRoll) {
       const sRoll = Math.random();
       if (sRoll < 0.25) {
         type = 'oil_bottle';
-        points = 200;
+        points = 60;
         name = 'Aceite Puro (+1 Vida)';
       } else if (sRoll < 0.5) {
         type = 'hot_sauce';
-        points = 180;
+        points = 40;
         name = 'Salsa de Ají (Turbo)';
       } else if (sRoll < 0.75) {
         type = 'frying_pan';
-        points = 350;
-        name = 'Paila de Oro (2x Radio)';
+        points = 100;
+        name = 'Sartén de Oro (2x Radio)';
       } else {
         type = 'coin';
-        points = 500;
-        name = 'Moneda Dorada ($500)';
+        points = 150;
+        name = 'Moneda Dorada ($150)';
       }
     } else {
       const gRoll = Math.random();
       if (gRoll < 0.45) {
         type = 'fried_fish';
-        points = 250;
+        points = 50;
         name = 'Pescado Frito';
       } else if (gRoll < 0.75) {
         type = 'bread';
-        points = 150;
+        points = 35;
         name = 'Pan Marraqueta';
       } else {
         type = 'mayo';
-        points = 120;
+        points = 25;
         name = 'Mayonesa Casera';
       }
     }
@@ -966,6 +979,10 @@ export default function App() {
     let currentStage = STAGES[Math.min(currentStageIdx, STAGES.length - 1)];
 
     // Timers
+    let currentStageTimer = gameStateRef.current.stageTimeRemaining ?? currentStage.duration;
+    if (!isEndlessMode) {
+      currentStageTimer -= deltaTime;
+    }
     let currentBravaActive = gameStateRef.current.bravaActive;
     let currentBravaTimer = gameStateRef.current.bravaTimer;
     let currentSpeedTimer = gameStateRef.current.speedBoostTimer;
@@ -1128,8 +1145,8 @@ export default function App() {
       if (currentBravaActive && item.isHazard) {
         item.isHazard = false;
         item.type = 'coin';
-        item.points = 300;
-        item.name = 'Moneda Brava';
+        item.points = 120;
+        item.name = 'Moneda Brava ($120)';
       }
 
       // Check collision with pan
@@ -1175,9 +1192,10 @@ export default function App() {
           currentCombo += 1;
           if (currentCombo > currentMaxCombo) currentMaxCombo = currentCombo;
 
-          const comboMult = 1 + Math.floor(currentCombo / 4) * 0.5;
-          const doubleMult = currentGoldenTimer > 0 || currentBravaActive ? 2 : 1;
-          const gainedPoints = Math.round(item.points * comboMult * doubleMult);
+          // Multiplicador balanceado y gradual (máx 2.0x por combo y 1.5x por Brava/Paila de Oro)
+          const comboMult = Math.min(2.0, 1 + Math.floor(currentCombo / 5) * 0.25);
+          const specialMult = currentGoldenTimer > 0 || currentBravaActive ? 1.5 : 1;
+          const gainedPoints = Math.round(item.points * comboMult * specialMult);
           currentScore += gainedPoints;
 
           // Sound effect
@@ -1197,7 +1215,10 @@ export default function App() {
           }
 
           // Item specific bonuses
-          let bannerSub = gainedPoints > item.points ? `+${gainedPoints} (x${comboMult * doubleMult})` : `+${gainedPoints}`;
+          let bannerSub = gainedPoints > item.points ? `+${gainedPoints} (x${(comboMult * specialMult).toFixed(1)})` : `+${gainedPoints}`;
+          if (currentScore >= currentStage.targetScore) {
+            bannerSub += ' ★ VENTA EXTRA';
+          }
           if (item.type === 'oil_bottle') {
             const maxLives = 4;
             if (currentLives < maxLives) {
@@ -1211,12 +1232,28 @@ export default function App() {
             spawnParticles(itemCenterX, itemCenterY, 16, 'spark', '#ef4444');
           } else if (item.type === 'frying_pan') {
             currentGoldenTimer = 6.0;
-            bannerSub = '¡PAILA DE ORO! 2X RADIO & PUNTOS';
+            bannerSub = '¡SARTÉN DE ORO! 2X RADIO & PUNTOS';
             spawnParticles(itemCenterX, itemCenterY, 20, 'star', '#fbbf24');
           } else {
             // Sizzle steam particles for delicious frying
             spawnParticles(itemCenterX, itemCenterY, 12, 'bubble', '#fde047');
             spawnParticles(itemCenterX, itemCenterY - 10, 8, 'smoke', '#ffffff');
+          }
+
+          // Notificar cuota cumplida la primera vez en este turno
+          if (
+            currentScore >= currentStage.targetScore &&
+            quotaAchievedNotifiedRef.current !== currentStageIdx
+          ) {
+            quotaAchievedNotifiedRef.current = currentStageIdx;
+            gameAudio.playPowerupChime();
+            addFloatingText(
+              '¡CUOTA CUMPLIDA!',
+              player.x + 85,
+              player.y - 60,
+              '#22c55e',
+              '¡SIGUE SUMANDO VENTAS EXTRA!',
+            );
           }
 
           // Build Brava Meter
@@ -1275,41 +1312,73 @@ export default function App() {
 
     // --- Check Multi-Stage Level Progression ---
     if (!isEndlessMode) {
-      if (currentStageIdx < STAGES.length - 1) {
+      if (currentStageTimer <= 0) {
         if (currentScore >= currentStage.targetScore) {
-          // Advance to next stage!
-          const nextIdx = currentStageIdx + 1;
-          const nextStage = STAGES[nextIdx];
+          // Met quota for this shift!
+          if (currentStageIdx < STAGES.length - 1) {
+            const nextIdx = currentStageIdx + 1;
+            const nextStage = STAGES[nextIdx];
 
-          // Trigger smooth background crossfade
-          nextBgKeyRef.current = nextStage.bgKey;
-          bgTransitionProgressRef.current = 0;
+            // Trigger smooth background crossfade
+            nextBgKeyRef.current = nextStage.bgKey;
+            bgTransitionProgressRef.current = 0;
 
-          currentStageIdx = nextIdx;
-          currentStage = nextStage;
+            currentStageIdx = nextIdx;
+            currentStage = nextStage;
+            currentStageTimer = nextStage.duration;
+            quotaAchievedNotifiedRef.current = -1;
 
-          gameAudio.playLevelUpStinger();
-          triggerLevelCelebration(nextStage);
-          addFloatingText(
-            `¡${nextStage.name.toUpperCase()} DESBLOQUEADO!`,
-            canvasWidth / 2,
-            canvasHeight / 2 - 80,
-            '#fbbf24',
-            `META: ${nextStage.targetScore.toLocaleString()} PTS`,
-          );
-        }
-      } else {
-        // On Final Stage (Stage 8)
-        if (currentScore >= currentStage.targetScore && gameStateRef.current.status === 'PLAYING') {
-          // Final Victory!
-          setGameState((prev) => ({
-            ...prev,
-            score: currentScore,
-            status: 'VICTORY',
-            level: 8,
-            currentStageIndex: 7,
-          }));
-          return;
+            gameAudio.playLevelUpStinger();
+            triggerLevelCelebration(nextStage);
+            addFloatingText(
+              `¡TURNO ${currentStage.id}/8 COMPLETADO!`,
+              canvasWidth / 2,
+              canvasHeight / 2 - 80,
+              '#22c55e',
+              `¡ENTRANDO A ${nextStage.name.toUpperCase()}!`,
+            );
+          } else {
+            // On Final Stage (Stage 8) - Victory!
+            if (gameStateRef.current.status === 'PLAYING') {
+              gameAudio.playVictoryFanfare();
+              setGameState((prev) => ({
+                ...prev,
+                score: currentScore,
+                status: 'VICTORY',
+                level: 8,
+                currentStageIndex: 7,
+                stageTimeRemaining: 0,
+              }));
+              return;
+            }
+          }
+        } else {
+          // Shift ended but quota was NOT met!
+          currentLives -= 1;
+          screenShakeRef.current = 16;
+          gameAudio.playChiptuneExplosion();
+          gameAudio.playErrorBuzz();
+
+          if (currentLives <= 0) {
+            setGameState((prev) => ({
+              ...prev,
+              lives: 0,
+              score: currentScore,
+              status: 'GAME_OVER',
+              stageTimeRemaining: 0,
+            }));
+            return;
+          } else {
+            // Prórroga de 15 segundos para salvar el sartén
+            currentStageTimer = 15;
+            addFloatingText(
+              '¡SE ENFRIÓ EL SARTÉN!',
+              canvasWidth / 2,
+              canvasHeight / 2 - 60,
+              '#ef4444',
+              '¡-1 VIDA! +15s PRÓRROGA',
+            );
+          }
         }
       }
     }
@@ -1351,6 +1420,7 @@ export default function App() {
       bravaTimer: currentBravaTimer,
       speedBoostTimer: currentSpeedTimer,
       goldenPanTimer: currentGoldenTimer,
+      stageTimeRemaining: Math.max(0, currentStageTimer),
     }));
   };
 
@@ -1688,6 +1758,8 @@ export default function App() {
   const stageProgressPercent = isEndlessMode
     ? 100
     : Math.min(100, Math.round((currentStageScore / stageScoreSpan) * 100));
+  const isQuotaMet = gameState.score >= currentStage.targetScore;
+  const timeRemaining = Math.max(0, Math.ceil(gameState.stageTimeRemaining ?? currentStage.duration));
 
   return (
     <div className="fixed inset-0 overflow-hidden touch-none flex flex-col items-center justify-between bg-slate-950 text-white font-['Press_Start_2P',monospace] select-none">
@@ -1800,18 +1872,42 @@ export default function App() {
           </button>
         </div>
 
-        {/* Center: Stage Goal Progress & Brava Meter */}
+        {/* Center: Shift Timer, Stage Quota Progress & Brava Meter */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Shift Countdown Clock */}
+          {!isEndlessMode && (
+            <div
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg border-2 shadow-[2px_2px_0px_#000] text-[8px] sm:text-[9px] retro-arcade-text font-bold ${
+                timeRemaining <= 10
+                  ? 'bg-red-950/90 border-red-500 text-red-300 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.6)]'
+                  : isQuotaMet
+                  ? 'bg-emerald-950/80 border-emerald-500 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.3)]'
+                  : 'bg-slate-900 border-amber-500/80 text-yellow-300'
+              }`}
+              title="Tiempo restante de este turno">
+              <span>⏱️</span>
+              <span>{timeRemaining}s</span>
+            </div>
+          )}
+
           {/* Level Progress Bar to next stage */}
           {!isEndlessMode && (
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-1 text-[7px] sm:text-[8px] text-amber-300 font-bold retro-arcade-text">
-                <span>META: {currentStage.targetScore.toLocaleString()} PTS</span>
-                <span>({stageProgressPercent}%)</span>
+                <span>CUOTA: {currentStage.targetScore.toLocaleString()} PTS</span>
+                {isQuotaMet ? (
+                  <span className="text-emerald-400 font-black">✓ LISTA</span>
+                ) : (
+                  <span>({stageProgressPercent}%)</span>
+                )}
               </div>
               <div className="w-20 sm:w-28 h-2 bg-slate-900 rounded border border-amber-500/80 mt-0.5 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-yellow-400 transition-all duration-200"
+                  className={`h-full transition-all duration-200 ${
+                    isQuotaMet
+                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-300'
+                      : 'bg-gradient-to-r from-emerald-500 to-yellow-400'
+                  }`}
                   style={{width: `${stageProgressPercent}%`}}
                 />
               </div>
@@ -2221,7 +2317,7 @@ export default function App() {
 
                     <div className="text-right shrink-0">
                       <div className="text-[7px] font-bold text-amber-400">
-                        {s.targetScore.toLocaleString()} PTS
+                        {s.targetScore.toLocaleString()} PTS • {s.duration}s
                       </div>
                       {isPassed ? (
                         <div className="text-[6px] text-emerald-400 flex items-center gap-0.5 justify-end">
@@ -2270,12 +2366,20 @@ export default function App() {
 
               <div className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
                 <span className="text-yellow-400 font-bold block mb-1">🍤 COMIDAS Y PUNTOS:</span>
-                <p>• Pescado Frito: +250 pts base.</p>
-                <p>• Marraqueta / Mayo: +150 / +120 pts.</p>
-                <p>• Moneda Dorada: +500 pts.</p>
-                <p>• Aceite Puro: +200 pts y +1 Vida.</p>
+                <p>• Pescado Frito: +50 pts base.</p>
+                <p>• Marraqueta / Mayo: +35 / +25 pts.</p>
+                <p>• Moneda Dorada: +150 pts.</p>
+                <p>• Aceite Puro: +60 pts y +1 Vida.</p>
                 <p>• Salsa Ají: Turbo velocidad (5s).</p>
-                <p>• Paila de Oro: 2x Radio y puntos.</p>
+                <p>• Sartén de Oro: 2x Radio y puntos.</p>
+              </div>
+
+              <div className="bg-slate-900 p-2.5 rounded-lg border border-amber-900/60">
+                <span className="text-amber-400 font-bold block mb-1">⏱️ TURNOS Y CUOTAS:</span>
+                <p>• Cada nivel dura entre 35 y 50 segundos.</p>
+                <p>• Cumple la cuota de puntos antes de que acabe el tiempo para avanzar.</p>
+                <p>• ¡Si cumples la cuota temprano, sigue sumando ventas extra para tu récord!</p>
+                <p>• Si el tiempo termina sin cumplir la cuota: ¡se enfría el sartén y pierdes 1 vida!</p>
               </div>
 
               <div className="bg-slate-900 p-2.5 rounded-lg border border-red-900/60">
