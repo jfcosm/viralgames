@@ -13,6 +13,7 @@ import {
   onSnapshot,
   writeBatch
 } from "firebase/firestore";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyCnFEmfktVFMi-yJDMxxhl3zJj4yp812vw",
@@ -20,12 +21,25 @@ export const firebaseConfig = {
   projectId: "viralgames-app-2026",
   storageBucket: "viralgames-app-2026.firebasestorage.app",
   messagingSenderId: "706719023304",
-  appId: "1:706719023304:web:016c68abb20e3bbde765fd"
+  appId: "1:706719023304:web:016c68abb20e3bbde765fd",
+  measurementId: "G-BS7MZYLT5G"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+
+// Initialize Firebase Analytics (if supported in current environment)
+export let analytics = null;
+if (typeof window !== "undefined") {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  }).catch((err) => {
+    console.debug("[Firebase] Analytics not supported in this environment:", err);
+  });
+}
 
 // --------------------------------------------------------------------------
 // SETTINGS (Theme, CRT, HUD visibility, Navbar visibility, Custom tags)

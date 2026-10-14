@@ -21,6 +21,19 @@ import {
 } from './firebase.js';
 
 // ==========================================================================
+// GOOGLE ANALYTICS 4 TELEMETRY HELPER
+// ==========================================================================
+export function trackEvent(name, params = {}) {
+  try {
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      window.gtag('event', name, params);
+    }
+  } catch (err) {
+    console.debug('[Analytics] Failed to track event:', name, err);
+  }
+}
+
+// ==========================================================================
 // 1. DEFAULT GAMES CATALOG SEED DATA
 // ==========================================================================
 const DEFAULT_GAMES = [
@@ -1160,8 +1173,27 @@ class ViralGamesApp {
           this.leaderboards[gameId] = entries;
           localStorage.setItem(`viralgames_leaderboard_${gameId}`, JSON.stringify(entries));
           this.renderLeaderboards();
+
+          const topEntry = Array.isArray(entries) ? entries[0] : null;
+          trackEvent('submit_score', {
+            game_id: gameId,
+            top_player: topEntry?.name || 'ANON',
+            top_score: topEntry?.score || 0
+          });
         }
       }
+    });
+
+    // Track WhatsApp CTA Clicks
+    const waButtons = document.querySelectorAll('a[href*="wa.me"]');
+    waButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const label = btn.innerText.replace(/\s+/g, ' ').trim() || btn.id || 'whatsapp_cta';
+        trackEvent('contact_whatsapp', {
+          cta_label: label,
+          cta_id: btn.id || 'wa_link'
+        });
+      });
     });
 
     // Admin Toggle Top Arcade HUD Bar
@@ -2202,6 +2234,15 @@ class ViralGamesApp {
     const targetGame = game || this.games[0];
     this.activeModalGame = targetGame;
     const title = targetGame ? targetGame.title : "TÍO ACEITE: LA FRITANGA SUPREMA";
+    
+    // Telemetry: Track game launch
+    trackEvent('play_game', {
+      game_id: targetGame?.id || 'unknown',
+      game_title: title,
+      game_url: targetGame?.gameUrl || '',
+      is_playable: Boolean(targetGame && targetGame.gameUrl)
+    });
+
     const modalTitleEl = document.getElementById('gameModalTitle');
     if (modalTitleEl) {
       modalTitleEl.textContent = `🕹️ ARCADE CABINET: ${title}`;
