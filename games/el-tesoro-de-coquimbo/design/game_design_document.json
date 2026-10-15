@@ -1,0 +1,110 @@
+{
+  "title": "El Tesoro de Coquimbo",
+  "hook": "Test your Coquimbo football knowledge",
+  "game_overview": "Trivia y f\u00fatbol de Coquimbo: responde preguntas y cada 5 aciertos entra a tandas de penales bonus para sumar puntos con tiros calibrados.",
+  "artstyle": "pixelated",
+  "genre": "trivia",
+  "winning_condition": "Superar las rondas de preguntas con al menos el 80% de aciertos y levantar el trofeo Pirata.",
+  "losing_condition": "Agotar las 3 vidas (errores) o quedarse sin tiempo en una ronda de preguntas.",
+  "player_mode": "single_player",
+  "supported_orientations": [
+    "landscape",
+    "square"
+  ],
+  "input_methods": [
+    "touch",
+    "mouse",
+    "keyboard"
+  ],
+  "score_options": {
+    "score_type": "points",
+    "score_order": "higher_is_better"
+  },
+  "low_end_device_support": true,
+  "mobile_playable": true,
+  "tv_playable": true,
+  "language": [
+    "es"
+  ],
+  "content_descriptors": [],
+  "controls": [
+    {
+      "input": "1, 2, 3, 4 / Click / Tap",
+      "action": "Seleccionar la alternativa correspondiente a la respuesta."
+    },
+    {
+      "input": "Spacebar / Tap",
+      "action": "Continuar al siguiente di\u00e1logo o pasar a la siguiente pregunta."
+    },
+    {
+      "input": "Tecla Q / Tap Bot\u00f3n 50:50",
+      "action": "Usar comod\u00edn 50:50 para eliminar dos opciones incorrectas."
+    },
+    {
+      "input": "Tecla W / Tap Bot\u00f3n Pista",
+      "action": "Pedirle una pista o comentario coquimbano a Santino."
+    }
+  ],
+  "sections": [
+    {
+      "title": "Design Pillars",
+      "content": "1. Pasi\u00f3n Aurinegra: Inmersi\u00f3n total en la identidad pirata de Coquimbo Unido y la Cuarta Regi\u00f3n. 2. Calidez y Humor Local: Santino act\u00faa como un anfitri\u00f3n carism\u00e1tico de 7 a\u00f1os con expresiones t\u00edpicas chilenas (\u00a1Buena po!, \u00a1Vamos los Piratas!). 3. Rejugabilidad Masiva: Base de datos estructurada con cientos de preguntas categorizadas por \u00e9pocas, campeonatos, goleadores y an\u00e9cdotas.",
+      "summary": "Principios clave de dise\u00f1o y ambientaci\u00f3n local."
+    },
+    {
+      "title": "Core Loop",
+      "content": "Santino presenta una pregunta con 4 alternativas y un l\u00edmite de tiempo de 20 segundos. El jugador responde; si acierta, suma puntos multiplicados por el tiempo restante y Santino festeja con una animaci\u00f3n pixel art. Si falla, pierde un coraz\u00f3n y Santino reacciona con \u00e1nimo para seguir adelante. Cada 10 preguntas se desbloquea un minijuego de penales de bonificaci\u00f3n o un trofeo hist\u00f3rico.",
+      "summary": "Ciclo b\u00e1sico de juego por turnos de preguntas."
+    },
+    {
+      "title": "Core Mechanics & Question Engine",
+      "content": "1. Banco Tem\u00e1tico: Preguntas clasificadas en Historia Cl\u00e1sica, T\u00edtulos y Ascensos, Jugadores Legendarios, Estadio Francisco S\u00e1nchez Rumoroso y Curiosidades. 2. Racha Pirata: Responder preguntas consecutivas activa multiplicadores x2, x3 y x4. 3. Comodines Piratas: El jugador dispone de un 50/50, Pista de Santino y Tiempo Congelado por partida.",
+      "summary": "Mec\u00e1nicas de preguntas, multiplicadores de racha y comodines."
+    },
+    {
+      "title": "Movement & Scrolling Alignment",
+      "content": "Scrolling Axis: Est\u00e1tico (Single-Screen Quiz Stage). Asset Orientation: Santino se ubica en el costado izquierdo mirando en 3/4 hacia el centro de la pantalla donde se despliegan la tarjeta de preguntas y las opciones interactivas. Movement Physics: Transiciones fluidas en UI con rebotes el\u00e1sticos y animaciones de part\u00edculas 16-bit. Camera Behavior: C\u00e1mara fija con efectos de zoom y vibraci\u00f3n leve al responder en racha o fallar.",
+      "summary": "Perspectiva y disposici\u00f3n est\u00e1tica en pantalla fija."
+    },
+    {
+      "title": "Visual Hierarchy & Layering",
+      "content": "Layer Separation: Fondo con vista pixel art al puerto de Coquimbo, la Cruz del Tercer Milenio y el Estadio S\u00e1nchez Rumoroso en tonos suaves para no interferir con el texto. Playfield Layer: Cajas de preguntas en negro profundo con bordes amarillos dorados de alto contraste y tipograf\u00eda pixel n\u00edtida en blanco y amarillo brillante. HUD Overlay: Barra superior con puntuaci\u00f3n, contador de racha, reloj de arena y vidas en forma de camisetas aurinegras.",
+      "summary": "Esquema de colores aurinegro y contraste para lectura \u00f3ptima."
+    },
+    {
+      "title": "Characters & Host",
+      "content": "Santino: Ni\u00f1o de 7 a\u00f1os, cabello casta\u00f1o desordenado, camiseta a rayas negras y amarillas (aurinegra), gorro o parche pirata simp\u00e1tico. Cuenta con animaciones de espera (IDLE), festejo efusivo al acertar (RUN/CELEBRATE), cara de \u00e1nimo al fallar (HURT) y pose con trofeo al ganar.",
+      "summary": "Dise\u00f1o del anfitri\u00f3n Santino y reacciones emocionales."
+    },
+    {
+      "title": "Fairness Tools & Lifelines",
+      "content": "Temporizador con aviso visual que parpadea en rojo cuando restan 5 segundos. Opci\u00f3n de activar modo sin tiempo para lectura relajada y botones t\u00e1ctiles amplios adaptados para m\u00f3viles.",
+      "summary": "Herramientas de apoyo para el jugador."
+    },
+    {
+      "title": "Juice & Game Feel",
+      "content": "Anticipation Juice: Pulso r\u00edtmico en el bot\u00f3n de respuesta al pasar el cursor o mantener pulsado. State Change Juice: Explosi\u00f3n de confeti amarillo y negro ante respuestas correctas; tintes rojos en pantalla ante respuestas err\u00f3neas. Impact Juice: Sonido retro de silbato de \u00e1rbitro y bombo de hinchada al completar una ronda.",
+      "summary": "Retroalimentaci\u00f3n audiovisual satisfactoria."
+    },
+    {
+      "title": "Chilean Spanish Localization & Tone",
+      "content": "Textos y di\u00e1logos en espa\u00f1ol chileno familiar: '\u00a1Wena po compadre!', '\u00a1Se pas\u00f3, golazo!', '\u00a1Pucha la cuesti\u00f3n, a la otra sale!', '\u00a1Vamos Piratas de coraz\u00f3n!'. Todos los textos de preguntas y explicaciones hist\u00f3ricas redactados de forma clara y rigurosa.",
+      "summary": "Chilenismos amigables y modismos respetuosos de la Cuarta Regi\u00f3n."
+    },
+    {
+      "title": "Accessibility",
+      "content": "Tama\u00f1o de texto escalable, alto contraste con fondo opaco para preguntas, controles t\u00e1ctiles y por teclado num\u00e9rico completos, y soporte de s\u00edntesis o pistas de texto claras.",
+      "summary": "Opciones de accesibilidad visual y auditiva."
+    },
+    {
+      "title": "Structural Integrity",
+      "content": "Men\u00fa Principal -> Selecci\u00f3n de Modo (Trivia Cl\u00e1sica, Modo Contrarreloj, Duelo de Penales) -> Pantalla de Trivia -> Resumen de Puntuaci\u00f3n con Registro de Trofeos Desbloqueados en LocalStorage.",
+      "summary": "Flujo de pantallas y guardado persistente de r\u00e9cords."
+    },
+    {
+      "title": "Virtual Touch Controls Implementation",
+      "content": "Botones de opci\u00f3n de tama\u00f1o generoso (m\u00ednimo 48px de altura) con clase touch-none y pointer-events-auto, interacci\u00f3n instant\u00e1nea al tocar y soporte completo en pantallas verticales y horizontales.",
+      "summary": "Control t\u00e1ctil adaptado para m\u00f3viles y tablets."
+    }
+  ]
+}

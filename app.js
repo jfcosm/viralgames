@@ -85,6 +85,18 @@ const DEFAULT_GAMES = [
     status: "DISPONIBLE"
   },
   {
+    id: "coquimbo-05",
+    title: "EL TESORO DE COQUIMBO",
+    category: "nostalgia",
+    badge: "TRIVIA & FÚTBOL",
+    image: "/assets/coquimbo-title.png",
+    gameUrl: "/games/el-tesoro-de-coquimbo/",
+    description: "Pon a prueba tu pasión aurinegra junto al carismático Santino en el Sánchez Rumoroso. Responde trivias históricas de Coquimbo Unido, usa comodines y define en la tanda de penales bonus.",
+    featured: false,
+    releaseYear: "1994",
+    status: "DISPONIBLE"
+  },
+  {
     id: "rosa-espinoza-04",
     title: "ROSA ESPINOZA: FURIA 16-BIT",
     category: "arcade",
@@ -184,6 +196,14 @@ const DEFAULT_EL_TIEMPO_ES_ORO_LEADERBOARD = [
   { name: '@susana_fan',  score: 9500,  stageName: 'Etapa 7',        date: '1995' },
   { name: 'ROBERTO_TV',  score: 7400,  stageName: 'Etapa 5',        date: '1995' },
   { name: 'CURIOSO_90',  score: 5200,  stageName: 'Etapa 3',        date: '1995' }
+];
+
+const DEFAULT_EL_TESORO_DE_COQUIMBO_LEADERBOARD = [
+  { name: '@santino_fan', score: 14800, stageName: 'Final Rumoroso', date: '1994' },
+  { name: 'FUERZA_CORAJE', score: 12400, stageName: 'Penales Bonus',  date: '1994' },
+  { name: '@hueso_pirata', score: 9800,  stageName: 'Ronda 4',        date: '1994' },
+  { name: 'AURINEGRO_94',  score: 7600,  stageName: 'Ronda 3',        date: '1994' },
+  { name: 'COQUIMBANO',    score: 5200,  stageName: 'Ronda 2',        date: '1994' }
 ];
 
 // ==========================================================================
@@ -370,10 +390,11 @@ class ViralGamesApp {
     const leaderboards = {
       'tio-aceite': DEFAULT_TIO_ACEITE_LEADERBOARD,
       'el-tarro': DEFAULT_EL_TARRO_LEADERBOARD,
-      'el-tiempo-es-oro': DEFAULT_EL_TIEMPO_ES_ORO_LEADERBOARD
+      'el-tiempo-es-oro': DEFAULT_EL_TIEMPO_ES_ORO_LEADERBOARD,
+      'el-tesoro-de-coquimbo': DEFAULT_EL_TESORO_DE_COQUIMBO_LEADERBOARD
     };
 
-    ['tio-aceite', 'el-tarro', 'el-tiempo-es-oro'].forEach(id => {
+    ['tio-aceite', 'el-tarro', 'el-tiempo-es-oro', 'el-tesoro-de-coquimbo'].forEach(id => {
       try {
         const stored = localStorage.getItem(`viralgames_leaderboard_${id}`);
         if (stored) {
@@ -544,6 +565,33 @@ class ViralGamesApp {
             }
             if (tiempo.category !== "nostalgia") {
               tiempo.category = "nostalgia";
+              migrated = true;
+            }
+          }
+
+          let coquimbo = parsed.find(g => g.id === "coquimbo-05");
+          if (!coquimbo) {
+            const defaultCoquimbo = DEFAULT_GAMES.find(g => g.id === "coquimbo-05");
+            if (defaultCoquimbo) {
+              const tiempoIdx = parsed.findIndex(g => g.id === "tiempo-04");
+              if (tiempoIdx !== -1) {
+                parsed.splice(tiempoIdx + 1, 0, { ...defaultCoquimbo });
+              } else {
+                parsed.push({ ...defaultCoquimbo });
+              }
+              migrated = true;
+            }
+          } else {
+            if (!coquimbo.gameUrl || coquimbo.gameUrl !== "/games/el-tesoro-de-coquimbo/") {
+              coquimbo.gameUrl = "/games/el-tesoro-de-coquimbo/";
+              migrated = true;
+            }
+            if (!coquimbo.image || coquimbo.image !== "/assets/coquimbo-title.png") {
+              coquimbo.image = "/assets/coquimbo-title.png";
+              migrated = true;
+            }
+            if (coquimbo.status !== "DISPONIBLE") {
+              coquimbo.status = "DISPONIBLE";
               migrated = true;
             }
           }
@@ -726,7 +774,7 @@ class ViralGamesApp {
     });
 
     // 5. Leaderboards en vivo (Top 5 por juego con sincronización Cloud Firestore)
-    const playableGameIds = ['tio-aceite', 'el-tarro', 'el-tiempo-es-oro'];
+    const playableGameIds = ['tio-aceite', 'el-tarro', 'el-tiempo-es-oro', 'el-tesoro-de-coquimbo'];
     playableGameIds.forEach(gameId => {
       subscribeLeaderboard(gameId, (cloudEntries) => {
         if (cloudEntries && Array.isArray(cloudEntries) && cloudEntries.length > 0) {
@@ -1568,6 +1616,15 @@ class ViralGamesApp {
         themeClass: 'card-purple',
         image: '/assets/tiempo-title.jpeg',
         gameUrl: '/games/el-tiempo-es-oro/'
+      },
+      {
+        id: 'el-tesoro-de-coquimbo',
+        title: 'EL TESORO DE COQUIMBO',
+        subtitle: 'TRIVIA & PENALES',
+        badge: '🏴‍☠️ AURINEGRO 16-BIT',
+        themeClass: 'card-gold',
+        image: '/assets/coquimbo-title.png',
+        gameUrl: '/games/el-tesoro-de-coquimbo/'
       }
     ];
 
