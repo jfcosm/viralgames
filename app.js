@@ -89,7 +89,7 @@ const DEFAULT_GAMES = [
     title: "EL TESORO DE COQUIMBO",
     category: "nostalgia",
     badge: "TRIVIA & FÚTBOL",
-    image: "/assets/coquimbo-title.png",
+    image: "/assets/tesoro-title-lo.jpeg",
     gameUrl: "/games/el-tesoro-de-coquimbo/",
     description: "Pon a prueba tu pasión aurinegra junto al carismático Santino en el Sánchez Rumoroso. Responde trivias históricas de Coquimbo Unido, usa comodines y define en la tanda de penales bonus.",
     featured: false,
@@ -586,8 +586,8 @@ class ViralGamesApp {
               coquimbo.gameUrl = "/games/el-tesoro-de-coquimbo/";
               migrated = true;
             }
-            if (!coquimbo.image || coquimbo.image !== "/assets/coquimbo-title.png") {
-              coquimbo.image = "/assets/coquimbo-title.png";
+            if (!coquimbo.image || coquimbo.image === "/assets/coquimbo-title.png" || coquimbo.image.includes("tio_aceite")) {
+              coquimbo.image = "/assets/tesoro-title-lo.jpeg";
               migrated = true;
             }
             if (coquimbo.status !== "DISPONIBLE") {
@@ -747,6 +747,12 @@ class ViralGamesApp {
       if (cloudGames && cloudGames.length > 0) {
         console.log(`[Firebase] Catálogo recibido de la nube (${cloudGames.length} juegos)`);
         cloudGames.sort((a, b) => (a.catalogOrder ?? 999) - (b.catalogOrder ?? 999));
+        cloudGames.forEach(g => {
+          if ((g.gameUrl === "/games/el-tesoro-de-coquimbo/" || (g.title && g.title.includes("COQUIMBO"))) &&
+              (!g.image || g.image.includes("coquimbo-title.png") || g.image.includes("tio_aceite"))) {
+            g.image = "/assets/tesoro-title-lo.jpeg";
+          }
+        });
         this.games = cloudGames;
         localStorage.setItem('viralgames_catalog', JSON.stringify(this.games));
         this.renderFilterTabs();
@@ -1623,7 +1629,7 @@ class ViralGamesApp {
         subtitle: 'TRIVIA & PENALES',
         badge: '🏴‍☠️ AURINEGRO 16-BIT',
         themeClass: 'card-gold',
-        image: '/assets/coquimbo-title.png',
+        image: '/assets/tesoro-title-lo.jpeg',
         gameUrl: '/games/el-tesoro-de-coquimbo/'
       }
     ];
