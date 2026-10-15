@@ -157,6 +157,8 @@ export default function App() {
 
   // Preload Assets
   const {assets, isReady: assetsReady} = useAssets(ASSETS_MANIFEST);
+  const assetsRef = useRef(assets);
+  assetsRef.current = assets;
 
   const canvasWidth = getConfig('baseCanvasWidth') as number;
   const canvasHeight = getConfig('baseCanvasHeight') as number;
@@ -323,6 +325,10 @@ export default function App() {
     currentFrame: 0,
     timer: 0,
   });
+
+  // Mobile & Start Screen Dedicated Animated Sprite Canvas Refs
+  const santinoMobileCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const santinoStartCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Confetti Particles
   const particlesRef = useRef<Particle[]>([]);
@@ -1645,6 +1651,75 @@ export default function App() {
       const ctx = canvasRef.current?.getContext('2d');
       if (ctx) drawRef.current(ctx);
 
+      // Render Mobile Gameplay Santino Canvas (60 FPS synced sprite)
+      if (santinoMobileCanvasRef.current && santinoSpriteRef.current) {
+        const mCanvas = santinoMobileCanvasRef.current;
+        const mCtx = mCanvas.getContext('2d');
+        if (mCtx) {
+          mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+          mCtx.imageSmoothingEnabled = false;
+
+          // Studio circular shadow under Santino's boots
+          mCtx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+          mCtx.beginPath();
+          mCtx.ellipse(
+            mCanvas.width / 2,
+            mCanvas.height - 4,
+            mCanvas.width * 0.32,
+            3.5,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          mCtx.fill();
+
+          santinoSpriteRef.current.draw(
+            mCtx,
+            santinoAnimStateRef.current,
+            0,
+            0,
+            mCanvas.width,
+            mCanvas.height,
+            assetsRef.current,
+            false,
+          );
+        }
+      }
+
+      // Render Start Screen Santino Canvas if mounted
+      if (santinoStartCanvasRef.current && santinoSpriteRef.current) {
+        const sCanvas = santinoStartCanvasRef.current;
+        const sCtx = sCanvas.getContext('2d');
+        if (sCtx) {
+          sCtx.clearRect(0, 0, sCanvas.width, sCanvas.height);
+          sCtx.imageSmoothingEnabled = false;
+
+          sCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+          sCtx.beginPath();
+          sCtx.ellipse(
+            sCanvas.width / 2,
+            sCanvas.height - 5,
+            sCanvas.width * 0.34,
+            4.5,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          sCtx.fill();
+
+          santinoSpriteRef.current.draw(
+            sCtx,
+            santinoAnimStateRef.current,
+            0,
+            0,
+            sCanvas.width,
+            sCanvas.height,
+            assetsRef.current,
+            false,
+          );
+        }
+      }
+
       raf = requestAnimationFrame(loop);
     };
 
@@ -1807,67 +1882,95 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Santino Speech & Comodines Row */}
-              <div className="flex items-stretch gap-2 shrink-0">
-                {/* Santino Speech Pill */}
-                <div className="flex-1 bg-slate-950/90 border-2 border-yellow-400 p-1.5 pixel-box flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-yellow-400/20 border border-yellow-400 flex items-center justify-center shrink-0">
-                    <span className="text-base">🏴‍☠️</span>
+              {/* Santino Presenter & Dialogue Card */}
+              <div className="bg-slate-950/95 border-2 border-yellow-400 p-2 pixel-box flex items-center gap-2.5 shadow-lg shrink-0">
+                {/* Santino Live Animated Sprite Frame */}
+                <div className="flex flex-col items-center shrink-0">
+                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-b from-slate-900 to-black border-2 border-yellow-400 pixel-box overflow-hidden flex items-center justify-center shadow-[inset_0_0_10px_rgba(250,204,21,0.2)]">
+                    <canvas
+                      ref={santinoMobileCanvasRef}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-contain"
+                    />
+                    {isAnswered && (
+                      <div
+                        className={`absolute top-0.5 right-0.5 text-[7px] font-pixel px-1 py-0.5 rounded-xs border font-black shadow-md ${
+                          selectedOption === currentQ.correctIndex
+                            ? 'bg-emerald-500 text-white border-emerald-300 animate-bounce'
+                            : 'bg-red-500 text-white border-red-300'
+                        }`}>
+                        {selectedOption === currentQ.correctIndex ? '¡GOL!' : '¡OUCH!'}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className="font-pixel text-[8px] text-yellow-400">SANTINO</span>
-                      {streak > 1 && (
-                        <span className="font-pixel text-[7px] bg-yellow-500 text-black px-1 font-bold animate-pulse">
-                          x{streakMultiplier}
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-pixel-lcd text-xs text-yellow-200 line-clamp-2 leading-tight">
-                      "{santinoSpeech}"
-                    </p>
-                  </div>
+                  <span className="font-pixel text-[6px] bg-yellow-400 text-black px-1.5 py-0.5 font-black border border-black mt-1 tracking-wider leading-none shadow-xs">
+                    SANTINO
+                  </span>
                 </div>
 
-                {/* Comodines Mini Dock */}
-                <div className="flex items-center gap-1 bg-slate-950/90 border-2 border-yellow-500/80 p-1 pixel-box shrink-0">
+                {/* Speech Bubble */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch py-0.5">
+                  <div className="flex items-center justify-between gap-1 mb-0.5">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px]">🎙️</span>
+                      <span className="font-pixel text-[8px] text-yellow-300">ESTUDIO PIRATA</span>
+                    </div>
+                    {streak > 1 && (
+                      <span className="font-pixel text-[7px] bg-yellow-500 text-black px-1.5 py-0.5 font-black border border-black animate-pulse">
+                        RACHA x{streakMultiplier}
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-pixel-lcd text-xs sm:text-sm text-yellow-100 leading-snug line-clamp-2">
+                    "{santinoSpeech}"
+                  </p>
+                </div>
+              </div>
+
+              {/* Comodines Piratas Toolbar */}
+              <div className="flex items-center justify-between gap-1.5 bg-slate-950/90 border-2 border-yellow-500/80 px-2 py-1 pixel-box shrink-0">
+                <span className="font-pixel text-[8px] text-yellow-400 uppercase tracking-wider hidden xs:inline">
+                  COMODINES:
+                </span>
+                <div className="grid grid-cols-3 gap-1.5 flex-1">
                   <button
                     onClick={handleFiftyFifty}
                     disabled={wildcardFifty <= 0 || isAnswered || eliminatedOptions.length > 0}
-                    title="50:50"
-                    className={`px-1.5 py-1 border flex flex-col items-center justify-center min-w-[36px] ${
+                    title="50:50 - Elimina dos opciones incorrectas"
+                    className={`min-h-[34px] px-2 py-0.5 border flex items-center justify-center gap-1.5 transition-all ${
                       wildcardFifty > 0 && !isAnswered && eliminatedOptions.length === 0
-                        ? 'bg-amber-500 border-yellow-300 text-black pixel-btn-yellow active:translate-y-0.5'
+                        ? 'bg-amber-500 hover:bg-amber-400 border-yellow-300 text-black pixel-btn-yellow active:translate-y-0.5'
                         : 'bg-slate-900 border-slate-700 text-slate-600 opacity-40 cursor-not-allowed'
                     }`}>
-                    <span className="font-pixel text-[8px] font-black">50:50</span>
-                    <span className="font-pixel text-[7px]">({wildcardFifty})</span>
+                    <img src={ASSETS_MANIFEST.wildcard_fifty} alt="50:50" className="w-3.5 h-3.5 object-contain" />
+                    <span className="font-pixel text-[8px] font-black">50:50 ({wildcardFifty})</span>
                   </button>
 
                   <button
                     onClick={handleHint}
                     disabled={wildcardHint <= 0 || isAnswered || !!activeHint}
-                    title="Pista"
-                    className={`px-1.5 py-1 border flex flex-col items-center justify-center min-w-[36px] ${
+                    title="Pista - Pídele un dato a Santino"
+                    className={`min-h-[34px] px-2 py-0.5 border flex items-center justify-center gap-1.5 transition-all ${
                       wildcardHint > 0 && !isAnswered && !activeHint
-                        ? 'bg-amber-500 border-yellow-300 text-black pixel-btn-yellow active:translate-y-0.5'
+                        ? 'bg-amber-500 hover:bg-amber-400 border-yellow-300 text-black pixel-btn-yellow active:translate-y-0.5'
                         : 'bg-slate-900 border-slate-700 text-slate-600 opacity-40 cursor-not-allowed'
                     }`}>
-                    <span className="font-pixel text-[8px] font-black">PISTA</span>
-                    <span className="font-pixel text-[7px]">({wildcardHint})</span>
+                    <img src={ASSETS_MANIFEST.wildcard_hint} alt="Pista" className="w-3.5 h-3.5 object-contain" />
+                    <span className="font-pixel text-[8px] font-black">PISTA ({wildcardHint})</span>
                   </button>
 
                   <button
                     onClick={handleFreeze}
                     disabled={wildcardFreeze <= 0 || isAnswered || isTimerFrozen}
-                    title="Pausa"
-                    className={`px-1.5 py-1 border flex flex-col items-center justify-center min-w-[36px] ${
+                    title="Pausa - Congela el cronómetro"
+                    className={`min-h-[34px] px-2 py-0.5 border flex items-center justify-center gap-1.5 transition-all ${
                       wildcardFreeze > 0 && !isAnswered && !isTimerFrozen
-                        ? 'bg-cyan-500 border-cyan-200 text-black pixel-btn-yellow active:translate-y-0.5'
+                        ? 'bg-cyan-500 hover:bg-cyan-400 border-cyan-200 text-black pixel-btn-yellow active:translate-y-0.5'
                         : 'bg-slate-900 border-slate-700 text-slate-600 opacity-40 cursor-not-allowed'
                     }`}>
-                    <span className="font-pixel text-[8px] font-black">PAUSA</span>
-                    <span className="font-pixel text-[7px]">({wildcardFreeze})</span>
+                    <img src={ASSETS_MANIFEST.wildcard_freeze} alt="Pausa" className="w-3.5 h-3.5 object-contain" />
+                    <span className="font-pixel text-[8px] font-black">PAUSA ({wildcardFreeze})</span>
                   </button>
                 </div>
               </div>
@@ -2327,14 +2430,29 @@ export default function App() {
       {gameState.status === 'START' && (
         <MenuOverlay tone="neutral" zIndex={40}>
           <div className="w-full max-w-md bg-slate-950 border-4 border-yellow-400 p-6 md:p-8 flex flex-col items-center pixel-box shadow-2xl">
-            {/* Pirate Trophy Graphic */}
-            <div className="relative mb-3">
-              <img
-                src={ASSETS_MANIFEST.trophy}
-                alt="Trofeo Pirata"
-                className="w-20 h-20 md:w-24 md:h-24 object-contain animate-pulse"
-              />
-              <Sparkles className="w-6 h-6 text-yellow-400 absolute -top-1 -right-2 animate-spin" />
+            {/* Pirate Host & Trophy Graphic */}
+            <div className="flex items-end justify-center gap-6 mb-3">
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center">
+                  <canvas
+                    ref={santinoStartCanvasRef}
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-contain filter drop-shadow-[0_4px_6px_rgba(0,0,0,0.6)]"
+                  />
+                </div>
+                <span className="font-pixel text-[7px] bg-yellow-400 text-black px-1.5 py-0.5 border border-black font-bold tracking-wider mt-0.5">
+                  SANTINO
+                </span>
+              </div>
+              <div className="relative flex flex-col items-center pb-2">
+                <img
+                  src={ASSETS_MANIFEST.trophy}
+                  alt="Trofeo Pirata"
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-contain animate-pulse"
+                />
+                <Sparkles className="w-5 h-5 text-yellow-400 absolute -top-1 -right-2 animate-spin" />
+              </div>
             </div>
 
             <h1 className="font-pixel text-lg md:text-xl text-center text-yellow-400 mb-2 leading-relaxed tracking-wider">
