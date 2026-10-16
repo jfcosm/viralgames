@@ -79,6 +79,9 @@ const ASSETS_MANIFEST: Record<string, string> = {
   santino_run: 'assets/images/santino_host_run.png',
   santino_jump: 'assets/images/santino_host_jump.png',
   santino_hurt: 'assets/images/santino_host_hurt.png',
+  gk_ready: 'assets/images/gk_ready.png',
+  gk_dive: 'assets/images/gk_dive.png',
+  gk_idle: 'assets/images/gk_idle.png',
 };
 
 // Shuffled Question with randomized option order
@@ -572,6 +575,12 @@ export default function App() {
   const initGame = useCallback(
     (mode: GameMode = 'CLASSIC') => {
       setGameMode(mode);
+
+      if (mode === 'PENALTY') {
+        startPenaltyBonusRound(0);
+        return;
+      }
+
       const questionsCount =
         mode === 'TIME_ATTACK'
           ? 20
@@ -741,6 +750,12 @@ export default function App() {
   // Resume Trivia after penalty shootout summary
   const handleResumeTriviaAfterPenalty = useCallback(() => {
     gameAudio.playConfirmSelect();
+
+    if (gameMode === 'PENALTY') {
+      setGameState((prev) => ({...prev, status: 'START'}));
+      return;
+    }
+
     const resumeIndex = resumeQuestionIndexRef.current;
 
     if (resumeIndex < questionDeck.length) {
@@ -1278,19 +1293,21 @@ export default function App() {
 
     drawBackground(ctx, bgImage, canvasWidth, canvasHeight, '#080c14');
 
-    // Studio Stage Atmosphere & Vignette
-    const grad = ctx.createRadialGradient(
-      canvasWidth * 0.5,
-      canvasHeight * 0.5,
-      canvasWidth * 0.15,
-      canvasWidth * 0.5,
-      canvasHeight * 0.5,
-      canvasWidth * 0.75,
-    );
-    grad.addColorStop(0, 'rgba(0,0,0,0.1)');
-    grad.addColorStop(1, 'rgba(4, 7, 14, 0.85)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    // Studio Stage Atmosphere & Vignette (Applied only in quiz, keep stadium bright during penalties)
+    if (gameState.status !== 'PENALTY_SHOOTOUT') {
+      const grad = ctx.createRadialGradient(
+        canvasWidth * 0.5,
+        canvasHeight * 0.5,
+        canvasWidth * 0.15,
+        canvasWidth * 0.5,
+        canvasHeight * 0.5,
+        canvasWidth * 0.75,
+      );
+      grad.addColorStop(0, 'rgba(0,0,0,0.1)');
+      grad.addColorStop(1, 'rgba(4, 7, 14, 0.85)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
 
     // Left 1/3 Studio Spotlight / Podium Area Highlight
     if (gameState.status === 'PLAYING') {
@@ -1372,62 +1389,144 @@ export default function App() {
       ctx.fillRect(goalX - 2, goalY - 2, 8, 8);
       ctx.fillRect(goalX + goalW - 6, goalY - 2, 8, 8);
 
-      // 3. Goalkeeper Standing / Diving on Goal Line
+      // 3. Goalkeeper Standing / Diving on Goal Line (16-bit Pixel Art)
       ctx.save();
-      const isDiving = pen.goalieDiving && pen.phase === 'SHOOTING';
       const keeperBaseY = pen.goalieY;
 
-      // Shadow on pitch
+      // Dynamic Grass Shadow
       ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
       ctx.beginPath();
-      ctx.ellipse(pen.goalieX, goalBottom + 2, 28, 8, 0, 0, Math.PI * 2);
+      // Shrink shadow slightly if airborne to give 3D depth
+      const heightAboveGround = Math.max(0, goalBottom - keeperBaseY);
+      const shadowW = Math.max(16, 32 - heightAboveGround * 0.4);
+      const shadowH = Math.max(4, 9 - heightAboveGround * 0.15);
+      ctx.ellipse(pen.goalieX, goalBottom + 2, shadowW, shadowH, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      if (isDiving) {
-        ctx.translate(pen.goalieX, keeperBaseY - 35);
-        ctx.rotate(pen.goalieDiveDir * 0.45);
-        ctx.translate(-pen.goalieX, -(keeperBaseY - 35));
-      }
+      const gkReadyImg = assets['gk_ready'];
+      const gkDiveImg = assets['gk_dive'];
 
-      const goalieW = 46;
-      const goalieH = 72;
-      const gX = pen.goalieX - goalieW / 2;
-      const gY = keeperBaseY - goalieH;
+      if (gkReadyImg && gkDiveImg && gkReadyImg.complete && gkDiveImg.complete) {
+        ctx.imageSmoothingEnabled = false; // Authentic 16-bit arcade crispness
 
-      // Goalkeeper Body (Aurinegro striped jersey)
-      ctx.fillStyle = '#0F172A';
-      ctx.fillRect(gX, gY + 22, goalieW, 30);
-      ctx.fillStyle = '#FACC15';
-      ctx.fillRect(gX + 6, gY + 22, 10, 30);
-      ctx.fillRect(gX + 28, gY + 22, 10, 30);
+        const keeperW = 88;
+        const keeperH = 88;
+        let spriteImg = gkReadyImg;
+        let frameIdx = 15;
+        let flipX = false;
+        let yOffset = 10; // align cleats to grass line
 
-      // Goalkeeper Shorts & Cleats
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(gX + 4, gY + 52, goalieW - 8, 16);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(gX + 6, gY + 68, 12, 6);
-      ctx.fillRect(gX + goalieW - 18, gY + 68, 12, 6);
+        if (pen.phase === 'AIM' || pen.phase === 'POWER') {
+          // Animated ready stance on the line: bouncing knees, alert hands (frames 13..15)
+          const bounceSeq = [13, 14, 15, 14];
+          const bounceIdx = Math.floor(performance.now() / 200) % bounceSeq.length;
+          frameIdx = bounceSeq[bounceIdx];
+          spriteImg = gkReadyImg;
+        } else if (pen.phase === 'SHOOTING') {
+          if (pen.flightTimer < pen.goalieReactionDelay) {
+            // Reaction delay: tense crouch watching the kicker
+            frameIdx = 15;
+            spriteImg = gkReadyImg;
+          } else {
+            const isCenterDive = Math.abs(pen.goalieTargetX - penaltySpotX) < 32;
+            if (isCenterDive) {
+              // High vertical jump with both hands reaching up (Frame 8 in gk_ready)
+              frameIdx = 8;
+              spriteImg = gkReadyImg;
+              yOffset = 4;
+            } else {
+              // Lateral acrobatic dive towards post
+              spriteImg = gkDiveImg;
+              const diveT = Math.min(
+                1,
+                Math.max(
+                  0,
+                  (pen.flightTimer - pen.goalieReactionDelay) /
+                    Math.max(0.01, pen.flightDuration - pen.goalieReactionDelay),
+                ),
+              );
+              // Frames 7..14 in gk_dive: windup -> horizontal leap -> full stretch
+              const diveFrames = [7, 8, 9, 10, 11, 12, 13, 14];
+              const fSeqIdx = Math.min(
+                diveFrames.length - 1,
+                Math.floor(diveT * diveFrames.length),
+              );
+              frameIdx = diveFrames[fSeqIdx];
+              flipX = pen.goalieDiveDir < 0; // gk_dive naturally faces right
+              yOffset = 14;
+            }
+          }
+        } else if (pen.phase === 'RESULT') {
+          const isCenterDive = Math.abs(pen.goalieTargetX - penaltySpotX) < 32;
+          if (pen.isGoal) {
+            // Conceded goal
+            if (isCenterDive) {
+              frameIdx = 12; // Kneeling on pitch
+              spriteImg = gkReadyImg;
+            } else {
+              frameIdx = 15; // Grounded on turf after failing to reach
+              spriteImg = gkDiveImg;
+              flipX = pen.goalieDiveDir < 0;
+              yOffset = 16;
+            }
+          } else {
+            // Saved or Woodwork rebound!
+            if (isCenterDive) {
+              frameIdx = 8; // Celebrating vertical block with gloves high
+              spriteImg = gkReadyImg;
+              yOffset = 4;
+            } else {
+              frameIdx = 14; // Reached ball at maximum extension
+              spriteImg = gkDiveImg;
+              flipX = pen.goalieDiveDir < 0;
+              yOffset = 14;
+            }
+          }
+        }
 
-      // Goalkeeper Head & Bandana
-      ctx.fillStyle = '#FBBF24';
-      ctx.beginPath();
-      ctx.arc(pen.goalieX, gY + 12, 14, 0, Math.PI * 2);
-      ctx.fill();
-      // Pirate Yellow Bandana
-      ctx.fillStyle = '#EAB308';
-      ctx.fillRect(pen.goalieX - 14, gY - 2, 28, 8);
-      // Eye-patch
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(pen.goalieX + (pen.goalieDiveDir >= 0 ? 4 : -4), gY + 11, 4, 0, Math.PI * 2);
-      ctx.fill();
+        // Each frame is 64x64 in a 1024x64 strip
+        const sx = (frameIdx % 16) * 64;
+        const sy = 0;
+        const sw = 64;
+        const sh = 64;
 
-      // Goalkeeper Gloves
-      ctx.fillStyle = '#F59E0B';
-      if (isDiving) {
-        ctx.fillRect(pen.goalieX + (pen.goalieDiveDir > 0 ? 24 : -38), gY + 10, 16, 16);
-        ctx.fillRect(pen.goalieX + (pen.goalieDiveDir > 0 ? 16 : -30), gY + 28, 14, 14);
+        const dx = pen.goalieX - keeperW / 2;
+        const dy = keeperBaseY - keeperH + yOffset;
+
+        if (flipX) {
+          ctx.translate(dx + keeperW, dy);
+          ctx.scale(-1, 1);
+          ctx.drawImage(spriteImg, sx, sy, sw, sh, 0, 0, keeperW, keeperH);
+        } else {
+          ctx.drawImage(spriteImg, sx, sy, sw, sh, dx, dy, keeperW, keeperH);
+        }
       } else {
+        // Procedural Fallback while images load
+        const goalieW = 46;
+        const goalieH = 72;
+        const gX = pen.goalieX - goalieW / 2;
+        const gY = keeperBaseY - goalieH;
+        ctx.fillStyle = '#0F172A';
+        ctx.fillRect(gX, gY + 22, goalieW, 30);
+        ctx.fillStyle = '#FACC15';
+        ctx.fillRect(gX + 6, gY + 22, 10, 30);
+        ctx.fillRect(gX + 28, gY + 22, 10, 30);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(gX + 4, gY + 52, goalieW - 8, 16);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(gX + 6, gY + 68, 12, 6);
+        ctx.fillRect(gX + goalieW - 18, gY + 68, 12, 6);
+        ctx.fillStyle = '#FBBF24';
+        ctx.beginPath();
+        ctx.arc(pen.goalieX, gY + 12, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#EAB308';
+        ctx.fillRect(pen.goalieX - 14, gY - 2, 28, 8);
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(pen.goalieX + (pen.goalieDiveDir >= 0 ? 4 : -4), gY + 11, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#F59E0B';
         ctx.fillRect(gX - 10, gY + 22, 14, 14);
         ctx.fillRect(gX + goalieW - 4, gY + 22, 14, 14);
       }
@@ -1557,10 +1656,11 @@ export default function App() {
         gameState.status === 'PENALTY_SHOOTOUT' ||
         gameState.status === 'VICTORY')
     ) {
-      const santinoW = 280;
-      const santinoH = 280;
-      const santinoX = canvasWidth * 0.08;
-      const santinoY = canvasHeight * 0.42;
+      const isPenalty = gameState.status === 'PENALTY_SHOOTOUT';
+      const santinoW = isPenalty ? 230 : 280;
+      const santinoH = isPenalty ? 230 : 280;
+      const santinoX = isPenalty ? canvasWidth * 0.02 : canvasWidth * 0.08;
+      const santinoY = isPenalty ? canvasHeight * 0.48 : canvasHeight * 0.42;
 
       // Studio Podium / Desk
       ctx.fillStyle = '#0f172a';
@@ -2484,6 +2584,16 @@ export default function App() {
                 className="min-w-[48px] min-h-[48px] w-full bg-slate-900 hover:bg-slate-800 text-yellow-300 border-2 border-yellow-400 px-4 py-3 font-pixel text-[11px] pixel-btn-dark flex items-center justify-center gap-2 active:translate-y-0.5">
                 <Zap className="w-4 h-4 text-yellow-400" />
                 <span>CONTRARRELOJ (60s)</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  gameAudio.playConfirmSelect();
+                  initGame('PENALTY');
+                }}
+                className="min-w-[48px] min-h-[48px] w-full bg-emerald-950/90 hover:bg-emerald-900 text-yellow-300 border-2 border-emerald-500 px-4 py-3 font-pixel text-[11px] pixel-btn-dark flex items-center justify-center gap-2 active:translate-y-0.5 shadow-lg">
+                <span>⚽</span>
+                <span>TANDA DE PENALES (3 TIROS)</span>
               </button>
 
               <button
